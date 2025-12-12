@@ -2,7 +2,7 @@
 This document serves as a basic roadmap subject to change, and will be updated as the project evolves.
 
 ## 1. Project Structure (Early, TBD)
-
+```
 Issue-Tracker/
 ├── backend/              # Contains all server-side code and APIs
 │   ├── src/              # Main source code for backend services
@@ -30,7 +30,7 @@ Issue-Tracker/
 ├── .gitignore            # Ignored files and folders
 ├── LICENSE               # MIT license
 └── README.md             # Project overview and quick start guide
-
+```
 ## 2. System Diagram
 
 ![Issue Tracker System Diagram](system-diagram.png)
