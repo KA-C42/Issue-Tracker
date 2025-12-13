@@ -20,7 +20,7 @@ A lightweight issue tracker for managing shared projects and issues among indivi
 - **Architecture:** High-level system structure, core components, technology choices, and data model  
   [docs/Architecture.md](docs/Architecture.md) (early / evolving)
 - **Test Strategy:** Testing approach and test levels  
-  [docs/Test_Strategy.md](docs/Test_Strategy.md) (planned)
+  [docs/Test_Strategy.md](docs/Test_Strategy.md) 
 
 
 ## Tech Stack
