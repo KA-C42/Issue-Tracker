@@ -21,6 +21,8 @@ A lightweight issue tracker for managing shared projects and issues among indivi
   [docs/Architecture.md](docs/Architecture.md) (early / evolving)
 - **Test Strategy:** Testing approach and test levels  
   [docs/Test_Strategy.md](docs/Test_Strategy.md) 
+- **Schema:** Database tables, relationships, and key constraints
+  [docs/Schema.md](docs/Schema.md)
 
 
 ## Tech Stack
@@ -38,18 +40,23 @@ Full-stack web application built with React, Node.js/TypeScript, and Supabase (A
 
 
 ## Tooling & Code Quality
+CI checks planned, enforced once scaffolding in place  
 - ESLint + Prettier enforced locally (on save)
 - CI checks on PR:
   - TypeScript typecheck
-  - Linting
+  - Linting (ESLint)
+  - Formatting (Prettier)
   - Automated tests
+- CI checks on push:
+  - Formatting (Prettier)
+
 
 
 ## Project Status
 - [x] Requirements defined
 - [x] High-level architecture defined
-- [ ] Database schema defined
-- [ ] Test strategy defined
+- [x] Database schema defined
+- [x] Test strategy defined
 - [ ] Backend / frontend scaffolding
 - [ ] CI pipeline (typecheck, lint, tests)
 - [ ] Backend feature implementation

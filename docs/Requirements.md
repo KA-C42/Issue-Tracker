@@ -13,9 +13,9 @@ This project is a simplified issue tracker supporting shared projects and issues
     * Project member  
         * Project owner  
         * Project contributor  
-        * Issue owner  
+        * Issue creator  
         * Issue assignee  
-        * Comment owner  
+        * Comment author  
 
 
 ## 3. Scope
@@ -131,7 +131,7 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
 
   Acceptance Criteria:  
   1 - Project owner can access a list of participants  
-  2 - Project owner can view invitation status (pending, accepted, rejected, repealed)  
+  2 - Project owner can view invitation status (pending, accepted, rejected, revoked)  
 
   </details>
 
@@ -142,7 +142,7 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
   1 - Project owner can invite other users to be project contributors  
   2 - Contributor invitations require a valid email address or username format matching another user  
   3 - Upon successful or failing invitation, success/failure message/error is displayed to project owner  
-  4 - Project owner can repeal contributor invitations  
+  4 - Project owner can revoke contributor invitations  
 
   </details>
 
@@ -188,23 +188,23 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
 
   Acceptance Criteria:  
   1 - The project dashboard allows members to create a new issue  
-  2 - Issue requires a unique title  
+  2 - Issue requires a title and unique code per project
   3 - Issue creation has optional fields: description, code, assignee (selected from list of project members), status (selected from "Backlog", "In Progress", "Done")  
   4 - Issue is automatically assigned a unique code if none is given  
   5 - Default status is "Backlog"  
   6 - If a project contributor creates an issue with the status "In Progress", the issue is assigned to them  
   7 - If a project owner creates an issue with that status "In Progress", they must choose an assignee  
-  8 - An issue has one owner, the project member who created it  
+  8 - An issue has one creator 
   9 - On successful creation, the form closes, success message displayed, and issue added to project  
   10 - On unsuccessful creation, failure message is displayed explaining the error
 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>2 - As an issue owner or project owner, I want to modify issue details so that I can keep issue information current</strong></summary>
+    <summary><strong>2 - As an issue creator or project owner, I want to modify issue details so that I can keep issue information current</strong></summary>
 
   Acceptance Criteria:  
-  1 - The expanded issue modal allows the issue owner and project owner to edit its fields  
+  1 - The expanded issue modal allows the issue creator and project owner to edit its fields  
   2 - On attempting to save invalid input, edit is rejected and error message displayed  
   3 - On successful edit, changes are visible  
 
@@ -219,11 +219,11 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>4 - As an issue owner or project owner, I want to delete an issue so that I can ensure relevance of listed issues</strong></summary>
+    <summary><strong>4 - As an issue creator or project owner, I want to delete an issue so that I can ensure relevance of listed issues</strong></summary>
 
   Acceptance Criteria:  
-  1 - From the issue modal, the issue owner or project owner can delete the issue  
-  2 - Upon deletion, the issue assignee, issue owner, and project owner are notified  
+  1 - From the issue modal, the issue creator or project owner can delete the issue  
+  2 - Upon deletion, the issue assignee, issue creator, and project owner are notified  
 
   </details>
 
@@ -259,28 +259,28 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
   1 - The issue modal prompts any project member for a comment  
   2 - Comments only require and allow a text input  
   3 - On attempting to save invalid input, creation is rejected and error message displays with explanation  
-  4 - Upon saving, the comment is displayed with the issue modal along with the name of the comment owner and datetime of posting  
+  4 - Upon saving, the comment is displayed with the issue modal along with the name of the comment author and datetime of posting  
 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>2 - As a comment owner, I want to edit my comment so that I can keep the comment relevant and correct</strong></summary>
+    <summary><strong>2 - As a comment author, I want to edit my comment so that I can keep the comment relevant and correct</strong></summary>
 
   Acceptance Criteria:  
-  1 - A comment owner can interact with their comment to begin editing it  
+  1 - A comment author can interact with their comment to begin editing it  
   2 - On attempting to save invalid input, edit is rejected and error message displays with explanation  
   3 - Upon saving, the edited content shown and comment marked as edited with the time of the most recent edit  
 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>3 - As a comment owner or project owner, I want to delete a comment so that I can protect the project from irrelevant or harmful comments</strong></summary>
+    <summary><strong>3 - As a comment author or project owner, I want to delete a comment so that I can protect the project from irrelevant or harmful comments</strong></summary>
 
   Acceptance Criteria:  
-  1 - Comment owner can access a delete option for comments owned by them  
+  1 - Comment author can access a delete option for comments owned by them  
   2 - Project owners can access a delete option for comments within projects they own  
   3 - Upon deletion, comment is removed  
-  4 - If deleted by the project owner, comment owner is notified  
+  4 - If deleted by the project owner, comment author is notified  
 
   </details>
 
@@ -401,8 +401,8 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
 
   Acceptance Criteria:  
   1 - Issue cards are interactable and expand into larger issue modal  
-  2 - Issue modals display all fillable issue fields, as well as the issue owner, datetime created, and datetime of last status change  
-  3 - Issue modal has visual indication that issue fields are editable when viewed by the issue owner or project owner  
+  2 - Issue modals display all fillable issue fields, as well as the issue creator, datetime created, and datetime of last status change  
+  3 - Issue modal has visual indication that issue fields are editable when viewed by the issue creator or project owner  
   4 - Issue modal has visual indication that status and assignee are editable when viewed by the issue assignee  
   5 - Issue modals are collapsible back to issue cards  
 

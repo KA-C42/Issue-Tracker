@@ -82,9 +82,15 @@ Will use a relational model with PostreSQL through Supabase
 **users**
 Stores: User profiles
 Relationships:
-- projects (as creator): one-to-many
-- projects (as contributor): many-to-many (through project_contributors)
-- issues: one-to-many
+ - projects (as creator): one-to-many
+ - projects (as contributor): many-to-many (through project_contributors)
+ - issues (creator): one-to-many
+ - issues (assignee): one-to-many
+ - comments: one-to-many
+ - notifications (actor): one-to-many
+ - sent_notifications (recipient): one-to-many
+ - invitations (sender): one-to-many
+ - invitations (recipient): one-to-many
 
 **project_contributors**
 Stores: junction table tracking to match contributing users with projects
@@ -95,21 +101,49 @@ Relationships:
 **projects**
 Stores: Workspaces to group issues by
 Relationships: 
-- users (creator): many-to-one
-- users (contributors): many-to-many (through project_contributors)
-- issues: one-to-many
+ - users (creator): many-to-one
+ - users (contributors): many-to-many (through project_contributors)
+ - issues: one-to-many
+ - notifications: one-to-many (optional, polymorphic in code)
 
 **issues**
 Stores: Single issues with relevant details
 Relationships:
-- users: many-to-one
-- projects: many-to-one
+ - users (creator): many-to-one
+ - users (assignee): many-to-one
+ - projects: many-to-one
+ - comments: one-to-many
+ - notifications: one-to-many (optional, polymorphic in code)
 
 **comments**
 Stores: User-created comments left in response to issues
 Relationships:
-- users: many-to-one
-- issues: many-to-one
+ - users: many-to-one
+ - issues: many-to-one
+ - notifications: one-to-many (optional, polymorphic in code)
+
+**notifications**
+Stores: In-app notification data
+Relationships:
+ - users (actor): many-to-one
+ - invitations | projects | issues | comments: many-to-one (optional polymorphic relationship, enforced in code)
+
+**notification_templates**
+Stores: Templates for defining notification messages
+
+**sent_notifications**
+Stores: Which notifications are sent to which users, and when they were seen
+Relationships:
+ - users (recipient): many-to-one
+ - notifications: many-to-one
+
+**invitations**
+Stores: Project invitations sent from a project owner to another user
+Relationships:
+ - users (sender/project owner): many-to-one
+ - users (recipient): many-to-one
+ - projects: many-to-one
+ - notifications: one-to-many (optional, polymorphic in code)
 
 ## 7. CI/CD
 
@@ -119,7 +153,7 @@ Relationships:
 
 ## 8. Testing Strategy
 
-Detailed testing strategy found in `Test_Plan.md`
+Detailed testing strategy found in `Test_Strategy.md`
 
 ### 8.1 Testing Frameworks
 
