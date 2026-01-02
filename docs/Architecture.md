@@ -16,11 +16,12 @@ Issue-Tracker/
 │       └── integration/
 ├── frontend/             # Contains all client-side code for user interfaces
 │   ├── src/              # Main source code for frontend applications
+│   │   ├── api/          # Access backend API
 │   │   ├── components/   # Reusable UI components
 │   │   └── pages/        # Application pages/views
 │   ├── public/           # Publicly accessible assets (e.g., index.html)
 │   └── tests/            # Frontend unit and E2E tests
-│       ├── unit/         
+│       ├── ui/         
 │       └── e2e/
 ├── shared/               # Shared code used by both frontend and backend
 │   ├── types/            # Shared TypeScript/interface definitions
@@ -157,9 +158,10 @@ Detailed testing strategy found in `Test_Strategy.md`
 
 ### 8.1 Testing Frameworks
 
-**Unit and Integration:** Jest
+**Unit and Integration:** Vitest
 **E2E:** Playwright
-**API:** Jest + Supertest + Postman/Newman
+**API:** Vitest + Supertest + Postman/Newman
+**UI:** React testing library
 
 ## 9. Future Considerations
 - Role-based permissions

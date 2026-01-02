@@ -1,0 +1,41 @@
+{
+  "name": "issue-tracker",
+  "version": "0.0.2",
+  "description": "issue tracker web app",
+  "homepage": "https://github.com/KA-C42/Issue-Tracker#readme",
+  "bugs": {
+    "url": "https://github.com/KA-C42/Issue-Tracker/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KA-C42/Issue-Tracker.git"
+  },
+  "license": "MIT",
+  "author": "Kacy Cote ( KA-C42 )",
+  "type": "module",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "npm run test --prefix backend",
+    "test:frontend": "npm run test --prefix frontend",
+    "dev": "concurrently -n backend,frontend -c auto \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier . --check",
+    "format:fix": "prettier . --write"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "globals": "^17.0.0",
+    "prettier": "3.7.4",
+    "typescript-eslint": "^8.51.0"
+  }
+}
