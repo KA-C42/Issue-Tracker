@@ -162,3 +162,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+playwright-report
+playwright-results
