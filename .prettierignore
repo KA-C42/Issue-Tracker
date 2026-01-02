@@ -1,0 +1,11 @@
+dist
+build
+coverage
+node_modules
+.vite
+.playwright
+*.log
+docs
+*.md
+playwright-results
+playwright-report
