@@ -1,0 +1,40 @@
+name: Test CI
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+
+jobs:
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm ci --prefix frontend
+          npm ci --prefix backend
+
+      - name: Backend Vitest
+        run: npm run test --prefix backend
+
+      - name: Frontend Vitest
+        run: npm run test:ui --prefix frontend
+
+      - name: Playwright e2e
+        working-directory: frontend
+        run: npx playwright install --with-deps
+        run: npm run test:e2e
+
