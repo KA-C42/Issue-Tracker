@@ -5,7 +5,8 @@
     "build": "npx tsc",
     "start": "node dist/server.js",
     "dev": "concurrently --kill-others \"npx tsc -w\" \"nodemon dist/server.js\"",
-    "test": "npx vitest run"
+    "test": "npx vitest run",
+    "typecheck": "npx tsc --noEmit"
   },
   "type": "module",
   "dependencies": {
