@@ -75,16 +75,18 @@ export default defineConfig({
   webServer: [
     {
       cwd: '../backend',
-      command: 'npm run dev',
+      command: 'npm run build && npm run start',
       url: 'http://localhost:3000',
       name: 'Backend',
       reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
     },
     {
       command: 'npm run dev',
       url: 'http://localhost:5173',
       name: 'Frontend',
       reuseExistingServer: !process.env.CI,
+      timeout: 180_000,
     },
   ],
 })

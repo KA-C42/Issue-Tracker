@@ -1,6 +1,11 @@
 name: Quality Check CI
-on: [push, pull_request]
-
+on: 
+  push:
+    branches: ['**']
+  pull_request: 
+    branches: ['main']
+    types: [opened, reopened, ready_for_review]
+    
 jobs:
   checks:
     name: Quality Checks
