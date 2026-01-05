@@ -9,3 +9,4 @@ docs
 *.md
 playwright-results
 playwright-report
+*.yml

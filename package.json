@@ -24,7 +24,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier . --check",
-    "format:fix": "prettier . --write"
+    "format:fix": "prettier . --write",
+    "typecheck": "npm run typecheck --prefix frontend && npm run typecheck --prefix backend"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

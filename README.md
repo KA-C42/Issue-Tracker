@@ -34,7 +34,7 @@ Full-stack web application built with React, Node.js/TypeScript, and Supabase (A
 
 **Backend Services:** Supabase (Auth + PostgreSQL)
 
-**Testing:** Jest (unit & integration), Supertest (API whitebox), Playwright (E2E)
+**Testing:** Vitest (unit & integration), Supertest (API whitebox), Playwright (E2E)
 
 **CI:** GitHub Actions
 
@@ -42,13 +42,13 @@ Full-stack web application built with React, Node.js/TypeScript, and Supabase (A
 ## Tooling & Code Quality
 CI checks planned, enforced once scaffolding in place  
 - ESLint + Prettier enforced locally (on save)
-- CI checks on PR:
-  - TypeScript typecheck
+- CI checks on PR or push to main:
+  - Automated tests (Vitest, Playwright)
+- CI checks on PR or push anywhere:
+  - Typecheck
+  - Formatting (Prettier)
   - Linting (ESLint)
-  - Formatting (Prettier)
-  - Automated tests
-- CI checks on push:
-  - Formatting (Prettier)
+  - Build
 
 
 
@@ -57,7 +57,7 @@ CI checks planned, enforced once scaffolding in place
 - [x] High-level architecture defined
 - [x] Database schema defined
 - [x] Test strategy defined
-- [ ] Backend / frontend scaffolding
-- [ ] CI pipeline (typecheck, lint, tests)
+- [x] Backend / frontend scaffolding
+- [x] CI pipeline (typecheck, lint, tests)
 - [ ] Backend feature implementation
 - [ ] Frontend feature implementation
