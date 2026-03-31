@@ -7,7 +7,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import prettier from 'eslint-config-prettier'
 
 export default defineConfig([
-  // 0) Ignore built output
+  // Ignore built output
   {
     ignores: [
       '**/dist/**',
@@ -19,13 +19,25 @@ export default defineConfig([
     ],
   },
 
-  // 1) Base eslint recommended rules
+  // Base eslint recommended rules
   js.configs.recommended,
 
-  // 2) TypeScript recommended rules
+  // TypeScript recommended rules
   ...tseslint.configs.recommended,
 
-  // 3) CLIENT (Vite + React) — browser globals + React rules
+  // Allow dev-specified unused variables
+  {
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+
+  // CLIENT (Vite + React) — browser globals + React rules
   {
     files: ['frontend/**/*.{ts,tsx,js,jsx}'],
     // extends: [
@@ -46,7 +58,7 @@ export default defineConfig([
     ...reactRefresh.configs.vite,
   },
 
-  // 5) SERVER (Express) — Node globals
+  // SERVER (Express) — Node globals
   {
     files: ['backend/**/*.{ts,js}'],
     languageOptions: {
@@ -54,6 +66,6 @@ export default defineConfig([
     },
   },
 
-  // 6) Prevent prettier crossover
+  // Prevent prettier crossover
   prettier,
 ])
