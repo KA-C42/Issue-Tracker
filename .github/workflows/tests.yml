@@ -10,6 +10,23 @@ jobs:
   tests:
     name: Tests
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        # Docker Hub image
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,6 +38,15 @@ jobs:
             frontend/package-lock.json
             backend/package-lock.json
 
+      - name: Run DB migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: |
+          for file in supabase/migrations/*.sql; do
+            echo "Running $file"
+            psql $DATABASE_URL -f "$file"
+          done
+
       - name: Install dependencies
         run: |
           npm ci
@@ -28,12 +54,16 @@ jobs:
           npm ci --prefix backend
 
       - name: Backend Vitest
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: npm run test --prefix backend
 
       - name: Frontend Vitest
         run: npm run test:ui --prefix frontend
 
       - name: Playwright e2e
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         working-directory: frontend
         run: |
           npx playwright install --with-deps
