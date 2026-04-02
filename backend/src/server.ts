@@ -1,5 +1,6 @@
-// backend/src/api/server.ts
+// backend/src/server.ts
 
+import 'dotenv/config'
 import createApp from './api/app.js'
 
 const port = 3000
