@@ -59,7 +59,6 @@ describe('/users', () => {
 
     // create user to test/retrieve
     const created = await request(app).post('/users').send(payload).expect(201)
-    console.log(created.body)
 
     const response = await request(app)
       .get(`/users/${created.body.id}`)
