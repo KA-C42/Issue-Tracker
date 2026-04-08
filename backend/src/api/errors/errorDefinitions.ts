@@ -22,6 +22,33 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 409,
     message: 'Requested username is already in use',
   },
+
+  // project route errors
+  MISSING_OWNER_ID: {
+    statusCode: 400,
+    message: 'Invalid request due to missing owner_id',
+  },
+  MISSING_PROJECT_ID: {
+    statusCode: 400,
+    message: 'Invalid request due to missing project id',
+  },
+  MISSING_PROJECT_NAME: {
+    statusCode: 400,
+    message: 'Invalid request due to missing project name',
+  },
+  PROJECT_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Requested project not found',
+  },
+  PROJECT_NAME_CONFLICT: {
+    statusCode: 409,
+    message: 'Requested project name is already in use by the user',
+  },
+  NO_PROJECT_FIELDS_PROVIDED: {
+    statusCode: 400,
+    message:
+      'Invalid request due to lack of updateable fields, provide name or description',
+  },
 }
 
 export function getErrorDef(code: string) {
