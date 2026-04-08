@@ -1,7 +1,7 @@
 # Issue-Tracker
 
 ## Overview
-A lightweight issue tracker for managing shared projects and issues among individuals and small teams. It is built as a full-stack web application with a focus on clear requirements, thorough testing, and a structured development process. Currently in the documentation phase.
+A lightweight issue tracker for managing shared projects and issues among individuals and small teams. It is built as a full-stack web application with a focus on clear requirements, thorough testing, and a structured development process. Currently in the building phase.
 
 
 ## MVP Features
@@ -11,7 +11,6 @@ A lightweight issue tracker for managing shared projects and issues among indivi
  - User Dashboard: Displays account info and project lists.
  - Project Dashboard: Displays member lists and the issue board.
  - Issue Comments: A comment system with create, edit, and delete support.
- - In-App Notifications: Notifications for project invitations and key project and issue events.
 
 
 ## Documentation
