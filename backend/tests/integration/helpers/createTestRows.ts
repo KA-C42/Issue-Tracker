@@ -14,6 +14,12 @@ type project = {
   modified_at: string
 }
 
+type projectContributor = {
+  user_id: string
+  project_id: string
+  joined_at: string
+}
+
 const createTestUser = async (
   app: Application,
   username: string = 'testUser',
@@ -47,4 +53,20 @@ const createTestProject = async (
   return response.body as project
 }
 
-export { createTestUser, createTestProject }
+const makeContributor = async (
+  app: Application,
+  user_id: string,
+  project_id: string,
+): Promise<projectContributor> => {
+  const response = await request(app)
+    .post('/project-contributors')
+    .send({
+      user_id: user_id,
+      project_id: project_id,
+    })
+    .expect(201)
+
+  return response.body as projectContributor
+}
+
+export { createTestUser, createTestProject, makeContributor }
