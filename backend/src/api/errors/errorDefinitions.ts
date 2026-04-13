@@ -49,6 +49,29 @@ export const ERROR_DEFS: ErrorDictionary = {
     message:
       'Invalid request due to lack of updateable fields, provide name or description',
   },
+
+  // PROJECT_CONTRIBUTOR ERRORS
+  MISSING_USER_ID: {
+    statusCode: 400,
+    message: 'Invalid request due to missing user_id',
+  },
+  MISSING_QUERYABLE_ID: {
+    statusCode: 400,
+    message:
+      'Invalid request due to lack of queryable id (provide user_id or project_id)',
+  },
+  CONTRIBUTOR_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Requested project contributor row not found',
+  },
+  ALREADY_MADE_CONTRIBUTOR: {
+    statusCode: 409,
+    message: 'User is already a contributor for this project',
+  },
+  MISSING_QUERY: {
+    statusCode: 400,
+    message: 'Please provide both a user_id and a project_id',
+  },
 }
 
 export function getErrorDef(code: string) {
