@@ -33,7 +33,6 @@ projectRouter.post('/', async (req, res) => {
     res.status(201).json(result.rows[0])
   } catch (err) {
     const dbError = err as DbError
-    console.log(dbError)
     if (
       dbError.code === '23514' &&
       dbError.constraint === 'projects_code_check'

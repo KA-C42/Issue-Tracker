@@ -115,6 +115,27 @@ describe('POST /projects', () => {
 
     expect(response.body.error.code).toBe('INVALID_CODE')
   })
+
+  it('rejects new project with project code containing non-alphanumeric characters with status 400', async () => {
+    const app = createApp()
+
+    const user = await createTestUser(app)
+
+    const payload = {
+      name: 'you dont own me',
+      description: 'see you never :P',
+      owner_id: user.id,
+      code: ':3',
+    }
+
+    const response = await request(app)
+      .post('/projects')
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('INVALID_CODE')
+  })
 })
 
 // GET by id
