@@ -39,6 +39,7 @@ const createTestProject = async (
   app: Application,
   owner_id: string,
   name: string = 'testProject',
+  code: string = 'PROJ',
   description: string = 'project for dev testing only',
 ): Promise<project> => {
   const response = await request(app)
@@ -47,6 +48,7 @@ const createTestProject = async (
       name: name,
       description: description,
       owner_id: owner_id,
+      code: code,
     })
     .expect(201)
 

@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
+import type { DbError } from '../errors/DbError.js'
 
 const projectRouter = Router()
 
@@ -14,19 +15,35 @@ projectRouter.post('/', async (req, res) => {
     throw new AppError('MISSING_PROJECT_NAME')
   }
 
+  if (!req.body.code) {
+    throw new AppError('MISSING_PROJECT_CODE')
+  }
+
   const text =
-    'INSERT INTO projects (name, description, owner_id) VALUES ($1, $2, $3) RETURNING *'
+    'INSERT INTO projects (name, description, owner_id, code) VALUES ($1, $2, $3, $4) RETURNING *'
   const values = [
     req.body.name,
     req.body.description ?? null,
     req.body.owner_id,
+    req.body.code,
   ]
 
   try {
     const result = await pool.query(text, values)
     res.status(201).json(result.rows[0])
   } catch (err) {
-    if ((err as { code?: string }).code === '23505') {
+    const dbError = err as DbError
+    console.log(dbError)
+    if (
+      dbError.code === '23514' &&
+      dbError.constraint === 'projects_code_check'
+    ) {
+      throw new AppError('INVALID_CODE')
+    }
+    if (
+      dbError.code === '23505' &&
+      dbError.constraint === 'projects_owner_id_name_key'
+    ) {
       throw new AppError('PROJECT_NAME_CONFLICT')
     }
     throw err
@@ -76,6 +93,11 @@ projectRouter.patch('/:id', async (req, res) => {
   if (req.body.description !== undefined) {
     fields.push(`description = $${i++}`)
     values.push(req.body.description)
+  }
+
+  if (req.body.code !== undefined) {
+    fields.push(`code = $${i++}`)
+    values.push(req.body.code)
   }
 
   if (fields.length === 0) {

@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS issues (
 
     name text NOT NULL CHECK (char_length(name) BETWEEN 1 and 128),
 
-    issue_code text NOT NULL,
+    code text NOT NULL,
 
     details text,
 
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS issues (
 
     created_at timestamptz NOT NULL DEFAULT now(),
 
-    UNIQUE (project_id, issue_code)
+    UNIQUE (project_id, code)
 
 );
 
@@ -42,10 +42,30 @@ CREATE OR REPLACE FUNCTION update_status_at()
 $$ LANGUAGE plpgsql SET search_path = public;
 
 CREATE OR REPLACE TRIGGER issue_modified 
-    BEFORE UPDATE OF name, issue_code, details ON issues
+    BEFORE UPDATE OF name, code, details ON issues
     FOR EACH ROW EXECUTE FUNCTION update_modified_at();
 
 CREATE OR REPLACE TRIGGER issue_status_change
     BEFORE UPDATE OF status ON issues
     FOR EACH ROW EXECUTE FUNCTION update_status_at();
 
+CREATE OR REPLACE FUNCTION assign_issue_code()
+    RETURNS trigger AS $$
+    DECLARE
+        new_issue_code INTEGER;
+    BEGIN
+        IF new.code IS NULL THEN
+            UPDATE projects
+                SET issue_counter = issue_counter + 1
+                WHERE id = new.project_id
+                RETURNING issue_counter
+                INTO new_issue_code;
+            new.code = new_issue_code;
+        END IF;
+    RETURN new;
+    END;
+$$ LANGUAGE plpgsql SET search_path = public;
+
+CREATE OR REPLACE TRIGGER new_codeless_issue
+    BEFORE INSERT ON issues
+    FOR EACH ROW EXECUTE FUNCTION assign_issue_code();

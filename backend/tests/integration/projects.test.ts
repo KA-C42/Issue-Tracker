@@ -19,6 +19,7 @@ describe('POST /projects', () => {
       name: 'insert project success',
       description: 'successfully inserts a project row',
       owner_id: user.id,
+      code: 'CODE',
     }
 
     const response = await request(app)
@@ -75,6 +76,7 @@ describe('POST /projects', () => {
       name: 'projeyMcProject',
       description: 'the one and only',
       owner_id: projectOwner.id,
+      code: 'CODE',
     }
 
     // create initial project row
@@ -91,6 +93,27 @@ describe('POST /projects', () => {
       .expect('Content-Type', /json/)
 
     expect(cloneProject.body.error.code).toBe('PROJECT_NAME_CONFLICT')
+  })
+
+  it('rejects new project with project code greater than 4 characters with status 400', async () => {
+    const app = createApp()
+
+    const user = await createTestUser(app)
+
+    const payload = {
+      name: 'you dont own me',
+      description: 'see you never :P',
+      owner_id: user.id,
+      code: 'three',
+    }
+
+    const response = await request(app)
+      .post('/projects')
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('INVALID_CODE')
   })
 })
 
@@ -180,7 +203,7 @@ describe('GET /projects?owner_id=###', () => {
 // - missing project id
 // - no project
 describe('PATCH /projects/:id', () => {
-  it("updates a project's name, description, and modified_at field with status 200", async () => {
+  it("updates a project's name, description, code, and modified_at field with status 200", async () => {
     const app = createApp()
     const user = await createTestUser(app)
     const project = await createTestProject(app, user.id)
@@ -188,6 +211,7 @@ describe('PATCH /projects/:id', () => {
     const payload = {
       name: 'newProjectName',
       description: 'updated description',
+      code: 'RAWR',
     }
 
     const response = await request(app)
@@ -199,6 +223,7 @@ describe('PATCH /projects/:id', () => {
     expect(response.body.id).toBe(project.id)
     expect(response.body.name).toBe(payload.name)
     expect(response.body.description).toBe(payload.description)
+    expect(response.body.code).toBe(payload.code)
     expect(response.body.modified_at).not.toBe(project.modified_at)
   })
 
@@ -209,6 +234,7 @@ describe('PATCH /projects/:id', () => {
       app,
       user.id,
       'old name',
+      'CODE',
       'old description',
     )
 
