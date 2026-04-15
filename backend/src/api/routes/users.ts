@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
+import dbErrorMapper from '../errors/dbErrorMapper.js'
+import type { DbError } from '../errors/DbError.js'
 
 const userRouter = Router()
 
@@ -16,10 +18,7 @@ userRouter.post('/', async (req, res) => {
     const result = await pool.query(text, values)
     res.status(201).json(result.rows[0])
   } catch (err) {
-    if ((err as { code?: string }).code === '23505') {
-      throw new AppError('USERNAME_CONFLICT')
-    }
-    throw err
+    dbErrorMapper(err as DbError)
   }
 })
 
@@ -50,10 +49,7 @@ userRouter.patch('/:id', async (req, res) => {
     }
     res.status(200).json(result.rows[0])
   } catch (err) {
-    if ((err as { code?: string }).code === '23505') {
-      throw new AppError('USERNAME_CONFLICT')
-    }
-    throw err
+    dbErrorMapper(err as DbError)
   }
 })
 

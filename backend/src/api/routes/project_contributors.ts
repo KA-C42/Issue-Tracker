@@ -1,6 +1,8 @@
 import { Router } from 'express'
 import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
+import dbErrorMapper from '../errors/dbErrorMapper.js'
+import type { DbError } from '../errors/DbError.js'
 
 const projectContributorRouter = Router()
 
@@ -21,19 +23,7 @@ projectContributorRouter.post('/', async (req, res) => {
     const result = await pool.query(text, values)
     res.status(201).json(result.rows[0])
   } catch (err) {
-    if ((err as { code?: string }).code === '23503') {
-      const detail = (err as { detail?: string }).detail ?? ''
-      if (detail.includes('user_id')) {
-        throw new AppError('USER_NOT_FOUND')
-      }
-      if (detail.includes('project_id')) {
-        throw new AppError('PROJECT_NOT_FOUND')
-      }
-    }
-    if ((err as { code?: string }).code === '23505') {
-      throw new AppError('ALREADY_MADE_CONTRIBUTOR')
-    }
-    throw err
+    dbErrorMapper(err as DbError)
   }
 })
 

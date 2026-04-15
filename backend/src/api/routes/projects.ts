@@ -2,6 +2,7 @@ import { Router } from 'express'
 import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
 import type { DbError } from '../errors/DbError.js'
+import dbErrorMapper from '../errors/dbErrorMapper.js'
 
 const projectRouter = Router()
 
@@ -32,20 +33,7 @@ projectRouter.post('/', async (req, res) => {
     const result = await pool.query(text, values)
     res.status(201).json(result.rows[0])
   } catch (err) {
-    const dbError = err as DbError
-    if (
-      dbError.code === '23514' &&
-      dbError.constraint === 'projects_code_check'
-    ) {
-      throw new AppError('INVALID_CODE')
-    }
-    if (
-      dbError.code === '23505' &&
-      dbError.constraint === 'projects_owner_id_name_key'
-    ) {
-      throw new AppError('PROJECT_NAME_CONFLICT')
-    }
-    throw err
+    dbErrorMapper(err as DbError)
   }
 })
 
