@@ -7,12 +7,16 @@ import {
   validateProjectPatch,
   validateProjectPost,
 } from '../validators/projects_validation.js'
+import {
+  buildProjectPatchQuery,
+  type projectPatchReqBody,
+} from '../queries/projectPatchQuery.js'
 
 const projectRouter = Router()
 
 // Create new project
 projectRouter.post('/', async (req, res) => {
-  validateProjectPost(req)
+  validateProjectPost(req.body)
 
   const text =
     'INSERT INTO projects (name, description, owner_id, code) VALUES ($1, $2, $3, $4) RETURNING *'
@@ -35,13 +39,16 @@ projectRouter.post('/', async (req, res) => {
 projectRouter.get('/:id', async (req, res) => {
   const text = 'SELECT * FROM projects WHERE id = $1'
   const values = [req.params.id]
-  const result = await pool.query(text, values)
 
-  if (result.rowCount === 0) {
-    throw new AppError('PROJECT_NOT_FOUND')
+  try {
+    const result = await pool.query(text, values)
+    if (result.rowCount === 0) {
+      throw new AppError('PROJECT_NOT_FOUND')
+    }
+    res.status(200).json(result.rows[0])
+  } catch (err) {
+    dbErrorMapper(err as DbError)
   }
-
-  res.status(200).json(result.rows[0])
 })
 
 // Get projects by owner_id
@@ -51,54 +58,33 @@ projectRouter.get('/', async (req, res) => {
   }
 
   const text = 'SELECT * FROM projects WHERE owner_id = $1'
-  const values = [req.query.owner_id] // /projects?owner_id=###
-  const result = await pool.query(text, values)
+  const values = [req.query.owner_id]
 
-  res.status(200).json(result.rows)
+  try {
+    const result = await pool.query(text, values)
+    res.status(200).json(result.rows)
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
 })
 
 projectRouter.patch('/:id', async (req, res) => {
-  validateProjectPatch(req)
+  validateProjectPatch(req.body)
 
-  const fields = []
-  const values = []
-  let i = 1
+  const [text, values] = buildProjectPatchQuery(
+    req.body as projectPatchReqBody,
+    req.params.id,
+  )
 
-  if (req.body.name !== undefined) {
-    fields.push(`name = $${i++}`)
-    values.push(req.body.name)
+  try {
+    const result = await pool.query(text, values)
+    if (result.rowCount === 0) {
+      throw new AppError('PROJECT_NOT_FOUND')
+    }
+    res.status(200).json(result.rows[0])
+  } catch (err) {
+    dbErrorMapper(err as DbError)
   }
-
-  if (req.body.description !== undefined) {
-    fields.push(`description = $${i++}`)
-    values.push(req.body.description)
-  }
-
-  if (req.body.code !== undefined) {
-    fields.push(`code = $${i++}`)
-    values.push(req.body.code)
-  }
-
-  if (fields.length === 0) {
-    throw new AppError('NO_PROJECT_FIELDS_PROVIDED')
-  }
-
-  values.push(req.params.id)
-
-  const text = `
-    UPDATE projects
-    SET ${fields.join(', ')}
-    WHERE id = $${i}
-    RETURNING *
-    `
-
-  const result = await pool.query(text, values)
-
-  if (result.rowCount === 0) {
-    throw new AppError('PROJECT_NOT_FOUND')
-  }
-
-  res.status(200).json(result.rows[0])
 })
 
 projectRouter.delete('/:id', async (req, res) => {
@@ -109,13 +95,16 @@ projectRouter.delete('/:id', async (req, res) => {
     `
 
   const values = [req.params.id]
-  const result = await pool.query(text, values)
 
-  if (result.rowCount === 0) {
-    throw new AppError('PROJECT_NOT_FOUND')
+  try {
+    const result = await pool.query(text, values)
+    if (result.rowCount === 0) {
+      throw new AppError('PROJECT_NOT_FOUND')
+    }
+    res.status(204).send()
+  } catch (err) {
+    dbErrorMapper(err as DbError)
   }
-
-  res.status(204).send()
 })
 
 export default projectRouter

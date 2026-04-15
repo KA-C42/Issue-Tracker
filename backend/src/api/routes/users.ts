@@ -27,13 +27,16 @@ userRouter.post('/', async (req, res) => {
 userRouter.get('/:id', async (req, res) => {
   const text = 'SELECT * FROM users WHERE id = $1'
   const values = [req.params.id]
-  const result = await pool.query(text, values)
 
-  if (result.rowCount === 0) {
-    throw new AppError('USER_NOT_FOUND')
+  try {
+    const result = await pool.query(text, values)
+    if (result.rowCount === 0) {
+      throw new AppError('USER_NOT_FOUND')
+    }
+    res.status(200).json(result.rows[0])
+  } catch (err) {
+    dbErrorMapper(err as DbError)
   }
-
-  res.status(200).json(result.rows[0])
 })
 
 userRouter.patch('/:id', async (req, res) => {
@@ -57,13 +60,16 @@ userRouter.delete('/:id', async (req, res) => {
   const text =
     'UPDATE users SET deactivated_at = now() WHERE id = $1 RETURNING *'
   const values = [req.params.id]
-  const result = await pool.query(text, values)
 
-  if (result.rowCount === 0) {
-    throw new AppError('USER_NOT_FOUND')
+  try {
+    const result = await pool.query(text, values)
+    if (result.rowCount === 0) {
+      throw new AppError('USER_NOT_FOUND')
+    }
+    res.status(200).json(result.rows[0])
+  } catch (err) {
+    dbErrorMapper(err as DbError)
   }
-
-  res.status(200).json(result.rows[0])
 })
 
 export default userRouter
