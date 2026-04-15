@@ -3,22 +3,16 @@ import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
 import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
+import {
+  validateProjectPatch,
+  validateProjectPost,
+} from '../validators/projects_validation.js'
 
 const projectRouter = Router()
 
 // Create new project
 projectRouter.post('/', async (req, res) => {
-  if (!req.body.owner_id) {
-    throw new AppError('MISSING_OWNER_ID')
-  }
-
-  if (!req.body.name) {
-    throw new AppError('MISSING_PROJECT_NAME')
-  }
-
-  if (!req.body.code) {
-    throw new AppError('MISSING_PROJECT_CODE')
-  }
+  validateProjectPost(req)
 
   const text =
     'INSERT INTO projects (name, description, owner_id, code) VALUES ($1, $2, $3, $4) RETURNING *'
@@ -64,9 +58,7 @@ projectRouter.get('/', async (req, res) => {
 })
 
 projectRouter.patch('/:id', async (req, res) => {
-  if (!req.body) {
-    throw new AppError('NO_PROJECT_FIELDS_PROVIDED')
-  }
+  validateProjectPatch(req)
 
   const fields = []
   const values = []

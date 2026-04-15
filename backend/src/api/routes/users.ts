@@ -3,13 +3,15 @@ import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import type { DbError } from '../errors/DbError.js'
+import {
+  validateUserPatch,
+  validateUserPost,
+} from '../validators/users_validation.js'
 
 const userRouter = Router()
 
 userRouter.post('/', async (req, res) => {
-  if (!req.body || !req.body.username) {
-    throw new AppError('MISSING_USERNAME')
-  }
+  validateUserPost(req)
 
   const text = 'INSERT INTO users (username) VALUES ($1) RETURNING *'
   const values = [req.body.username]
@@ -35,9 +37,7 @@ userRouter.get('/:id', async (req, res) => {
 })
 
 userRouter.patch('/:id', async (req, res) => {
-  if (!req.body || !req.body.username) {
-    throw new AppError('MISSING_USERNAME')
-  }
+  validateUserPatch(req)
 
   const text = 'UPDATE users SET username = $1 WHERE id = $2 RETURNING *'
   const values = [req.body.username, req.params.id]

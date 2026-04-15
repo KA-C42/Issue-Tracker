@@ -3,17 +3,15 @@ import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import type { DbError } from '../errors/DbError.js'
+import {
+  validateContributorsDelete,
+  validateContributorsPost,
+} from '../validators/project_contributors_validation.js'
 
 const projectContributorRouter = Router()
 
 projectContributorRouter.post('/', async (req, res) => {
-  if (!req.body.user_id) {
-    throw new AppError('MISSING_USER_ID')
-  }
-
-  if (!req.body.project_id) {
-    throw new AppError('MISSING_PROJECT_ID')
-  }
+  validateContributorsPost(req)
 
   const text =
     'INSERT INTO project_contributors (user_id, project_id) VALUES ($1, $2) RETURNING *'
@@ -83,15 +81,7 @@ projectContributorRouter.get('/', async (req, res) => {
 })
 
 projectContributorRouter.delete('/', async (req, res) => {
-  if (!req.query.project_id && !req.query.user_id) {
-    throw new AppError('MISSING_QUERY')
-  }
-  if (!req.query.project_id) {
-    throw new AppError('MISSING_PROJECT_ID')
-  }
-  if (!req.query.user_id) {
-    throw new AppError('MISSING_USER_ID')
-  }
+  validateContributorsDelete(req)
 
   const values = [req.query.project_id, req.query.user_id]
   const text =
