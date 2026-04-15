@@ -36,6 +36,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Invalid request due to missing project name',
   },
+  MISSING_PROJECT_CODE: {
+    statusCode: 400,
+    message: 'Invalid request due to missing project code',
+  },
   PROJECT_NOT_FOUND: {
     statusCode: 404,
     message: 'Requested project not found',
@@ -48,6 +52,11 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message:
       'Invalid request due to lack of updateable fields, provide name or description',
+  },
+  INVALID_CODE: {
+    statusCode: 400,
+    message:
+      'Invalid project code. Code must consist of 1-4 alphanumeric characters',
   },
 
   // PROJECT_CONTRIBUTOR ERRORS
