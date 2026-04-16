@@ -20,7 +20,7 @@ projectContributorRouter.post('/', async (req, res) => {
 
   try {
     const result = await pool.query(text, values)
-    res.status(201).json(result.rows[0])
+    return res.status(201).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
@@ -57,7 +57,7 @@ projectContributorRouter.delete('/', async (req, res) => {
     if (result.rowCount === 0) {
       throw new AppError('CONTRIBUTOR_NOT_FOUND')
     }
-    res.status(204).send()
+    return res.status(204).send()
   } catch (err) {
     dbErrorMapper(err as DbError)
   }

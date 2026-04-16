@@ -29,7 +29,7 @@ projectRouter.post('/', async (req, res) => {
 
   try {
     const result = await pool.query(text, values)
-    res.status(201).json(result.rows[0])
+    return res.status(201).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
@@ -45,7 +45,7 @@ projectRouter.get('/:id', async (req, res) => {
     if (result.rowCount === 0) {
       throw new AppError('PROJECT_NOT_FOUND')
     }
-    res.status(200).json(result.rows[0])
+    return res.status(200).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
@@ -62,7 +62,7 @@ projectRouter.get('/', async (req, res) => {
 
   try {
     const result = await pool.query(text, values)
-    res.status(200).json(result.rows)
+    return res.status(200).json(result.rows)
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
@@ -81,7 +81,7 @@ projectRouter.patch('/:id', async (req, res) => {
     if (result.rowCount === 0) {
       throw new AppError('PROJECT_NOT_FOUND')
     }
-    res.status(200).json(result.rows[0])
+    return res.status(200).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
@@ -101,7 +101,7 @@ projectRouter.delete('/:id', async (req, res) => {
     if (result.rowCount === 0) {
       throw new AppError('PROJECT_NOT_FOUND')
     }
-    res.status(204).send()
+    return res.status(204).send()
   } catch (err) {
     dbErrorMapper(err as DbError)
   }

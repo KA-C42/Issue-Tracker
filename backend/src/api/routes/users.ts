@@ -18,7 +18,7 @@ userRouter.post('/', async (req, res) => {
 
   try {
     const result = await pool.query(text, values)
-    res.status(201).json(result.rows[0])
+    return res.status(201).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
@@ -33,7 +33,7 @@ userRouter.get('/:id', async (req, res) => {
     if (result.rowCount === 0) {
       throw new AppError('USER_NOT_FOUND')
     }
-    res.status(200).json(result.rows[0])
+    return res.status(200).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
@@ -50,7 +50,7 @@ userRouter.patch('/:id', async (req, res) => {
     if (result.rowCount === 0) {
       throw new AppError('USER_NOT_FOUND')
     }
-    res.status(200).json(result.rows[0])
+    return res.status(200).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
@@ -66,7 +66,7 @@ userRouter.delete('/:id', async (req, res) => {
     if (result.rowCount === 0) {
       throw new AppError('USER_NOT_FOUND')
     }
-    res.status(200).json(result.rows[0])
+    return res.status(200).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
