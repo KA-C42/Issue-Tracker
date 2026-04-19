@@ -3,6 +3,7 @@ import healthRouter from './routes/health.js'
 import userRouter from './routes/users.js'
 import projectRouter from './routes/projects.js'
 import projectContributorRouter from './routes/project_contributors.js'
+import issueRouter from './routes/issues.js'
 
 export default function registerRoutes(app: Express) {
   // add routes here!!
@@ -10,4 +11,5 @@ export default function registerRoutes(app: Express) {
   app.use('/users', userRouter)
   app.use('/projects', projectRouter)
   app.use('/project-contributors', projectContributorRouter)
+  app.use('/projects/:project_id/issues', issueRouter)
 }

@@ -4,4 +4,5 @@ export type DbError = {
   constraint?: string
   table?: string
   detail?: string
+  column?: string
 }
