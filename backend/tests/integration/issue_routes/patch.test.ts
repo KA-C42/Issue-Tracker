@@ -135,7 +135,6 @@ describe('PATCH issues', () => {
       .expect('Content-Type', /json/)
 
     const modifiedIssue = result.body
-    console.log(result)
 
     expect(modifiedIssue).toMatchObject({
       assignee_id: payload.assignee_id,

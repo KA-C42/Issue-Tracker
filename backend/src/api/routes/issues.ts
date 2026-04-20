@@ -94,4 +94,24 @@ issueRouter.patch('/:id', async (req, res) => {
   }
 })
 
+issueRouter.delete('/:id', async (req, res) => {
+  const text = `
+    DELETE FROM issues
+    WHERE id = $1
+    RETURNING *
+    `
+
+  const values = [req.params.id]
+
+  try {
+    const result = await pool.query(text, values)
+    if (result.rowCount === 0) {
+      throw new AppError('ISSUE_NOT_FOUND')
+    }
+    return res.status(204).send()
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
+})
+
 export default issueRouter
