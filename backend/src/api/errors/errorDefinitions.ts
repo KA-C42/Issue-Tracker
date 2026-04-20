@@ -81,6 +81,48 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Please provide both a user_id and a project_id',
   },
+
+  // issue errors
+  MISSING_ISSUE_TITLE: {
+    statusCode: 400,
+    message: 'Please provide an issue title',
+  },
+  MISSING_CREATOR_ID: {
+    statusCode: 400,
+    message: 'Please provide a creator_id',
+  },
+  CREATOR_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Requested creator_id not found in users',
+  },
+  ASSIGNEE_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Requested creator_id not found in users',
+  },
+  INVALID_ASSIGNEE: {
+    statusCode: 422,
+    message: 'Requested assignee_id not owner or contributor to this project',
+  },
+  INVALID_CREATOR: {
+    statusCode: 422,
+    message: 'Requested creator_id not owner or contributor to this project',
+  },
+  ISSUE_TITLE_TAKEN: {
+    statusCode: 409,
+    message: 'Requested title in use by another issue in this project',
+  },
+  MISSING_SEARCH_PARAMETER: {
+    statusCode: 400,
+    message: 'Search parameter required for queries on this table',
+  },
+  ISSUE_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Provided id does not match any issues',
+  },
+  MISSING_ISSUE_PATCH_FIELDS: {
+    statusCode: 400,
+    message: 'Please provide issue fields to patch',
+  },
 }
 
 export function getErrorDef(code: string) {

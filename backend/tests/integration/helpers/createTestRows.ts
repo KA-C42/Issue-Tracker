@@ -1,5 +1,6 @@
 import request from 'supertest'
 import type { Application } from 'express'
+import { IssueStatus } from '../../../src/types/enums'
 
 type user = {
   id: string
@@ -18,6 +19,20 @@ type projectContributor = {
   user_id: string
   project_id: string
   joined_at: string
+}
+
+type issue = {
+  id: string
+  creator_id: string
+  project_id: string
+  title: string
+  code: number
+  details?: string
+  status: IssueStatus
+  assignee_id?: string
+  status_changed_at: string
+  modified_at: string
+  created_at: string
 }
 
 const createTestUser = async (
@@ -71,4 +86,27 @@ const makeContributor = async (
   return response.body as projectContributor
 }
 
-export { createTestUser, createTestProject, makeContributor }
+const createTestIssue = async (
+  app: Application,
+  creator_id: string,
+  project_id: string,
+  title: string = 'issue',
+  assignee_id: string | undefined = undefined,
+  status?: string,
+): Promise<issue> => {
+  const response = await request(app)
+    .post(`/projects/${project_id}/issues`)
+    .send({
+      creator_id: creator_id,
+      title: title,
+      assignee_id: assignee_id,
+      status: status,
+    })
+    .expect(201)
+
+  return response.body as issue
+}
+
+export { createTestUser, createTestProject, makeContributor, createTestIssue }
+
+export type { user, project, issue }

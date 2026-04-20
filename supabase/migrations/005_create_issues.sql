@@ -6,13 +6,13 @@ CREATE TABLE IF NOT EXISTS issues (
 
     project_id uuid REFERENCES projects (id) ON DELETE CASCADE NOT NULL,
 
-    name text NOT NULL CHECK (char_length(name) BETWEEN 1 and 128),
+    title text NOT NULL CHECK (char_length(title) BETWEEN 1 and 128),
 
-    code text NOT NULL,
+    code INTEGER NOT NULL,
 
     details text,
 
-    status text NOT NULL,
+    status text NOT NULL DEFAULT 'BACKLOG',
 
     CHECK (status IN ('BACKLOG', 'IN_PROGRESS', 'DONE')),
 
@@ -24,7 +24,9 @@ CREATE TABLE IF NOT EXISTS issues (
 
     created_at timestamptz NOT NULL DEFAULT now(),
 
-    UNIQUE (project_id, code)
+    UNIQUE (project_id, code),
+
+    UNIQUE (project_id, title)
 
 );
 
@@ -42,7 +44,7 @@ CREATE OR REPLACE FUNCTION update_status_at()
 $$ LANGUAGE plpgsql SET search_path = public;
 
 CREATE OR REPLACE TRIGGER issue_modified 
-    BEFORE UPDATE OF name, code, details ON issues
+    BEFORE UPDATE OF title, code, details ON issues
     FOR EACH ROW EXECUTE FUNCTION update_modified_at();
 
 CREATE OR REPLACE TRIGGER issue_status_change
