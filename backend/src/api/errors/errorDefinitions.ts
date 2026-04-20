@@ -111,6 +111,14 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 409,
     message: 'Requested title in use by another issue in this project',
   },
+  MISSING_SEARCH_PARAMETER: {
+    statusCode: 400,
+    message: 'Search parameter required for queries on this table',
+  },
+  ISSUE_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Provided id does not match any issues',
+  },
 }
 
 export function getErrorDef(code: string) {

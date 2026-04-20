@@ -30,4 +30,21 @@ async function validateIssuePost(body: issuePostFields) {
   }
 }
 
-export { validateIssuePost }
+async function validateIssueGet(
+  project_id: string | undefined,
+  assignee_id: string | undefined,
+  issue_id: string | undefined,
+) {
+  if (project_id) {
+    const project = await getProject(project_id)
+    if (!project) throw new AppError('PROJECT_NOT_FOUND')
+  }
+  if (assignee_id) {
+    const assignee = await getUser(assignee_id)
+    if (!assignee) throw new AppError('ASSIGNEE_NOT_FOUND')
+  }
+  if (!project_id && !assignee_id && !issue_id)
+    throw new AppError('MISSING_SEARCH_PARAMETER')
+}
+
+export { validateIssuePost, validateIssueGet }

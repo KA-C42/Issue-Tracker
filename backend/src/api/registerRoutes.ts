@@ -12,4 +12,5 @@ export default function registerRoutes(app: Express) {
   app.use('/projects', projectRouter)
   app.use('/project-contributors', projectContributorRouter)
   app.use('/projects/:project_id/issues', issueRouter)
+  app.use('/issues', issueRouter)
 }
