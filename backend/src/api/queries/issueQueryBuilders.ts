@@ -1,4 +1,5 @@
 import type { IssueStatus } from '../../types/enums.js'
+import { AppError } from '../errors/AppError.js'
 
 type issuePostFields = {
   creator_id: string
@@ -61,5 +62,52 @@ function buildIssueGetQuery(
   return { text, values }
 }
 
-export { buildIssuePostQuery, buildIssueGetQuery }
+function buildIssuePatchQuery(
+  id: string,
+  title: string | undefined,
+  details: string | undefined,
+  status: IssueStatus | undefined,
+  assignee_id: string | undefined,
+) {
+  const fields = []
+  const values = []
+  let i = 1
+
+  if (title !== undefined) {
+    fields.push(`title = $${i++}`)
+    values.push(title)
+  }
+
+  if (details !== undefined) {
+    fields.push(`details = $${i++}`)
+    values.push(details)
+  }
+
+  if (status !== undefined) {
+    fields.push(`status = $${i++}`)
+    values.push(status)
+  }
+
+  if (assignee_id !== undefined) {
+    fields.push(`assignee_id = $${i++}`)
+    values.push(assignee_id)
+  }
+
+  if (fields.length === 0) {
+    throw new AppError('NO_ISSUE_FIELDS_PROVIDED')
+  }
+
+  values.push(id)
+
+  const text = `
+    UPDATE issues
+    SET ${fields.join(', ')}
+    WHERE id = $${i}
+    RETURNING *
+    `
+
+  return { text, values }
+}
+
+export { buildIssuePostQuery, buildIssueGetQuery, buildIssuePatchQuery }
 export type { issuePostFields }

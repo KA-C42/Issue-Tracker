@@ -1,6 +1,8 @@
 import { getContributor } from '../../db/services/contributorServices.js'
+import { getIssue } from '../../db/services/issueServies.js'
 import { getProject } from '../../db/services/project.services.js'
 import { getUser } from '../../db/services/userServices.js'
+import type { IssueStatus } from '../../types/enums.js'
 import { AppError } from '../errors/AppError.js'
 import type { issuePostFields } from '../queries/issueQueryBuilders.js'
 
@@ -47,4 +49,33 @@ async function validateIssueGet(
     throw new AppError('MISSING_SEARCH_PARAMETER')
 }
 
-export { validateIssuePost, validateIssueGet }
+async function validateIssuePatch(
+  id: string,
+  title: string | undefined,
+  details: string | undefined,
+  status: IssueStatus | undefined,
+  assignee_id: string | undefined,
+) {
+  const issue = await getIssue(id)
+  if (!issue) throw new AppError('ISSUE_NOT_FOUND')
+
+  const project = await getProject(issue.project_id)
+
+  // ensure >= field to update
+  let update = false
+
+  if (assignee_id && assignee_id != project.owner_id) {
+    const assignee = await getUser(assignee_id)
+    if (!assignee) throw new AppError('ASSIGNEE_NOT_FOUND')
+    update = true
+
+    const contributor = await getContributor(project.id, assignee_id)
+    if (!contributor) throw new AppError('INVALID_ASSIGNEE')
+  } else if (assignee_id === null) update = true
+
+  if (title || details || status) update = true
+
+  if (!update) throw new AppError('MISSING_ISSUE_PATCH_FIELDS')
+}
+
+export { validateIssuePost, validateIssueGet, validateIssuePatch }

@@ -4,10 +4,12 @@ import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import {
   buildIssueGetQuery,
+  buildIssuePatchQuery,
   buildIssuePostQuery,
 } from '../queries/issueQueryBuilders.js'
 import {
   validateIssueGet,
+  validateIssuePatch,
   validateIssuePost,
 } from '../validators/issues_validation.js'
 import { AppError } from '../errors/AppError.js'
@@ -62,6 +64,31 @@ issueRouter.get('/:id', async (req, res) => {
     const result = await pool.query(text, values)
     if (result.rows.length === 0) throw new AppError('ISSUE_NOT_FOUND')
     return res.status(200).json(result.rows[0])
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
+})
+
+issueRouter.patch('/:id', async (req, res) => {
+  await validateIssuePatch(
+    req.params.id,
+    req.body.title,
+    req.body.details,
+    req.body.status,
+    req.body.assignee_id,
+  )
+
+  const { text, values } = buildIssuePatchQuery(
+    req.params.id,
+    req.body.title,
+    req.body.details,
+    req.body.status,
+    req.body.assignee_id,
+  )
+
+  try {
+    const result = await pool.query(text, values)
+    return res.status(201).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }

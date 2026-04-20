@@ -119,6 +119,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 404,
     message: 'Provided id does not match any issues',
   },
+  MISSING_ISSUE_PATCH_FIELDS: {
+    statusCode: 400,
+    message: 'Please provide issue fields to patch',
+  },
 }
 
 export function getErrorDef(code: string) {
