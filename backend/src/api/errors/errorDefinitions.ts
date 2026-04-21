@@ -141,6 +141,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 422,
     message: 'author_id not permitted to comment within given project',
   },
+  COMMENT_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Provided id does not match any comments',
+  },
 }
 
 export function getErrorDef(code: string) {

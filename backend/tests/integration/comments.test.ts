@@ -9,6 +9,7 @@ import {
   project,
   issue,
   createTestIssue,
+  createTestComment,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
 
@@ -119,5 +120,87 @@ describe('POST comments', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('INVALID_AUTHOR')
+  })
+})
+
+describe('GET comments', () => {
+  let app: Application
+  let user: user
+  let project: project
+  let issue: issue
+
+  beforeEach(async () => {
+    app = createApp()
+    user = await createTestUser(app)
+    project = await createTestProject(app, user.id)
+    issue = await createTestIssue(app, user.id, project.id)
+  })
+
+  it("returns all by issue_id, excluding other issues' comments, ordered ascending by created_at", async () => {
+    const comments = []
+    const commentCount = 5
+
+    // testing returned order, comments are posted explicitly sequentially
+    for (let i = 0; i < commentCount; i++) {
+      comments.push(
+        await createTestComment(app, user.id, issue.id, `comment #${i}`),
+      )
+    }
+
+    // prettier-ignore
+    const otherIssue = await createTestIssue(app, user.id, project.id, 'not my issue')
+    // prettier-ignore
+    const otherComment = await createTestComment(app, user.id, otherIssue.id, 'shhh who even cares')
+
+    const result = await request(app)
+      .get(`/issues/${issue.id}/comments`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    const returnedComments = result.body
+
+    expect(returnedComments.length).toBe(commentCount)
+    for (let i = 0; i < commentCount; i++) {
+      expect(returnedComments[i]).toMatchObject(comments[i])
+      expect(returnedComments[i]).not.toMatchObject(otherComment)
+    }
+  })
+
+  it('returns an empty array when issue_id search matches an issue but no comments', async () => {
+    const result = await request(app)
+      .get(`/issues/${issue.id}/comments`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.length).toBe(0)
+  })
+
+  it('returns 404 when issue_id does not match an issue', async () => {
+    const result = await request(app)
+      .get(`/issues/${crypto.randomUUID()}/comments`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('ISSUE_NOT_FOUND')
+  })
+
+  it('returns comment by id with status 200', async () => {
+    const comment = await createTestComment(app, user.id, issue.id, 'first')
+
+    const result = await request(app)
+      .get(`/comments/${comment.id}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(result.body).toMatchObject(comment)
+  })
+
+  it('returns 404 when id does not match any comment', async () => {
+    const result = await request(app)
+      .get(`/comments/${crypto.randomUUID()}`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('COMMENT_NOT_FOUND')
   })
 })

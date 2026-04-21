@@ -15,4 +15,5 @@ export default function registerRoutes(app: Express) {
   app.use('/projects/:project_id/issues', issueRouter)
   app.use('/issues', issueRouter)
   app.use('/issues/:issue_id/comments', commentRouter)
+  app.use('/comments', commentRouter)
 }
