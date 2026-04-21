@@ -10,9 +10,7 @@ CREATE TABLE IF NOT EXISTS comments (
 
     modified_at timestamptz NOT NULL DEFAULT now(),
 
-    created_at timestamptz NOT NULL DEFAULT now(),
-
-    deleted_at timestamptz DEFAULT NULL
+    created_at timestamptz NOT NULL DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS comments_by_issue_id ON comments (issue_id);

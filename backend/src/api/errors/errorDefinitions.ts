@@ -123,6 +123,24 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Please provide issue fields to patch',
   },
+
+  // COMMENT ERRORS
+  MISSING_AUTHOR_ID: {
+    statusCode: 400,
+    message: 'Please provide an author_id',
+  },
+  MISSING_COMMENT_TEXT: {
+    statusCode: 400,
+    message: 'Please provide comment text',
+  },
+  AUTHOR_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Provided author_id does not match any users',
+  },
+  INVALID_AUTHOR: {
+    statusCode: 422,
+    message: 'author_id not permitted to comment within given project',
+  },
 }
 
 export function getErrorDef(code: string) {

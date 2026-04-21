@@ -4,6 +4,7 @@ import userRouter from './routes/users.js'
 import projectRouter from './routes/projects.js'
 import projectContributorRouter from './routes/project_contributors.js'
 import issueRouter from './routes/issues.js'
+import commentRouter from './routes/comments.js'
 
 export default function registerRoutes(app: Express) {
   // add routes here!!
@@ -13,4 +14,5 @@ export default function registerRoutes(app: Express) {
   app.use('/project-contributors', projectContributorRouter)
   app.use('/projects/:project_id/issues', issueRouter)
   app.use('/issues', issueRouter)
+  app.use('/issues/:issue_id/comments', commentRouter)
 }
