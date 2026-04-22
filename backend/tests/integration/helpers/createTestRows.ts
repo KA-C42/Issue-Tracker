@@ -35,6 +35,15 @@ type issue = {
   created_at: string
 }
 
+type comment = {
+  id: string
+  author_id: string
+  issue_id: string
+  comment: string
+  modified_at: string
+  created_at: string
+}
+
 const createTestUser = async (
   app: Application,
   username: string = 'testUser',
@@ -107,6 +116,29 @@ const createTestIssue = async (
   return response.body as issue
 }
 
-export { createTestUser, createTestProject, makeContributor, createTestIssue }
+const createTestComment = async (
+  app: Application,
+  author_id: string,
+  issue_id: string,
+  comment: string = 'blah blah blahbalh',
+): Promise<comment> => {
+  const response = await request(app)
+    .post(`/issues/${issue_id}/comments`)
+    .send({
+      author_id: author_id,
+      comment: comment,
+    })
+    .expect(201)
 
-export type { user, project, issue }
+  return response.body as comment
+}
+
+export {
+  createTestUser,
+  createTestProject,
+  makeContributor,
+  createTestIssue,
+  createTestComment,
+}
+
+export type { user, project, issue, comment }
