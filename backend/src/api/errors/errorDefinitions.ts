@@ -145,6 +145,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 404,
     message: 'Provided id does not match any comments',
   },
+  NOT_COMMENT_AUTHOR: {
+    statusCode: 403,
+    message: 'Provided id is not the original commenter',
+  },
 }
 
 export function getErrorDef(code: string) {

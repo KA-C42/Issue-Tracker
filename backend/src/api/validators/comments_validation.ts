@@ -1,3 +1,4 @@
+import { getComment } from '../../db/services/commentServices.js'
 import { getContributor } from '../../db/services/contributorServices.js'
 import { getIssue } from '../../db/services/issueServies.js'
 import { getProject } from '../../db/services/project.services.js'
@@ -31,4 +32,19 @@ async function validateCommentPost(
   }
 }
 
-export { validateCommentPost }
+async function validateCommentPatch(
+  id: string,
+  author_id: string,
+  comment: string,
+) {
+  if (!comment) throw new AppError('MISSING_COMMENT_TEXT')
+  if (!author_id) throw new AppError('MISSING_AUTHOR_ID')
+  else {
+    const comment = await getComment(id)
+    if (!comment) throw new AppError('COMMENT_NOT_FOUND')
+    if (author_id !== comment.author_id)
+      throw new AppError('NOT_COMMENT_AUTHOR')
+  }
+}
+
+export { validateCommentPost, validateCommentPatch }

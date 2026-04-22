@@ -2,7 +2,10 @@ import { Router } from 'express'
 import { pool } from '../../db/pool.js'
 import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
-import { validateCommentPost } from '../validators/comments_validation.js'
+import {
+  validateCommentPatch,
+  validateCommentPost,
+} from '../validators/comments_validation.js'
 import { getIssue } from '../../db/services/issueServies.js'
 import { AppError } from '../errors/AppError.js'
 
@@ -51,6 +54,45 @@ commentRouter.get('/:id', async (req, res) => {
     const result = await pool.query(text, values)
     if (result.rows.length === 0) throw new AppError('COMMENT_NOT_FOUND')
     return res.status(200).json(result.rows[0])
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
+})
+
+commentRouter.patch('/:id', async (req, res) => {
+  await validateCommentPatch(
+    req.params.id,
+    req.body.author_id,
+    req.body.comment,
+  )
+
+  const text =
+    'UPDATE comments SET comment = $1 WHERE id = $2 AND author_id = $3 RETURNING *'
+  const values = [req.body.comment, req.params.id, req.body.author_id]
+
+  try {
+    const result = await pool.query(text, values)
+    return res.status(200).json(result.rows[0])
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
+})
+
+commentRouter.delete('/:id', async (req, res) => {
+  const text = `
+    DELETE FROM comments
+    WHERE id = $1
+    RETURNING *
+    `
+
+  const values = [req.params.id]
+
+  try {
+    const result = await pool.query(text, values)
+    if (result.rowCount === 0) {
+      throw new AppError('COMMENT_NOT_FOUND')
+    }
+    return res.status(204).send()
   } catch (err) {
     dbErrorMapper(err as DbError)
   }

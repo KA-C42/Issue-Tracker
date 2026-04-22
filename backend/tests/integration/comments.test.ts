@@ -10,6 +10,7 @@ import {
   issue,
   createTestIssue,
   createTestComment,
+  comment,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
 
@@ -202,5 +203,142 @@ describe('GET comments', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('COMMENT_NOT_FOUND')
+  })
+})
+
+describe('PATCH comments', () => {
+  let app: Application
+  let user: user
+  let project: project
+  let issue: issue
+  let comment: comment
+
+  beforeEach(async () => {
+    app = createApp()
+    user = await createTestUser(app)
+    project = await createTestProject(app, user.id)
+    issue = await createTestIssue(app, user.id, project.id)
+    comment = await createTestComment(app, user.id, issue.id, 'comment')
+  })
+
+  it('successfully edits, updating the comment text/modified_at and returning the updated row', async () => {
+    const payload = {
+      author_id: user.id,
+      comment: "Not to worry, I'll patch you up!",
+    }
+
+    const result = await request(app)
+      .patch(`/comments/${comment.id}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.comment).toBe(payload.comment)
+
+    const updatedComment = await request(app)
+      .get(`/comments/${comment.id}`)
+      .expect(200)
+
+    expect(updatedComment.body).toMatchObject({
+      ...payload,
+      id: comment.id,
+      created_at: comment.created_at,
+    })
+    expect(updatedComment.body.modified_at).not.toMatch(comment.modified_at)
+  })
+
+  it('returns 403 when author_id not matching comments author', async () => {
+    const payload = {
+      author_id: crypto.randomUUID(),
+      comment: 'boo',
+    }
+
+    const result = await request(app)
+      .patch(`/comments/${comment.id}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('NOT_COMMENT_AUTHOR')
+  })
+
+  it('returns 404 when comment id not found', async () => {
+    const payload = {
+      author_id: user.id,
+      comment: 'boo',
+    }
+
+    const result = await request(app)
+      .patch(`/comments/${crypto.randomUUID()}`)
+      .send(payload)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('COMMENT_NOT_FOUND')
+  })
+
+  it('returns 400 when lacking comment text', async () => {
+    const payload = {
+      author_id: crypto.randomUUID(),
+      comment: null,
+    }
+
+    const result = await request(app)
+      .patch(`/comments/${comment.id}`)
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('MISSING_COMMENT_TEXT')
+  })
+
+  it('returns 400 when lacking author_id', async () => {
+    const payload = {
+      author_id: undefined,
+      comment: 'the wind',
+    }
+
+    const result = await request(app)
+      .patch(`/comments/${comment.id}`)
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('MISSING_AUTHOR_ID')
+  })
+})
+
+describe('PATCH comments', () => {
+  let app: Application
+  let user: user
+  let project: project
+  let issue: issue
+  let comment: comment
+
+  beforeEach(async () => {
+    app = createApp()
+    user = await createTestUser(app)
+    project = await createTestProject(app, user.id)
+    issue = await createTestIssue(app, user.id, project.id)
+    comment = await createTestComment(app, user.id, issue.id, 'comment')
+  })
+
+  it('deletes a comment, returning code 204', async () => {
+    await request(app).delete(`/comments/${comment.id}`).expect(204)
+
+    // verify comment is gone
+    await request(app)
+      .get(`/comments/${comment.id}`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+  })
+
+  it('rejects a delete request with status 404 when comment not found', async () => {
+    const response = await request(app)
+      .delete(`/comments/${crypto.randomUUID()}`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('COMMENT_NOT_FOUND')
   })
 })
