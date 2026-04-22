@@ -29,6 +29,7 @@ Primary quality risks:
 Testing is focused on high-risk areas rather than achieving a specific code coverage goal
 
 **Unit Tests**
+ - Will not include simple functions covered by integration tests
  - Business logic
  - Isolated and deterministic functions
 
@@ -62,5 +63,5 @@ Testing is focused on high-risk areas rather than achieving a specific code cove
 
 ## 5. Coverage Philosophy
  - Coverage is risk-driven, not percentage-driven
- - High-risk requirements must have automated coverage at an appropriate layer
+ - High-risk requirements must have automated coverage
  - E2E tests are intentionally limited to avoid duplication and flakiness
