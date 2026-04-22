@@ -13,7 +13,7 @@ import {
   validateIssuePost,
 } from '../validators/issues_validation.js'
 import { AppError } from '../errors/AppError.js'
-import type { IssueStatus } from '../../types/enums.js'
+import type { IssueStatus } from '../../db/types/enums.js'
 
 const issueRouter = Router({ mergeParams: true })
 

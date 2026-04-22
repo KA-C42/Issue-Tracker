@@ -2,7 +2,7 @@ import { getContributor } from '../../db/services/contributorServices.js'
 import { getIssue } from '../../db/services/issueServies.js'
 import { getProject } from '../../db/services/project.services.js'
 import { getUser } from '../../db/services/userServices.js'
-import type { IssueStatus } from '../../types/enums.js'
+import type { IssueStatus } from '../../db/types/enums.js'
 import { AppError } from '../errors/AppError.js'
 import type { issuePostFields } from '../queries/issueQueryBuilders.js'
 
