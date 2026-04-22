@@ -1,53 +1,18 @@
 import request from 'supertest'
 import type { Application } from 'express'
+import {
+  User,
+  Project,
+  ProjectContributor,
+  Issue,
+  Comment,
+} from '../../../src/types/db'
 import { IssueStatus } from '../../../src/types/enums'
-
-type user = {
-  id: string
-  username: string
-}
-
-type project = {
-  id: string
-  name: string
-  description: string
-  owner_id: string
-  modified_at: string
-}
-
-type projectContributor = {
-  user_id: string
-  project_id: string
-  joined_at: string
-}
-
-type issue = {
-  id: string
-  creator_id: string
-  project_id: string
-  title: string
-  code: number
-  details?: string
-  status: IssueStatus
-  assignee_id?: string
-  status_changed_at: string
-  modified_at: string
-  created_at: string
-}
-
-type comment = {
-  id: string
-  author_id: string
-  issue_id: string
-  comment: string
-  modified_at: string
-  created_at: string
-}
 
 const createTestUser = async (
   app: Application,
   username: string = 'testUser',
-): Promise<user> => {
+): Promise<User> => {
   const response = await request(app)
     .post('/users')
     .send({ username: username })
@@ -56,7 +21,7 @@ const createTestUser = async (
   return {
     id: response.body.id,
     username: response.body.username,
-  } as user
+  } as User
 }
 
 const createTestProject = async (
@@ -65,7 +30,7 @@ const createTestProject = async (
   name: string = 'testProject',
   code: string = 'PROJ',
   description: string = 'project for dev testing only',
-): Promise<project> => {
+): Promise<Project> => {
   const response = await request(app)
     .post('/projects')
     .send({
@@ -76,14 +41,14 @@ const createTestProject = async (
     })
     .expect(201)
 
-  return response.body as project
+  return response.body as Project
 }
 
 const makeContributor = async (
   app: Application,
   user_id: string,
   project_id: string,
-): Promise<projectContributor> => {
+): Promise<ProjectContributor> => {
   const response = await request(app)
     .post('/project-contributors')
     .send({
@@ -92,7 +57,7 @@ const makeContributor = async (
     })
     .expect(201)
 
-  return response.body as projectContributor
+  return response.body as ProjectContributor
 }
 
 const createTestIssue = async (
@@ -101,8 +66,8 @@ const createTestIssue = async (
   project_id: string,
   title: string = 'issue',
   assignee_id: string | undefined = undefined,
-  status?: string,
-): Promise<issue> => {
+  status?: IssueStatus,
+): Promise<Issue> => {
   const response = await request(app)
     .post(`/projects/${project_id}/issues`)
     .send({
@@ -113,7 +78,7 @@ const createTestIssue = async (
     })
     .expect(201)
 
-  return response.body as issue
+  return response.body as Issue
 }
 
 const createTestComment = async (
@@ -121,7 +86,7 @@ const createTestComment = async (
   author_id: string,
   issue_id: string,
   comment: string = 'blah blah blahbalh',
-): Promise<comment> => {
+): Promise<Comment> => {
   const response = await request(app)
     .post(`/issues/${issue_id}/comments`)
     .send({
@@ -130,7 +95,7 @@ const createTestComment = async (
     })
     .expect(201)
 
-  return response.body as comment
+  return response.body as Comment
 }
 
 export {
@@ -140,5 +105,3 @@ export {
   createTestIssue,
   createTestComment,
 }
-
-export type { user, project, issue, comment }

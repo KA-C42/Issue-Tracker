@@ -5,20 +5,17 @@ import createApp from '../../src/api/app.js'
 import {
   createTestUser,
   createTestProject,
-  user,
-  project,
-  issue,
   createTestIssue,
   createTestComment,
-  comment,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
+import { Comment, Issue, Project, User } from '../../src/types/db.js'
 
 describe('POST comments', () => {
   let app: Application
-  let user: user
-  let project: project
-  let issue: issue
+  let user: User
+  let project: Project
+  let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
@@ -126,9 +123,9 @@ describe('POST comments', () => {
 
 describe('GET comments', () => {
   let app: Application
-  let user: user
-  let project: project
-  let issue: issue
+  let user: User
+  let project: Project
+  let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
@@ -208,10 +205,10 @@ describe('GET comments', () => {
 
 describe('PATCH comments', () => {
   let app: Application
-  let user: user
-  let project: project
-  let issue: issue
-  let comment: comment
+  let user: User
+  let project: Project
+  let issue: Issue
+  let comment: Comment
 
   beforeEach(async () => {
     app = createApp()
@@ -310,10 +307,10 @@ describe('PATCH comments', () => {
 
 describe('PATCH comments', () => {
   let app: Application
-  let user: user
-  let project: project
-  let issue: issue
-  let comment: comment
+  let user: User
+  let project: Project
+  let issue: Issue
+  let comment: Comment
 
   beforeEach(async () => {
     app = createApp()
