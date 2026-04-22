@@ -195,7 +195,7 @@ describe('POST /issues', () => {
       .expect(409)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('ISSUE_TITLE_TAKEN')
+    expect(result.body.error.code).toBe('ISSUE_TITLE_CONFLICT')
   })
 
   it('allows duplicate titles across different projects', async () => {

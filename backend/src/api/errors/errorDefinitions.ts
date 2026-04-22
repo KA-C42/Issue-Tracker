@@ -107,7 +107,7 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 422,
     message: 'Requested creator_id not owner or contributor to this project',
   },
-  ISSUE_TITLE_TAKEN: {
+  ISSUE_TITLE_CONFLICT: {
     statusCode: 409,
     message: 'Requested title in use by another issue in this project',
   },

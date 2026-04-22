@@ -13,7 +13,7 @@ export default function dbErrorMapper(err: DbError): never {
     else if (err.constraint === 'project_contributors_pkey')
       throw new AppError('ALREADY_MADE_CONTRIBUTOR')
     else if (err.constraint === 'issues_project_id_title_key')
-      throw new AppError('ISSUE_TITLE_TAKEN')
+      throw new AppError('ISSUE_TITLE_CONFLICT')
   } else if (err.code === '23503') {
     if (err.constraint === 'project_contributors_user_id_fkey')
       throw new AppError('USER_NOT_FOUND')
