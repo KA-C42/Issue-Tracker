@@ -7,9 +7,16 @@ Issue-Tracker/
 ├── backend/              # Contains all server-side code and APIs
 │   ├── src/              # Main source code for backend services
 │   │   ├── api/          # API endpoints and controllers
+|   |   |   ├── errors
+|   |   |   ├── middleware
+|   |   |   ├── queries
+|   |   |   ├── routes
+|   |   |   └── validators 
 │   │   ├── services/     # Business logic and service implementations
-│   │   ├── models/       # Database models/schemas
-│   │   └── utils/        # Backend utility functions
+│   │   └── db/           # Database types and services
+|   |       ├── types/    # DB types and enums
+|   |       └── services/ # DB services
+│   │    
 │   ├── config/           # Backend configuration files
 │   └── tests/            # Backend unit and integration tests
 │       ├── unit/         
@@ -23,11 +30,11 @@ Issue-Tracker/
 │   └── tests/            # Frontend unit and E2E tests
 │       ├── ui/         
 │       └── e2e/
-├── shared/               # Shared code used by both frontend and backend
-│   ├── types/            # Shared TypeScript/interface definitions
-│   └── utils/            # General utility functions
+├── supabase/             # Supabase / DB setup
+│   └── migrations/       # DB migrations
 ├── docs/                 # Architecture, requirements, and test plan
 │   └── diagrams/         # Diagrams used in documentation
+├── .github/workflows/    # Github Actions .yml
 ├── .gitignore            # Ignored files and folders
 ├── LICENSE               # MIT license
 └── README.md             # Project overview and quick start guide
@@ -88,8 +95,8 @@ Relationships:
  - issues (creator): one-to-many
  - issues (assignee): one-to-many
  - comments: one-to-many
- - notifications (actor): one-to-many
- - sent_notifications (recipient): one-to-many
+ - Future consideration: notifications (actor): one-to-many
+ - Future consideration: sent_notifications (recipient): one-to-many
  - invitations (sender): one-to-many
  - invitations (recipient): one-to-many
 
@@ -105,7 +112,7 @@ Relationships:
  - users (creator): many-to-one
  - users (contributors): many-to-many (through project_contributors)
  - issues: one-to-many
- - notifications: one-to-many (optional, polymorphic in code)
+ - Future consideration: notifications: one-to-many (optional, polymorphic in code)
 
 **issues**
 Stores: Single issues with relevant details
@@ -114,25 +121,25 @@ Relationships:
  - users (assignee): many-to-one
  - projects: many-to-one
  - comments: one-to-many
- - notifications: one-to-many (optional, polymorphic in code)
+ - Future consideration: notifications: one-to-many (optional, polymorphic in code)
 
 **comments**
 Stores: User-created comments left in response to issues
 Relationships:
  - users: many-to-one
  - issues: many-to-one
- - notifications: one-to-many (optional, polymorphic in code)
+ - Future consideration: notifications: one-to-many (optional, polymorphic in code)
 
-**notifications**
+**Future consideration: notifications**
 Stores: In-app notification data
 Relationships:
  - users (actor): many-to-one
  - invitations | projects | issues | comments: many-to-one (optional polymorphic relationship, enforced in code)
 
-**notification_templates**
+**Future consideration: notification_templates**
 Stores: Templates for defining notification messages
 
-**sent_notifications**
+**Future consideration: sent_notifications**
 Stores: Which notifications are sent to which users, and when they were seen
 Relationships:
  - users (recipient): many-to-one
@@ -144,7 +151,7 @@ Relationships:
  - users (sender/project owner): many-to-one
  - users (recipient): many-to-one
  - projects: many-to-one
- - notifications: one-to-many (optional, polymorphic in code)
+ - Future consideration: notifications: one-to-many (optional, polymorphic in code)
 
 ## 7. CI/CD
 

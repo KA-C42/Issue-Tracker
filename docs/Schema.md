@@ -30,7 +30,7 @@ PK = Primary Key, CPK = Composite Primary Key, FK = Foreign Key, UK = Unique Con
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
-| user_id      | UUID        | PK                                           | Supabase Auth user ID |
+| id           | UUID        | PK                                           | Supabase Auth user ID |
 | username     | TEXT        | UK, NN                                       |       |
 | created_at   | TIMESTAMP   | NN, DEFAULT now()                            |       |
 | deactivated_at | TIMESTAMP | DEFAULT NULL                                 | soft delete users (if user owns no projects) |
@@ -51,9 +51,9 @@ Additional Constraints and Indexes:
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
-| project_id   | UUID        | PK                                           |       |
+| id           | UUID        | PK                                           |       |
 | owner_id     | UUID        | NN, FK -> users.user_id                      | creator, ownership transferable post-MVP |
-| project_name | TEXT        | NN                                           |       |
+| name         | TEXT        | NN                                           |       |
 | description  | TEXT        |                                              |       |
 | modified_at  | TIMESTAMP   |                                              | set on update |
 | created_at   | TIMESTAMP   | NN, DEFAULT now()                            |       |
@@ -67,11 +67,11 @@ Additional Constraints and Indexes:
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
-| issue_id     | UUID        | PK                                           |       |
+| id           | UUID        | PK                                           |       |
 | creator_id   | UUID        | NN, FK -> users.user_id                      | creator |
 | project_id   | UUID        | NN, FK -> projects.project_id (ON DELETE CASCADE) |  |
-| issue_title  | TEXT        | NN                                           |       |
-| issue_code   | TEXT        | NN                                           |       |
+| title        | TEXT        | NN                                           |       |
+| code         | TEXT        | NN                                           |       |
 | details      | TEXT        |                                              |       |
 | status       | TEXT        | NN, DEFAULT 'BACKLOG', CHECK                 | BACKLOG, IN_PROGRESS, DONE |
 | assignee_id  | UUID        | FK -> users.user_id                          | must be project member, enforced in code |
@@ -82,8 +82,8 @@ Additional Constraints and Indexes:
 Additional Constraints and Indexes:
  - CHECK (status IN ('BACKLOG', 'IN_PROGRESS', 'DONE'))
     - may abstract, see potential enhancements at end of doc
- - UK (project_id, issue_code)
-    - enforce unique issue_code per project
+ - UK (project_id, title)
+    - enforce unique title per project
     - can support filtering issues by project (prefer explicit index below)
  - INDEX (project_id, status)
     - supports filtering issues by status within project
@@ -93,7 +93,7 @@ Additional Constraints and Indexes:
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
-| comment_id   | UUID        | PK                                           |       |
+| id           | UUID        | PK                                           |       |
 | author_id    | UUID        | NN, FK -> users.user_id                      |       |
 | issue_id     | UUID        | NN, FK -> issues.issue_id (ON DELETE CASCADE) |      |
 | comment      | TEXT        | NN                                           |       |
@@ -104,6 +104,29 @@ Additional Constraints and Indexes:
 Additional Constraints and Indexes:
  - INDEX (issue_id, created_at)
     - supports filtering comments by issue with oldest first (comment display per issue)
+
+### invitations
+
+| Column       | Type        | Constraints                                  | Notes |
+|--------------|-------------|----------------------------------------------|-------|
+| invite_id    | UUID        | PK                                           |       |
+| sender_id    | UUID        | FK -> users.user_id, NN                      |       |
+| recipient_id | UUID        | FK -> users.user_id, NN                      |       |
+| project_id   | UUID        | FK -> projects.project_id, NN                |       |
+| status       | TEXT        | NN, CHECK                                    | PENDING, ACCEPTED, REJECTED, REVOKED |
+
+Additional Constraints and Indexes:
+ - CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED', 'REVOKED'))
+ - UK (project_id, recipient_id) WHERE status = 'PENDING'
+    - enforces one pending invite per project/recipient
+ - INDEX (recipient_id, status)
+    - supports filtering by recipient to display all invitations
+    - can support filtering per recipient by status (likely to display pending incoming invites)
+ - INDEX (project_id, status)
+    - supports filter by project to display outgoing invitations
+    - can support filtering outgoing invites by status
+
+## Future tables
 
 ### notifications
 
@@ -137,29 +160,6 @@ Additional Constraints and Indexes:
 | notif_id     | UUID        | CPK, FK -> notifications.notif_id            |       |
 | seen_at      | TIMESTAMP   |                                              | set on notification view |
 
-### invitations
-
-| Column       | Type        | Constraints                                  | Notes |
-|--------------|-------------|----------------------------------------------|-------|
-| invite_id    | UUID        | PK                                           |       |
-| sender_id    | UUID        | FK -> users.user_id, NN                      |       |
-| recipient_id | UUID        | FK -> users.user_id, NN                      |       |
-| project_id   | UUID        | FK -> projects.project_id, NN                |       |
-| status       | TEXT        | NN, CHECK                                    | PENDING, ACCEPTED, REJECTED, REVOKED |
-| responded_at | TIMESTAMP   |                                              | set on status change |
-| sent_at      | TIMESTAMP   | NN, DEFAULT now()                            |       |
-| seen_at      | TIMESTAMP   |                                              | set on notification view or invitations opened |
-
-Additional Constraints and Indexes:
- - CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED', 'REVOKED'))
- - UK (project_id, recipient_id) WHERE status = 'PENDING'
-    - enforces one pending invite per project/recipient
- - INDEX (recipient_id, status)
-    - supports filtering by recipient to display all invitations
-    - can support filtering per recipient by status (likely to display pending incoming invites)
- - INDEX (project_id, status)
-    - supports filter by project to display outgoing invitations
-    - can support filtering outgoing invites by status
 
 
 ## Deletion Behavior
@@ -181,13 +181,13 @@ For MVP, deletion behavior is kept intentionally simple and restrictive. Develop
     - Delete cascades (comments)
     - Delete corresponding notifications (except notifications indicating its deletion)
  - Comments
-    - Soft delete
-    - Comment row remains for ordering; content removed from UI; UI shows “Comment deleted.”
-    - Delete corresponding notifications (except notifications indicating its deletion)
+    - Hard delete
+    - Future consideration: Soft delete, Comment row remains for ordering; content removed from UI; UI shows “Comment deleted.”
+    - Future consideration: Delete corresponding notifications (except notifications indicating its deletion)
  - Invitations
     - No direct delete option, only revoke
-    - Revoking or deletion via project deletion deletes the corresponding notification
- - Notifications
+    - Future consideration: Revoking or deletion via project deletion deletes the corresponding notification
+ - Future consideration: Notifications
     - No direct delete option for users
 
 

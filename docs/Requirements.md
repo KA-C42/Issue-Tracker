@@ -28,11 +28,11 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
  - Project management and sharing
  - Issue management, assignment, and tracking
  - Issue comment system
- - In-app notifications
- - User Dashboard (account info, project creation/lists, notifications)
+ - User Dashboard (account info, project creation/lists, invitations)
  - Project Dashboard (project details, kanban view, members, issues, comments)
 
 ### Out of Scope
+ - In-app notifications
  - Account management
     - Changing username, email, or password
  - External notifications
@@ -190,7 +190,7 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
   1 - The project dashboard allows members to create a new issue  
   2 - Issue requires a title and unique code per project
   3 - Issue creation has optional fields: description, code, assignee (selected from list of project members), status (selected from "Backlog", "In Progress", "Done")  
-  4 - Issue is automatically assigned a unique code if none is given  
+  4 - Issue is automatically assigned a unique code 
   5 - Default status is "Backlog"  
   6 - If a project contributor creates an issue with the status "In Progress", the issue is assigned to them  
   7 - If a project owner creates an issue with that status "In Progress", they must choose an assignee  
@@ -323,16 +323,7 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>4 - As a user, I want to view my notifications so that I can be informed about any changes and updates relevant to me and my work</strong></summary>
-
-  Acceptance Criteria:  
-  1 - User dashboard offers a "notifications" section  
-  2 - Notification section lists notifications with brief summary and datetime   
-
-  </details>
-
-  <details style="margin-left: 20px;">
-    <summary><strong>5 - As a user, I want to view and respond to any pending contributor invitations so that I can join projects with a team</strong></summary>
+    <summary><strong>4 - As a user, I want to view and respond to any pending contributor invitations so that I can join projects with a team</strong></summary>
 
   Acceptance Criteria:  
   1 - Notification section includes project invitations which include the project name and project owner name  
@@ -343,7 +334,7 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>6 - As a user, I want to access a new-project form so that I can start creation of new projects</strong></summary>
+    <summary><strong>5 - As a user, I want to access a new-project form so that I can start creation of new projects</strong></summary>
 
   Acceptance Criteria:  
   1 - User dashboard offers a prompt to start creation of a new project  
@@ -433,6 +424,7 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
 
 
 ## 7. Potential Enhancements
+ - Notification system
  - Password recovery
  - Transferring ownership of projects/issues
  - Local storage for some offline functionality
