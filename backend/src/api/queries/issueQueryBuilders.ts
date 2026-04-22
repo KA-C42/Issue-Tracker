@@ -1,4 +1,4 @@
-import type { IssueStatus } from '../../types/enums.js'
+import type { IssueStatus } from '../../db/types/enums.js'
 import { AppError } from '../errors/AppError.js'
 
 type issuePostFields = {

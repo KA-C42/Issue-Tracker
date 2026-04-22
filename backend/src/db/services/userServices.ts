@@ -1,4 +1,4 @@
-import type { User } from '../../types/db.js'
+import type { User } from '../types/db.js'
 import { pool } from '../pool.js'
 
 export async function getUser(userId: string): Promise<User> {

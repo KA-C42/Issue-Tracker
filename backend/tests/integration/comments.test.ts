@@ -9,7 +9,7 @@ import {
   createTestComment,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
-import { Comment, Issue, Project, User } from '../../src/types/db.js'
+import { Comment, Issue, Project, User } from '../../src/db/types/db.js'
 
 describe('POST comments', () => {
   let app: Application

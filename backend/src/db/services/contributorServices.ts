@@ -1,4 +1,4 @@
-import type { ProjectContributor } from '../../types/db.js'
+import type { ProjectContributor } from '../types/db.js'
 import { pool } from '../pool.js'
 
 export async function getContributor(

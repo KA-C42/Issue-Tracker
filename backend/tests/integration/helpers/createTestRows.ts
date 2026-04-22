@@ -6,8 +6,8 @@ import {
   ProjectContributor,
   Issue,
   Comment,
-} from '../../../src/types/db'
-import { IssueStatus } from '../../../src/types/enums'
+} from '../../../src/db/types/db'
+import { IssueStatus } from '../../../src/db/types/enums'
 
 const createTestUser = async (
   app: Application,

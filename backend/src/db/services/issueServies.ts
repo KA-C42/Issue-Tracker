@@ -1,4 +1,4 @@
-import type { Issue } from '../../types/db.js'
+import type { Issue } from '../types/db.js'
 import { pool } from '../pool.js'
 
 export async function getIssue(issue_id: string): Promise<Issue> {

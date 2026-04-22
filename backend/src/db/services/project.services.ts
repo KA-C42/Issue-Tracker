@@ -1,4 +1,4 @@
-import type { Project } from '../../types/db.js'
+import type { Project } from '../types/db.js'
 import { pool } from '../pool.js'
 
 export async function getProject(projectId: string): Promise<Project> {
