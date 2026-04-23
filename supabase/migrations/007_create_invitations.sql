@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS invitations (
 
     project_id uuid REFERENCES projects (id) ON DELETE CASCADE NOT NULL,
 
-    status text NOT NULL,
+    status text NOT NULL DEFAULT 'PENDING',
 
     CHECK (status in ('PENDING', 'ACCEPTED', 'REJECTED', 'REVOKED')),
 
@@ -54,7 +54,7 @@ CREATE OR REPLACE FUNCTION prevent_inviting_existing_member()
             WHERE pc.project_id = NEW.project_id
                 AND pc.user_id = NEW.receiver_id
         ) THEN
-            RAISE EXCEPTION 'USER_ALREADY_CONTRIBUTOR';
+            RAISE EXCEPTION 'RECIPIENT_ALREADY_CONTRIBUTOR';
         END IF;
 
         IF EXISTS (
@@ -63,7 +63,7 @@ CREATE OR REPLACE FUNCTION prevent_inviting_existing_member()
             WHERE p.id = NEW.project_id
                 AND p.owner_id = NEW.receiver_id
         ) THEN
-            RAISE EXCEPTION 'USER_ALREADY_OWNER';
+            RAISE EXCEPTION 'RECIPIENT_OWNS_PROJECT';
         END IF;
 
         RETURN NEW;
