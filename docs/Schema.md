@@ -109,7 +109,7 @@ Additional Constraints and Indexes:
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
-| invite_id    | UUID        | PK                                           |       |
+| id           | UUID        | PK                                           |       |
 | sender_id    | UUID        | FK -> users.user_id, NN                      |       |
 | recipient_id | UUID        | FK -> users.user_id, NN                      |       |
 | project_id   | UUID        | FK -> projects.project_id, NN                |       |

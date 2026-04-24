@@ -149,6 +149,53 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 403,
     message: 'Provided id is not the original commenter',
   },
+
+  // INVITATION ERRORS
+  SENDER_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Provided sender_id does not match any user',
+  },
+  RECEIVER_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Provided receiever_id does not match any user',
+  },
+  MISSING_SENDER_ID: {
+    statusCode: 400,
+    message: 'Please provide a sender_id',
+  },
+  MISSING_RECEIVER_ID: {
+    statusCode: 400,
+    message: 'Please provide a receiver_id',
+  },
+  RECIPIENT_OWNS_PROJECT: {
+    statusCode: 409,
+    message: 'Cannot invite a project owner to their own project',
+  },
+  RECIPIENT_ALREADY_CONTRIBUTOR: {
+    statusCode: 409,
+    message: 'Cannot invite a user to a project they already contribute to',
+  },
+  INVITE_ALREADY_PENDING: {
+    statusCode: 409,
+    message: 'Cannot invite a user when an invite is already pending',
+  },
+  TOO_MANY_PARAMETERS: {
+    statusCode: 400,
+    message: 'Too many search parameters provided',
+  },
+  INVALID_STATUS_CHANGE: {
+    statusCode: 400,
+    message:
+      'Invitation status can only change from PENDING to one of [ ACCEPTED, REJECTED, REVOKED ]',
+  },
+  MISSING_STATUS: {
+    statusCode: 400,
+    message: 'Please provide a status field to update',
+  },
+  INVITATION_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Provided invitation id not found',
+  },
 }
 
 export function getErrorDef(code: string) {

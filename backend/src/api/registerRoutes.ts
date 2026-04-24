@@ -5,6 +5,7 @@ import projectRouter from './routes/projects.js'
 import projectContributorRouter from './routes/project_contributors.js'
 import issueRouter from './routes/issues.js'
 import commentRouter from './routes/comments.js'
+import invitationRouter from './routes/invitations.js'
 
 export default function registerRoutes(app: Express) {
   // add routes here!!
@@ -16,4 +17,6 @@ export default function registerRoutes(app: Express) {
   app.use('/issues', issueRouter)
   app.use('/issues/:issue_id/comments', commentRouter)
   app.use('/comments', commentRouter)
+  app.use('/projects/:project_id/invitations', invitationRouter)
+  app.use('/invitations', invitationRouter)
 }
