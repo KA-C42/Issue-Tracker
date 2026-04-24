@@ -1,3 +1,4 @@
+import { pool } from '../../db/pool.js'
 import { getProject } from '../../db/services/project.services.js'
 import { getUser } from '../../db/services/userServices.js'
 import { AppError } from '../errors/AppError.js'
@@ -33,4 +34,18 @@ async function validateInviteGet(project_id: string, receiver_id: string) {
   } else throw new AppError('MISSING_SEARCH_PARAMETER')
 }
 
-export { validateInvitePost, validateInviteGet }
+async function validateInvitePatch(invite_id: string, status: string) {
+  if (!status) throw new AppError('MISSING_STATUS')
+  else if (status === 'PENDING') throw new AppError('INVALID_STATUS_CHANGE')
+
+  const existing = await pool.query(
+    'SELECT status FROM invitations WHERE id = $1',
+    [invite_id],
+  )
+
+  if (!existing.rows[0]) throw new AppError('INVITATION_NOT_FOUND')
+  if (existing.rows[0].status !== 'PENDING')
+    throw new AppError('INVALID_STATUS_CHANGE')
+}
+
+export { validateInvitePost, validateInviteGet, validateInvitePatch }

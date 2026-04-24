@@ -10,7 +10,7 @@ function buildInviteGetQuery(project_id: string, receiver_id: string) {
     values.push(receiver_id)
   }
 
-  const text = `SELECT * FROM invitations WHERE ${field} = $1 ORDER BY status`
+  const text = `SELECT * FROM invitations WHERE ${field} = $1 ORDER BY status ASC, sent_at DESC`
 
   return { text, values }
 }

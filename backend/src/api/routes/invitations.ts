@@ -4,6 +4,7 @@ import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import {
   validateInviteGet,
+  validateInvitePatch,
   validateInvitePost,
 } from '../validators/invitations_validation.js'
 import { buildInviteGetQuery } from '../queries/invitationQueryBuilders.js'
@@ -47,6 +48,24 @@ invitationRouter.get('/', async (req, res) => {
   try {
     const result = await pool.query(text, values)
     return res.status(200).json(result.rows)
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
+})
+
+invitationRouter.patch('/:id', async (req, res) => {
+  await validateInvitePatch(req.params.id as string, req.body.status as string)
+
+  const text = `UPDATE invitations
+    SET status = $1
+    WHERE id = $2
+    RETURNING *
+    `
+  const values = [req.body.status, req.params.id]
+
+  try {
+    const result = await pool.query(text, values)
+    return res.status(200).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
