@@ -1,4 +1,4 @@
-import type { IssueStatus } from './enums.js'
+import type { InviteStatus, IssueStatus } from './enums.js'
 
 type User = {
   id: string
@@ -44,4 +44,14 @@ type Comment = {
   created_at: string
 }
 
-export type { User, Project, ProjectContributor, Issue, Comment }
+type Invitation = {
+  id: string
+  sender_id: string
+  receiver_id: string
+  project_id: string
+  status: InviteStatus
+  sent_at: string
+  status_changed_at: string
+}
+
+export type { User, Project, ProjectContributor, Issue, Comment, Invitation }

@@ -179,6 +179,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 409,
     message: 'Cannot invite a user when an invite is already pending',
   },
+  TOO_MANY_PARAMETERS: {
+    statusCode: 400,
+    message: 'Too many search parameters provided',
+  },
 }
 
 export function getErrorDef(code: string) {

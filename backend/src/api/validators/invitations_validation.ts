@@ -21,4 +21,16 @@ async function validateInvitePost(
   if (!project) throw new AppError('PROJECT_NOT_FOUND')
 }
 
-export { validateInvitePost }
+async function validateInviteGet(project_id: string, receiver_id: string) {
+  if (project_id && receiver_id) throw new AppError('TOO_MANY_PARAMETERS')
+
+  if (project_id && typeof project_id === 'string') {
+    const project = await getProject(project_id)
+    if (!project) throw new AppError('PROJECT_NOT_FOUND')
+  } else if (receiver_id && typeof receiver_id === 'string') {
+    const receiver = await getUser(receiver_id)
+    if (!receiver) throw new AppError('USER_NOT_FOUND')
+  } else throw new AppError('MISSING_SEARCH_PARAMETER')
+}
+
+export { validateInvitePost, validateInviteGet }

@@ -18,4 +18,5 @@ export default function registerRoutes(app: Express) {
   app.use('/issues/:issue_id/comments', commentRouter)
   app.use('/comments', commentRouter)
   app.use('/projects/:project_id/invitations', invitationRouter)
+  app.use('/invitations', invitationRouter)
 }

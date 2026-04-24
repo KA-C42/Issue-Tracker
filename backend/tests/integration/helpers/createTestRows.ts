@@ -6,6 +6,7 @@ import {
   ProjectContributor,
   Issue,
   Comment,
+  Invitation,
 } from '../../../src/db/types/db'
 import { IssueStatus } from '../../../src/db/types/enums'
 
@@ -98,10 +99,28 @@ const createTestComment = async (
   return response.body as Comment
 }
 
+const createInvitation = async (
+  app: Application,
+  sender_id: string,
+  receiver_id: string,
+  project_id: string,
+): Promise<Invitation> => {
+  const response = await request(app)
+    .post(`/projects/${project_id}/invitations`)
+    .send({
+      sender_id: sender_id,
+      receiver_id: receiver_id,
+    })
+    .expect(201)
+
+  return response.body as Invitation
+}
+
 export {
   createTestUser,
   createTestProject,
   makeContributor,
   createTestIssue,
   createTestComment,
+  createInvitation,
 }
