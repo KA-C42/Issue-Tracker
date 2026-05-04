@@ -7,8 +7,8 @@ import {
   Issue,
   Comment,
   Invitation,
-} from '../../../src/db/types/db'
-import { IssueStatus } from '../../../src/db/types/enums'
+} from '../../../src/types/db'
+import { IssueStatus } from '../../../src/types/enums'
 
 const createTestUser = async (
   app: Application,
