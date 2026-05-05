@@ -7,8 +7,20 @@ import {
   Issue,
   Comment,
   Invitation,
+  User,
 } from '../../../src/types/db'
 import { IssueStatus } from '../../../src/types/enums'
+import { pool } from '../../../src/db/pool'
+
+const createTestUser = async (
+  email: string = 'hacker42@aol.gotcha',
+): Promise<User> => {
+  const text = 'INSERT INTO auth.users (id, email) VALUES ($1, $2) RETURNING *'
+  const values = [crypto.randomUUID(), email]
+
+  const result = await pool.query(text, values)
+  return result.rows[0]
+}
 
 const createTestProfile = async (
   app: Application,
@@ -117,6 +129,7 @@ const createInvitation = async (
 }
 
 export {
+  createTestUser,
   createTestProfile,
   createTestProject,
   makeContributor,

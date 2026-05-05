@@ -3,6 +3,6 @@ import { pool } from '../src/db/pool'
 
 beforeEach(async () => {
   await pool.query(
-    'TRUNCATE comments, issues, project_contributors, projects, profiles CASCADE',
+    'TRUNCATE comments, issues, project_contributors, projects, profiles, auth.users CASCADE',
   )
 })
