@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import request from 'supertest'
 import createApp from '../../../src/api/app.js'
 import {
-  createTestUser,
+  createTestProfile,
   createTestProject,
   makeContributor,
 } from '../helpers/createTestRows.js'
@@ -10,7 +10,7 @@ import {
 describe('POST /issues', () => {
   it('inserts a new issue with maximal fields with status 201, returning the new row', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -40,7 +40,7 @@ describe('POST /issues', () => {
 
   it('inserts a new issue with minimal fields with status 201, returning the new row', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -71,7 +71,7 @@ describe('POST /issues', () => {
   it('returns 400 when lacking a title', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -90,7 +90,7 @@ describe('POST /issues', () => {
   it('returns 400 when lacking a creator_id', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -109,7 +109,7 @@ describe('POST /issues', () => {
   it("returns 404 when project_id doesn't exist", async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const payload = {
       creator_id: user.id,
@@ -128,7 +128,7 @@ describe('POST /issues', () => {
   it('returns 404 when creator_id does not exist', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -148,7 +148,7 @@ describe('POST /issues', () => {
   it('returns 404 when assignee_id does not exist', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -168,8 +168,8 @@ describe('POST /issues', () => {
 
   it('returns 409 when using a duplicate title (per project)', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
-    const otherUser = await createTestUser(app, 'wenk')
+    const user = await createTestProfile(app)
+    const otherUser = await createTestProfile(app, 'wenk')
     const project = await createTestProject(app, user.id)
     await makeContributor(app, otherUser.id, project.id)
 
@@ -200,7 +200,7 @@ describe('POST /issues', () => {
 
   it('allows duplicate titles across different projects', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id, 'rock')
 
     const payload = {
@@ -232,8 +232,8 @@ describe('POST /issues', () => {
 
   it('returns 422 when assignee_id is not an owner or contributor of the project', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
-    const randomUser = await createTestUser(app, 'Paarthurnax')
+    const user = await createTestProfile(app)
+    const randomUser = await createTestProfile(app, 'Paarthurnax')
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -253,8 +253,8 @@ describe('POST /issues', () => {
 
   it('returns 422 when creator_id is not an owner or contributor of the project', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
-    const randomUser = await createTestUser(app, 'Paarthurnax')
+    const user = await createTestProfile(app)
+    const randomUser = await createTestProfile(app, 'Paarthurnax')
     const project = await createTestProject(app, user.id)
 
     const payload = {

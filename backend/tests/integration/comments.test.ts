@@ -3,23 +3,23 @@ import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
 import {
-  createTestUser,
+  createTestProfile,
   createTestProject,
   createTestIssue,
   createTestComment,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
-import { Comment, Issue, Project, User } from '../../src/db/types/db.js'
+import { Comment, Issue, Project, Profile } from '../../src/types/db.js'
 
 describe('POST comments', () => {
   let app: Application
-  let user: User
+  let user: Profile
   let project: Project
   let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser(app)
+    user = await createTestProfile(app)
     project = await createTestProject(app, user.id)
     issue = await createTestIssue(app, user.id, project.id)
   })
@@ -104,7 +104,7 @@ describe('POST comments', () => {
   })
 
   it('returns 422 when author_id is not owner or contributor to the project', async () => {
-    const newUser = await createTestUser(app, 'strangerDanger')
+    const newUser = await createTestProfile(app, 'strangerDanger')
 
     const payload = {
       author_id: newUser.id,
@@ -123,13 +123,13 @@ describe('POST comments', () => {
 
 describe('GET comments', () => {
   let app: Application
-  let user: User
+  let user: Profile
   let project: Project
   let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser(app)
+    user = await createTestProfile(app)
     project = await createTestProject(app, user.id)
     issue = await createTestIssue(app, user.id, project.id)
   })
@@ -205,14 +205,14 @@ describe('GET comments', () => {
 
 describe('PATCH comments', () => {
   let app: Application
-  let user: User
+  let user: Profile
   let project: Project
   let issue: Issue
   let comment: Comment
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser(app)
+    user = await createTestProfile(app)
     project = await createTestProject(app, user.id)
     issue = await createTestIssue(app, user.id, project.id)
     comment = await createTestComment(app, user.id, issue.id, 'comment')
@@ -307,14 +307,14 @@ describe('PATCH comments', () => {
 
 describe('PATCH comments', () => {
   let app: Application
-  let user: User
+  let user: Profile
   let project: Project
   let issue: Issue
   let comment: Comment
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser(app)
+    user = await createTestProfile(app)
     project = await createTestProject(app, user.id)
     issue = await createTestIssue(app, user.id, project.id)
     comment = await createTestComment(app, user.id, issue.id, 'comment')

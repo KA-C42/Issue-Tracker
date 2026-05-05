@@ -3,24 +3,24 @@ import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../../src/api/app.js'
 import {
-  createTestUser,
+  createTestProfile,
   createTestProject,
   makeContributor,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
-import { Project, User } from '../../../src/db/types/db.js'
+import { Project, Profile } from '../../../src/types/db.js'
 
 describe('POST invitations', () => {
   let app: Application
-  let owner: User
+  let owner: Profile
   let project: Project
-  let invitee: User
+  let invitee: Profile
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser(app, 'owner')
+    owner = await createTestProfile(app, 'owner')
     project = await createTestProject(app, owner.id)
-    invitee = await createTestUser(app, 'invitee')
+    invitee = await createTestProfile(app, 'invitee')
   })
 
   it('creates a new invitation, returning 200', async () => {

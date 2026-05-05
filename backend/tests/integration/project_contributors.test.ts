@@ -3,7 +3,7 @@ import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
 import {
-  createTestUser,
+  createTestProfile,
   createTestProject,
   makeContributor,
 } from './helpers/createTestRows.js'
@@ -18,7 +18,7 @@ describe('POST /project-contributors', () => {
   it('inserts a project_contributor with status 201, returning the new row', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -37,7 +37,7 @@ describe('POST /project-contributors', () => {
 
   it('rejects a duplicate row request with status 409', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -64,7 +64,7 @@ describe('POST /project-contributors', () => {
   it('rejects request missing a user id with status 400', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -83,7 +83,7 @@ describe('POST /project-contributors', () => {
   it('rejects request missing a project id with status 400', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const payload = {
       user_id: user.id,
@@ -101,7 +101,7 @@ describe('POST /project-contributors', () => {
   it('rejects request with unmatched user_id with status 404', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -121,7 +121,7 @@ describe('POST /project-contributors', () => {
   it('rejects request with unmatched project_id with status 404', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const payload = {
       user_id: user.id,
@@ -144,8 +144,8 @@ describe('GET /project-contributors? ${user_id || project_id}=###', () => {
   it('gets all project-contributor rows by user, returning status 200', async () => {
     const app = createApp()
 
-    const owner = await createTestUser(app, 'owner')
-    const contributor = await createTestUser(app, 'contributor')
+    const owner = await createTestProfile(app, 'owner')
+    const contributor = await createTestProfile(app, 'contributor')
 
     const projects = []
     for (let i = 0; i < 3; i++) {
@@ -171,12 +171,12 @@ describe('GET /project-contributors? ${user_id || project_id}=###', () => {
   it('gets all project-contributor rows by project, returning status 200', async () => {
     const app = createApp()
 
-    const owner = await createTestUser(app, 'owner')
+    const owner = await createTestProfile(app, 'owner')
     const project = await createTestProject(app, owner.id)
 
     const contributors = []
     for (let i = 0; i < 3; i++) {
-      contributors[i] = await createTestUser(app, `contributor${i + 1}`)
+      contributors[i] = await createTestProfile(app, `contributor${i + 1}`)
       await makeContributor(app, contributors[i].id, project.id)
     }
 
@@ -211,7 +211,7 @@ describe('GET /project-contributors? ${user_id || project_id}=###', () => {
     const app = createApp()
 
     const username = 'nullContributor'
-    const user = await createTestUser(app, username)
+    const user = await createTestProfile(app, username)
 
     const response = await request(app)
       .get(`/project-contributors?user_id=${user.id}`)
@@ -225,7 +225,7 @@ describe('GET /project-contributors? ${user_id || project_id}=###', () => {
     const app = createApp()
 
     const projectName = 'projecty'
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id, projectName)
 
     const response = await request(app)
@@ -263,9 +263,9 @@ describe('GET /project-contributors? ${user_id || project_id}=###', () => {
 describe('DELETE /project-contributors?project_id=###&user_id=###', () => {
   it('successfully deletes a project contributor row, returning status 204', async () => {
     const app = createApp()
-    const projectOwner = await createTestUser(app, 'owner')
+    const projectOwner = await createTestProfile(app, 'owner')
     const project = await createTestProject(app, projectOwner.id)
-    const contributor = await createTestUser(app, 'contributor')
+    const contributor = await createTestProfile(app, 'contributor')
     await makeContributor(app, contributor.id, project.id)
 
     await request(app)
@@ -298,7 +298,7 @@ describe('DELETE /project-contributors?project_id=###&user_id=###', () => {
   // return 400 pid
   it('rejects request with status 400 when missing a project_id', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
     await makeContributor(app, user.id, project.id)
 
@@ -313,7 +313,7 @@ describe('DELETE /project-contributors?project_id=###&user_id=###', () => {
   // return 400 uid
   it('rejects request with status 400 when missing a user_id', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
     await makeContributor(app, user.id, project.id)
 
@@ -327,7 +327,7 @@ describe('DELETE /project-contributors?project_id=###&user_id=###', () => {
 
   it('rejects a request with status 400 when lacking any id', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
     await makeContributor(app, user.id, project.id)
 

@@ -10,14 +10,14 @@ export function buildContributorGetQuery(query: ContributorGetQuery) {
     return {
       text: `
         SELECT 
-          users.username,
+          profiles.username,
           project_contributors.user_id, 
           project_contributors.project_id, 
           project_contributors.joined_at
-        FROM users
+        FROM profiles
         LEFT JOIN project_contributors 
-          ON users.id = project_contributors.user_id
-        WHERE users.id = $1
+          ON profiles.id = project_contributors.user_id
+        WHERE profiles.id = $1
         ORDER BY project_contributors.joined_at
       `,
       values: [query.user_id],

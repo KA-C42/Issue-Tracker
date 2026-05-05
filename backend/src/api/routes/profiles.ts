@@ -4,16 +4,16 @@ import { AppError } from '../errors/AppError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import type { DbError } from '../errors/DbError.js'
 import {
-  validateUserPatch,
-  validateUserPost,
-} from '../validators/users_validation.js'
+  validateProfilePatch,
+  validateProfilePost,
+} from '../validators/profiles_validation.js'
 
-const userRouter = Router()
+const profileRouter = Router()
 
-userRouter.post('/', async (req, res) => {
-  validateUserPost(req)
+profileRouter.post('/', async (req, res) => {
+  validateProfilePost(req)
 
-  const text = 'INSERT INTO users (username) VALUES ($1) RETURNING *'
+  const text = 'INSERT INTO profiles (username) VALUES ($1) RETURNING *'
   const values = [req.body.username]
 
   try {
@@ -24,8 +24,8 @@ userRouter.post('/', async (req, res) => {
   }
 })
 
-userRouter.get('/:id', async (req, res) => {
-  const text = 'SELECT * FROM users WHERE id = $1'
+profileRouter.get('/:id', async (req, res) => {
+  const text = 'SELECT * FROM profiles WHERE id = $1'
   const values = [req.params.id]
 
   try {
@@ -39,10 +39,10 @@ userRouter.get('/:id', async (req, res) => {
   }
 })
 
-userRouter.patch('/:id', async (req, res) => {
-  validateUserPatch(req)
+profileRouter.patch('/:id', async (req, res) => {
+  validateProfilePatch(req)
 
-  const text = 'UPDATE users SET username = $1 WHERE id = $2 RETURNING *'
+  const text = 'UPDATE profiles SET username = $1 WHERE id = $2 RETURNING *'
   const values = [req.body.username, req.params.id]
 
   try {
@@ -56,9 +56,9 @@ userRouter.patch('/:id', async (req, res) => {
   }
 })
 
-userRouter.delete('/:id', async (req, res) => {
+profileRouter.delete('/:id', async (req, res) => {
   const text =
-    'UPDATE users SET deactivated_at = now() WHERE id = $1 RETURNING *'
+    'UPDATE profiles SET deactivated_at = now() WHERE id = $1 RETURNING *'
   const values = [req.params.id]
 
   try {
@@ -72,4 +72,4 @@ userRouter.delete('/:id', async (req, res) => {
   }
 })
 
-export default userRouter
+export default profileRouter

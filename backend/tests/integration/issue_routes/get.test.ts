@@ -3,12 +3,12 @@ import createApp from '../../../src/api/app'
 import {
   createTestIssue,
   createTestProject,
-  createTestUser,
-  issue,
+  createTestProfile,
 } from '../helpers/createTestRows'
 import request from 'supertest'
 import { Application } from 'express'
 import { seedVariedIssues, seedVariedIssuesReturn } from '../helpers/seedDb'
+import { Issue } from '../../../src/types/db'
 
 describe('GET issues collection', () => {
   let app: Application
@@ -25,7 +25,7 @@ describe('GET issues collection', () => {
       .expect(200)
       .expect('Content-Type', /json/)
 
-    const body = result.body as issue[]
+    const body = result.body as Issue[]
 
     const expected = seed.issues.filter(
       (issue) => issue.project_id === seed.mainProject.id,
@@ -74,7 +74,7 @@ describe('GET issues collection', () => {
       .expect(200)
       .expect('Content-Type', /json/)
 
-    const body = result.body as issue[]
+    const body = result.body as Issue[]
 
     const expected = seed.issues.filter(
       (issue) => issue.assignee_id === seed.projectContributor.id,
@@ -94,7 +94,7 @@ describe('GET issues collection', () => {
   })
 
   it('GETs an empty array when assignee_id exists but has no issues, status 200', async () => {
-    const newUser = await createTestUser(app, 'newUser')
+    const newUser = await createTestProfile(app, 'newUser')
 
     const result = await request(app)
       .get(`/issues?assignee_id=${newUser.id}`)
@@ -130,7 +130,7 @@ describe('GET issues collection', () => {
       .expect(200)
       .expect('Content-Type', /json/)
 
-    const body = result.body as issue[]
+    const body = result.body as Issue[]
     const expected = seed.issues.filter(
       (issue) =>
         issue.assignee_id === seed.projectContributor.id &&
@@ -157,7 +157,7 @@ describe('GET issues collection', () => {
       .expect(200)
       .expect('Content-Type', /json/)
 
-    const body = result.body as issue[]
+    const body = result.body as Issue[]
 
     const expected = seed.issues.filter(
       (issue) =>
@@ -181,7 +181,7 @@ describe('GET /issues/:id', () => {
     app = createApp()
   })
   it('success with status 200', async () => {
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
     const issue = await createTestIssue(app, user.id, project.id)
 

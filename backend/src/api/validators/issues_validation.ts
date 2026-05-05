@@ -1,7 +1,7 @@
 import { getContributor } from '../../db/services/contributorServices.js'
 import { getIssue } from '../../db/services/issueServies.js'
 import { getProject } from '../../db/services/project.services.js'
-import { getUser } from '../../db/services/userServices.js'
+import { getProfile } from '../../db/services/userServices.js'
 import type { IssueStatus } from '../../types/enums.js'
 import { AppError } from '../errors/AppError.js'
 import type { issuePostFields } from '../queries/issueQueryBuilders.js'
@@ -13,7 +13,7 @@ async function validateIssuePost(body: issuePostFields) {
   const project = await getProject(body.project_id)
   if (!project) throw new AppError('PROJECT_NOT_FOUND')
 
-  const creator = await getUser(body.creator_id)
+  const creator = await getProfile(body.creator_id)
   if (!creator) throw new AppError('CREATOR_NOT_FOUND')
 
   if (creator.id !== project.owner_id) {
@@ -22,7 +22,7 @@ async function validateIssuePost(body: issuePostFields) {
   }
 
   if (body.assignee_id) {
-    const assignee = await getUser(body.assignee_id)
+    const assignee = await getProfile(body.assignee_id)
     if (!assignee) throw new AppError('ASSIGNEE_NOT_FOUND')
 
     if (assignee.id !== project.owner_id) {
@@ -42,7 +42,7 @@ async function validateIssueGet(
     if (!project) throw new AppError('PROJECT_NOT_FOUND')
   }
   if (assignee_id) {
-    const assignee = await getUser(assignee_id)
+    const assignee = await getProfile(assignee_id)
     if (!assignee) throw new AppError('ASSIGNEE_NOT_FOUND')
   }
   if (!project_id && !assignee_id && !issue_id)
@@ -65,7 +65,7 @@ async function validateIssuePatch(
   let update = false
 
   if (assignee_id && assignee_id != project.owner_id) {
-    const assignee = await getUser(assignee_id)
+    const assignee = await getProfile(assignee_id)
     if (!assignee) throw new AppError('ASSIGNEE_NOT_FOUND')
     update = true
 

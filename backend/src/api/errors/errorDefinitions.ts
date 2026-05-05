@@ -93,11 +93,11 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
   CREATOR_NOT_FOUND: {
     statusCode: 404,
-    message: 'Requested creator_id not found in users',
+    message: 'Requested creator_id not found in profiles',
   },
   ASSIGNEE_NOT_FOUND: {
     statusCode: 404,
-    message: 'Requested creator_id not found in users',
+    message: 'Requested creator_id not found in profiles',
   },
   INVALID_ASSIGNEE: {
     statusCode: 422,
@@ -135,7 +135,7 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
   AUTHOR_NOT_FOUND: {
     statusCode: 404,
-    message: 'Provided author_id does not match any users',
+    message: 'Provided author_id does not match any profiles',
   },
   INVALID_AUTHOR: {
     statusCode: 422,

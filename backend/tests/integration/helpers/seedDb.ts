@@ -2,29 +2,27 @@ import { Application } from 'express'
 import {
   createTestIssue,
   createTestProject,
-  createTestUser,
+  createTestProfile,
   makeContributor,
-  project,
-  user,
-  issue,
 } from './createTestRows'
+import { Issue, Profile, Project } from '../../../src/types/db'
 
 type seedVariedIssuesReturn = {
-  mainProjectOwner: user
-  projectContributor: user
-  otherProjectOwner: user
+  mainProjectOwner: Profile
+  projectContributor: Profile
+  otherProjectOwner: Profile
 
-  mainProject: project
-  otherProject: project
+  mainProject: Project
+  otherProject: Project
 
-  issues: issue[]
+  issues: Issue[]
 }
 
 // prettier-ignore
 async function seedVariedIssues(app: Application) {
-    const mainProjectOwner = await createTestUser(app, 'mainProjectOwner')
-    const projectContributor = await createTestUser(app, 'projectContributor')
-    const otherProjectOwner = await createTestUser(app, 'otherProjectOwner')
+    const mainProjectOwner = await createTestProfile(app, 'mainProjectOwner')
+    const projectContributor = await createTestProfile(app, 'projectContributor')
+    const otherProjectOwner = await createTestProfile(app, 'otherProjectOwner')
 
     const mainProject = await createTestProject(app, mainProjectOwner.id, 'mainProject')
     const otherProject = await createTestProject(app, otherProjectOwner.id, 'otherProject')

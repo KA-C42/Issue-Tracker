@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS profiles (
 
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 

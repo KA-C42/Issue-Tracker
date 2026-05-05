@@ -3,15 +3,15 @@
 
 ## Entity Relationships
 
- - users -> projects (owner): one-to-many
- - users <-> projects (contributor): many-to-many via project_contributors
- - users -> issues (creator): one-to-many
- - users -> issues (assignee): one-to-many (optional)
- - users -> comments: one-to-many
- - users -> notifications (actor): one-to-many
- - users -> sent_notifications (recipient): one-to-many
- - users -> invitations (sender): one-to-many
- - users -> invitations (recipient): one-to-many
+ - profiles -> projects (owner): one-to-many
+ - profiles <-> projects (contributor): many-to-many via project_contributors
+ - profiles -> issues (creator): one-to-many
+ - profiles -> issues (assignee): one-to-many (optional)
+ - profiles -> comments: one-to-many
+ - profiles -> notifications (actor): one-to-many
+ - profiles -> sent_notifications (recipient): one-to-many
+ - profiles -> invitations (sender): one-to-many
+ - profiles -> invitations (recipient): one-to-many
  - projects -> issues: one-to-many
  - issues -> comments: one-to-many
  - notifications -> sent_notifications: one-to-many
@@ -26,20 +26,20 @@
 
 PK = Primary Key, CPK = Composite Primary Key, FK = Foreign Key, UK = Unique Constraint, NN = Not Null
 
-### users
+### profiles
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           | Supabase Auth user ID |
 | username     | TEXT        | UK, NN                                       |       |
 | created_at   | TIMESTAMP   | NN, DEFAULT now()                            |       |
-| deactivated_at | TIMESTAMP | DEFAULT NULL                                 | soft delete users (if user owns no projects) |
+| deactivated_at | TIMESTAMP | DEFAULT NULL                                 | soft delete profiles (if user owns no projects) |
 
 ### project_contributors
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
-| user_id      | UUID        | CPK, FK -> users.user_id                     |       |
+| user_id      | UUID        | CPK, FK -> profiles.id                       |       |
 | project_id   | UUID        | CPK, FK -> projects.project_id               |       |
 | joined_at    | TIMESTAMP   | NN, DEFAULT now()                            |       |
 
@@ -52,7 +52,7 @@ Additional Constraints and Indexes:
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
-| owner_id     | UUID        | NN, FK -> users.user_id                      | creator, ownership transferable post-MVP |
+| owner_id     | UUID        | NN, FK -> profiles.id                        | creator, ownership transferable post-MVP |
 | name         | TEXT        | NN                                           |       |
 | description  | TEXT        |                                              |       |
 | modified_at  | TIMESTAMP   |                                              | set on update |
@@ -68,13 +68,13 @@ Additional Constraints and Indexes:
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
-| creator_id   | UUID        | NN, FK -> users.user_id                      | creator |
+| creator_id   | UUID        | NN, FK -> profiles.id                        | creator |
 | project_id   | UUID        | NN, FK -> projects.project_id (ON DELETE CASCADE) |  |
 | title        | TEXT        | NN                                           |       |
 | code         | TEXT        | NN                                           |       |
 | details      | TEXT        |                                              |       |
 | status       | TEXT        | NN, DEFAULT 'BACKLOG', CHECK                 | BACKLOG, IN_PROGRESS, DONE |
-| assignee_id  | UUID        | FK -> users.user_id                          | must be project member, enforced in code |
+| assignee_id  | UUID        | FK -> profiles.id                            | must be project member, enforced in code |
 | status_changed_at | TIMESTAMP |                                           | set on status change |
 | modified_at  | TIMESTAMP   |                                              | set on update |
 | created_at   | TIMESTAMP   | NN, DEFAULT now()                            |       |
@@ -94,7 +94,7 @@ Additional Constraints and Indexes:
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
-| author_id    | UUID        | NN, FK -> users.user_id                      |       |
+| author_id    | UUID        | NN, FK -> profiles.id                        |       |
 | issue_id     | UUID        | NN, FK -> issues.issue_id (ON DELETE CASCADE) |      |
 | comment      | TEXT        | NN                                           |       |
 | modified_at  | TIMESTAMP   |                                              | set on update |
@@ -110,9 +110,9 @@ Additional Constraints and Indexes:
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
-| sender_id    | UUID        | FK -> users.user_id, NN                      |       |
-| recipient_id | UUID        | FK -> users.user_id, NN                      |       |
-| project_id   | UUID        | FK -> projects.project_id, NN                |       |
+| sender_id    | UUID        | FK -> profiles.id, NN                        |       |
+| recipient_id | UUID        | FK -> profiles.id, NN                        |       |
+| project_id   | UUID        | FK -> projects.id, NN                        |       |
 | status       | TEXT        | NN, CHECK                                    | PENDING, ACCEPTED, REJECTED, REVOKED |
 
 Additional Constraints and Indexes:
@@ -133,7 +133,7 @@ Additional Constraints and Indexes:
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | notif_id     | UUID        | PK                                           |       |
-| actor_id     | UUID        | FK -> users.user_id                          | nullable for system notifs |
+| actor_id     | UUID        | FK -> profiles.id                            | nullable for system notifs |
 | entity_type  | TEXT        | NN                                           |       |
 | entity_id    | UUID        |                                              | nullable for deleted entities |
 | action       | TEXT        | NN                                           | see notification_templates.action |
@@ -156,8 +156,8 @@ Additional Constraints and Indexes:
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
-| recipient_id | UUID        | CPK, FK -> users.user_id                     | first of CPK |
-| notif_id     | UUID        | CPK, FK -> notifications.notif_id            |       |
+| recipient_id | UUID        | CPK, FK -> profiles.id                       | first of CPK |
+| notif_id     | UUID        | CPK, FK -> notifications.id                  |       |
 | seen_at      | TIMESTAMP   |                                              | set on notification view |
 
 
@@ -166,7 +166,7 @@ Additional Constraints and Indexes:
 
 For MVP, deletion behavior is kept intentionally simple and restrictive. Development focus will expand post-MVP to be more courteous towards deletions.
 
- - Users
+ - Profiles
     - Deactivate/soft delete only
     - Deactivate blocked if the user owns a project (enforced in application logic)
     - Issues and comments stay, list creator/author as deactivated
@@ -188,7 +188,7 @@ For MVP, deletion behavior is kept intentionally simple and restrictive. Develop
     - No direct delete option, only revoke
     - Future consideration: Revoking or deletion via project deletion deletes the corresponding notification
  - Future consideration: Notifications
-    - No direct delete option for users
+    - No direct delete option for profiles
 
 
 ## Potential Enhancements

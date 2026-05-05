@@ -1,26 +1,24 @@
 import { Application } from 'express'
 import {
   createTestIssue,
+  createTestProfile,
   createTestProject,
-  createTestUser,
-  issue,
   makeContributor,
-  project,
-  user,
 } from '../helpers/createTestRows'
+import { Issue, Project, Profile } from '../../../src/types/db'
 import createApp from '../../../src/api/app'
 import { beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
 
 describe('PATCH issues', () => {
   let app: Application
-  let user: user
-  let project: project
-  let issue: issue
+  let user: Profile
+  let project: Project
+  let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser(app)
+    user = await createTestProfile(app)
     project = await createTestProject(app, user.id)
     issue = await createTestIssue(
       app,
@@ -33,7 +31,7 @@ describe('PATCH issues', () => {
   })
 
   it('returns 201 patching maximum fields of issue without changing others', async () => {
-    const newUser = await createTestUser(app, 'newUser')
+    const newUser = await createTestProfile(app, 'newUser')
     await makeContributor(app, newUser.id, project.id)
     const payload = {
       title: 'new title',
@@ -94,7 +92,7 @@ describe('PATCH issues', () => {
   })
 
   it('patches only assignee_id, not updating the modified_at or status_changed_at rows', async () => {
-    const newUser = await createTestUser(app, 'new user')
+    const newUser = await createTestProfile(app, 'new user')
     await makeContributor(app, newUser.id, project.id)
     const payload = {
       assignee_id: newUser.id,
@@ -222,7 +220,7 @@ describe('PATCH issues', () => {
   })
 
   it('returns 422 when assignee is not project owner or conributor', async () => {
-    const newUser = await createTestUser(app, 'newUser')
+    const newUser = await createTestProfile(app, 'newUser')
     const payload = {
       assignee_id: newUser.id,
     }

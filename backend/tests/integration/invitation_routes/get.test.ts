@@ -3,30 +3,30 @@ import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../../src/api/app.js'
 import {
-  createTestUser,
+  createTestProfile,
   createTestProject,
   createInvitation,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
-import { Invitation, Project, User } from '../../../src/db/types/db.js'
+import { Invitation, Project, Profile } from '../../../src/types/db.js'
 
 describe('GET invitations', () => {
   let app: Application
-  let owner: User
+  let owner: Profile
   let projects: Project[]
-  let invitees: User[]
+  let invitees: Profile[]
   let invitations: Invitation[]
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser(app, 'owner')
+    owner = await createTestProfile(app, 'owner')
     projects = [
       await createTestProject(app, owner.id, 'project 1'),
       await createTestProject(app, owner.id, 'project 2'),
     ]
     invitees = [
-      await createTestUser(app, 'user 1'),
-      await createTestUser(app, 'user 2'),
+      await createTestProfile(app, 'user 1'),
+      await createTestProfile(app, 'user 2'),
     ]
     // reference for which invitations are expected in return
     invitations = [
@@ -78,7 +78,7 @@ describe('GET invitations', () => {
   })
 
   it('returns empty array by receiver_id if no results', async () => {
-    const newUser = await createTestUser(app, 'newU')
+    const newUser = await createTestProfile(app, 'newU')
 
     const result = await request(app)
       .get(`/invitations?receiver_id=${newUser.id}`)

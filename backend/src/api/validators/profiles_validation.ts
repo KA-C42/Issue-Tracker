@@ -1,16 +1,16 @@
 import type { Request } from 'express'
 import { AppError } from '../errors/AppError.js'
 
-function validateUserPost(req: Request) {
+function validateProfilePost(req: Request) {
   if (!req.body || !req.body.username) {
     throw new AppError('MISSING_USERNAME')
   }
 }
 
-function validateUserPatch(req: Request) {
+function validateProfilePatch(req: Request) {
   if (!req.body || !req.body.username) {
     throw new AppError('MISSING_USERNAME')
   }
 }
 
-export { validateUserPost, validateUserPatch }
+export { validateProfilePost, validateProfilePatch }

@@ -2,7 +2,7 @@ import { getComment } from '../../db/services/commentServices.js'
 import { getContributor } from '../../db/services/contributorServices.js'
 import { getIssue } from '../../db/services/issueServies.js'
 import { getProject } from '../../db/services/project.services.js'
-import { getUser } from '../../db/services/userServices.js'
+import { getProfile } from '../../db/services/userServices.js'
 import { AppError } from '../errors/AppError.js'
 
 async function validateCommentPost(
@@ -16,7 +16,7 @@ async function validateCommentPost(
   let issue
 
   if (author_id) {
-    user = await getUser(author_id)
+    user = await getProfile(author_id)
     if (!user) throw new AppError('AUTHOR_NOT_FOUND')
   } else throw new AppError('MISSING_AUTHOR_ID')
 

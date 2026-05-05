@@ -1,7 +1,7 @@
 import request from 'supertest'
 import type { Application } from 'express'
 import {
-  User,
+  Profile,
   Project,
   ProjectContributor,
   Issue,
@@ -10,19 +10,19 @@ import {
 } from '../../../src/types/db'
 import { IssueStatus } from '../../../src/types/enums'
 
-const createTestUser = async (
+const createTestProfile = async (
   app: Application,
-  username: string = 'testUser',
-): Promise<User> => {
+  username: string = 'testProfile',
+): Promise<Profile> => {
   const response = await request(app)
-    .post('/users')
+    .post('/profiles')
     .send({ username: username })
     .expect(201)
 
   return {
     id: response.body.id,
     username: response.body.username,
-  } as User
+  } as Profile
 }
 
 const createTestProject = async (
@@ -117,7 +117,7 @@ const createInvitation = async (
 }
 
 export {
-  createTestUser,
+  createTestProfile,
   createTestProject,
   makeContributor,
   createTestIssue,

@@ -1,6 +1,6 @@
 import { pool } from '../../db/pool.js'
 import { getProject } from '../../db/services/project.services.js'
-import { getUser } from '../../db/services/userServices.js'
+import { getProfile } from '../../db/services/userServices.js'
 import { AppError } from '../errors/AppError.js'
 
 async function validateInvitePost(
@@ -9,12 +9,12 @@ async function validateInvitePost(
   project_id: string,
 ) {
   if (sender_id) {
-    const sender = await getUser(sender_id)
+    const sender = await getProfile(sender_id)
     if (!sender) throw new AppError('SENDER_NOT_FOUND')
   } else throw new AppError('MISSING_SENDER_ID')
 
   if (receiver_id) {
-    const receiver = await getUser(receiver_id)
+    const receiver = await getProfile(receiver_id)
     if (!receiver) throw new AppError('RECEIVER_NOT_FOUND')
   } else throw new AppError('MISSING_RECEIVER_ID')
 
@@ -29,7 +29,7 @@ async function validateInviteGet(project_id: string, receiver_id: string) {
     const project = await getProject(project_id)
     if (!project) throw new AppError('PROJECT_NOT_FOUND')
   } else if (receiver_id && typeof receiver_id === 'string') {
-    const receiver = await getUser(receiver_id)
+    const receiver = await getProfile(receiver_id)
     if (!receiver) throw new AppError('USER_NOT_FOUND')
   } else throw new AppError('MISSING_SEARCH_PARAMETER')
 }

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS project_contributors (
 
-    user_id uuid REFERENCES users (id) ON DELETE CASCADE,
+    user_id uuid REFERENCES profiles (id) ON DELETE CASCADE,
 
     project_id uuid REFERENCES projects (id) ON DELETE CASCADE,
 

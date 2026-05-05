@@ -3,25 +3,25 @@ import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../../src/api/app.js'
 import {
-  createTestUser,
+  createTestProfile,
   createTestProject,
   createInvitation,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
-import { Invitation, Project, User } from '../../../src/db/types/db.js'
+import { Invitation, Project, Profile } from '../../../src/types/db.js'
 
 describe('PATCH invitations', () => {
   let app: Application
-  let owner: User
+  let owner: Profile
   let project: Project
-  let invitee: User
+  let invitee: Profile
   let invitation: Invitation
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser(app, 'owner')
+    owner = await createTestProfile(app, 'owner')
     project = await createTestProject(app, owner.id, 'project')
-    invitee = await createTestUser(app, 'invitee')
+    invitee = await createTestProfile(app, 'invitee')
     invitation = await createInvitation(app, owner.id, invitee.id, project.id)
   })
 

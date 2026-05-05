@@ -1,6 +1,6 @@
 import type { InviteStatus, IssueStatus } from './enums.js'
 
-type User = {
+type Profile = {
   id: string
   username: string
   created_at: string
@@ -54,4 +54,4 @@ type Invitation = {
   status_changed_at: string
 }
 
-export type { User, Project, ProjectContributor, Issue, Comment, Invitation }
+export type { Profile, Project, ProjectContributor, Issue, Comment, Invitation }

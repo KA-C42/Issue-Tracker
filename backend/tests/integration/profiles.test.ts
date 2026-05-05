@@ -3,8 +3,8 @@ import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
 
-describe('/users', () => {
-  it('creates a new user with status 201, returning the new row', async () => {
+describe('/profiles', () => {
+  it('creates a new profile with status 201, returning the new row', async () => {
     const app = createApp()
 
     const payload = {
@@ -12,7 +12,7 @@ describe('/users', () => {
     }
 
     const response = await request(app)
-      .post('/users')
+      .post('/profiles')
       .send(payload)
       .expect(201)
       .expect('Content-Type', /json/)
@@ -20,11 +20,11 @@ describe('/users', () => {
     expect(response.body).toMatchObject(payload)
   })
 
-  it('rejects new user request missing a username with status 400', async () => {
+  it('rejects new profile request missing a username with status 400', async () => {
     const app = createApp()
 
     const response = await request(app)
-      .post('/users')
+      .post('/profiles')
       .expect(400)
       .expect('Content-Type', /json/)
 
@@ -39,10 +39,10 @@ describe('/users', () => {
     }
 
     // make username unavailable
-    await request(app).post('/users').send(payload).expect(201)
+    await request(app).post('/profiles').send(payload).expect(201)
 
     const response = await request(app)
-      .post('/users')
+      .post('/profiles')
       .send(payload)
       .expect(409)
       .expect('Content-Type', /json/)
@@ -58,10 +58,13 @@ describe('/users', () => {
     }
 
     // create user to test/retrieve
-    const created = await request(app).post('/users').send(payload).expect(201)
+    const created = await request(app)
+      .post('/profiles')
+      .send(payload)
+      .expect(201)
 
     const response = await request(app)
-      .get(`/users/${created.body.id}`)
+      .get(`/profiles/${created.body.id}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
@@ -75,7 +78,7 @@ describe('/users', () => {
     const app = createApp()
 
     const response = await request(app)
-      .get(`/users/${crypto.randomUUID()}`)
+      .get(`/profiles/${crypto.randomUUID()}`)
       .expect(404)
       .expect('Content-Type', /json/)
 
@@ -90,15 +93,15 @@ describe('/users', () => {
     }
 
     // make username unavailable
-    await request(app).post('/users').send(conflictingUsername).expect(201)
+    await request(app).post('/profiles').send(conflictingUsername).expect(201)
 
     const changingUser = await request(app)
-      .post('/users')
+      .post('/profiles')
       .send({ username: 'uncleverID' })
       .expect(201)
 
     const response = await request(app)
-      .patch(`/users/${changingUser.body.id}`)
+      .patch(`/profiles/${changingUser.body.id}`)
       .send(conflictingUsername)
       .expect(409)
       .expect('Content-Type', /json/)
@@ -110,7 +113,7 @@ describe('/users', () => {
     const app = createApp()
 
     const changingUser = await request(app)
-      .post('/users')
+      .post('/profiles')
       .send({ username: 'uncleverName' })
       .expect(201)
 
@@ -119,7 +122,7 @@ describe('/users', () => {
     }
 
     const response = await request(app)
-      .patch(`/users/${changingUser.body.id}`)
+      .patch(`/profiles/${changingUser.body.id}`)
       .send(payload)
       .expect(200)
       .expect('Content-Type', /json/)
@@ -138,7 +141,7 @@ describe('/users', () => {
     }
 
     const response = await request(app)
-      .patch(`/users/${crypto.randomUUID()}`)
+      .patch(`/profiles/${crypto.randomUUID()}`)
       .send(payload)
       .expect(404)
       .expect('Content-Type', /json/)
@@ -150,12 +153,12 @@ describe('/users', () => {
     const app = createApp()
 
     const toDelete = await request(app)
-      .post('/users')
+      .post('/profiles')
       .send({ username: 'unmakeMe' })
       .expect(201)
 
     const deleted = await request(app)
-      .delete(`/users/${toDelete.body.id}`)
+      .delete(`/profiles/${toDelete.body.id}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
@@ -166,7 +169,7 @@ describe('/users', () => {
     const app = createApp()
 
     const response = await request(app)
-      .delete(`/users/${crypto.randomUUID()}`)
+      .delete(`/profiles/${crypto.randomUUID()}`)
       .expect(404)
       .expect('Content-Type', /json/)
 

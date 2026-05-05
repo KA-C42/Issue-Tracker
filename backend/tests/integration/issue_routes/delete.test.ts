@@ -5,21 +5,19 @@ import request from 'supertest'
 import {
   createTestIssue,
   createTestProject,
-  createTestUser,
-  issue,
-  project,
-  user,
+  createTestProfile,
 } from '../helpers/createTestRows'
+import { Issue, Profile, Project } from '../../../src/types/db'
 
 describe('DELETE issues', () => {
   let app: Application
-  let user: user
-  let project: project
-  let issue: issue
+  let user: Profile
+  let project: Project
+  let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser(app)
+    user = await createTestProfile(app)
     project = await createTestProject(app, user.id)
     issue = await createTestIssue(app, user.id, project.id)
   })

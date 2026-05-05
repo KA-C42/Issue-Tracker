@@ -2,7 +2,10 @@ import { describe, it, expect } from 'vitest'
 import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
-import { createTestUser, createTestProject } from './helpers/createTestRows.js'
+import {
+  createTestProfile,
+  createTestProject,
+} from './helpers/createTestRows.js'
 
 // POST
 // - success
@@ -13,7 +16,7 @@ describe('POST /projects', () => {
   it('inserts a new project with status 201, returning the new row', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const payload = {
       name: 'insert project success',
@@ -34,7 +37,7 @@ describe('POST /projects', () => {
   it('rejects new project missing a name with status 400', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const payload = {
       description: 'see you never :P',
@@ -70,7 +73,7 @@ describe('POST /projects', () => {
   it('rejects new project with with status 409 if the project name is already in use by the project owner', async () => {
     const app = createApp()
 
-    const projectOwner = await createTestUser(app)
+    const projectOwner = await createTestProfile(app)
 
     const payload = {
       name: 'projeyMcProject',
@@ -98,7 +101,7 @@ describe('POST /projects', () => {
   it('rejects new project with project code greater than 4 characters with status 400', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const payload = {
       name: 'you dont own me',
@@ -119,7 +122,7 @@ describe('POST /projects', () => {
   it('rejects new project with project code containing non-alphanumeric characters with status 400', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const payload = {
       name: 'you dont own me',
@@ -145,7 +148,7 @@ describe('GET /projects/:id', () => {
   it('selects a project by id with status 200', async () => {
     const app = createApp()
 
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const created = await createTestProject(app, user.id)
 
@@ -180,7 +183,7 @@ describe('GET /projects/:id', () => {
 describe('GET /projects?owner_id=###', () => {
   it('selects all projects with a given owner_id with status 200', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     for (let i = 0; i < 3; i++) {
       await createTestProject(app, user.id, `project ${i + 1}`)
     }
@@ -195,7 +198,7 @@ describe('GET /projects?owner_id=###', () => {
 
   it('get by owner id returns empty array with status 200 when 0 responses', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
 
     const response = await request(app)
       .get(`/projects?owner_id=${user.id}`)
@@ -226,7 +229,7 @@ describe('GET /projects?owner_id=###', () => {
 describe('PATCH /projects/:id', () => {
   it("updates a project's name, description, code, and modified_at field with status 200", async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -250,7 +253,7 @@ describe('PATCH /projects/:id', () => {
 
   it('successful partial update, updating description and modified_at with status 200', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(
       app,
       user.id,
@@ -278,7 +281,7 @@ describe('PATCH /projects/:id', () => {
 
   it('rejects a request which lacks any updateable fields with status 400', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     const payload = {
@@ -336,7 +339,7 @@ describe('PATCH /projects/:id', () => {
 describe('DELETE /projects/:id', () => {
   it('deletes a project, returning code 204', async () => {
     const app = createApp()
-    const user = await createTestUser(app)
+    const user = await createTestProfile(app)
     const project = await createTestProject(app, user.id)
 
     await request(app).delete(`/projects/${project.id}`).expect(204)
