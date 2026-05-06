@@ -19,6 +19,10 @@ import {
   isProjectMember,
   isProjectOwner,
 } from '../../db/services/project.services.js'
+import {
+  validateContributorsDelete,
+  validateContributorsGet,
+} from '../validators/project_contributors_validation.js'
 
 const projectRouter = Router()
 
@@ -134,5 +138,71 @@ projectRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
     dbErrorMapper(err as DbError)
   }
 })
+
+projectRouter.get(
+  '/:id/contributors',
+  async (req: AuthenticatedRequest, res) => {
+    const id = req.params.id as string
+
+    await validateContributorsGet(req.user, id, 'project')
+
+    const text = `
+        SELECT 
+          p.name,
+          pc.*
+        FROM projects p
+        LEFT JOIN project_contributors pc
+          ON p.id = pc.project_id
+        WHERE p.id = $1
+        ORDER BY pc.joined_at
+    `
+    const values = [id]
+
+    try {
+      const result = await pool.query(text, values)
+
+      if (result.rowCount === 0) {
+        // if no row, no project
+        throw new AppError('PROJECT_NOT_FOUND')
+      } else if (result.rowCount === 1 && result.rows[0].user_id === null) {
+        // if 1 row w/ null user_id, no contributors
+        return res.status(200).send([])
+      } else {
+        // project w/ contributors
+        return res.status(200).send(result.rows)
+      }
+    } catch (err) {
+      dbErrorMapper(err as DbError)
+    }
+  },
+)
+
+projectRouter.delete<{ id: string; user_id: string }>(
+  '/:project_id/contributors/:user_id',
+  async (req: AuthenticatedRequest, res) => {
+    const { project_id, user_id } = req.params as {
+      project_id: string
+      user_id: string
+    }
+    await validateContributorsDelete(req.user, project_id, user_id, 'project')
+
+    const text = `
+    DELETE FROM project_contributors
+    WHERE project_id = $1
+    AND user_id = $2
+    `
+
+    const values = [project_id, user_id]
+
+    try {
+      const result = await pool.query(text, values)
+      if (result.rowCount === 0) throw new AppError('CONTRIBUTOR_NOT_FOUND')
+
+      res.sendStatus(204)
+    } catch (err) {
+      dbErrorMapper(err as DbError)
+    }
+  },
+)
 
 export default projectRouter

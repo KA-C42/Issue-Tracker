@@ -22,7 +22,7 @@ export async function isProjectMember(
         owner_id = $2
         OR EXISTS ( 
           SELECT 1 FROM project_contributors
-          WHERE project_id = $1 and user_id = $2
+          WHERE project_id = $1 AND user_id = $2
         )
       )`
   const values = [projectId, userId]
@@ -30,6 +30,9 @@ export async function isProjectMember(
   try {
     const result = await pool.query(text, values)
     if (result.rowCount === 0) {
+      if (!(await getProject(projectId))) {
+        throw new AppError('PROJECT_NOT_FOUND')
+      }
       return false
     }
     return true

@@ -75,19 +75,20 @@ const createTestProject = async (
 }
 
 const makeContributor = async (
-  app: Application,
   user_id: string,
   project_id: string,
 ): Promise<ProjectContributor> => {
-  const response = await request(app)
-    .post('/project-contributors')
-    .send({
-      user_id: user_id,
-      project_id: project_id,
-    })
-    .expect(201)
+  const text = `
+    INSERT INTO project_contributors (user_id, project_id) 
+    VALUES ($1, $2)
+    RETURNING *
+  `
 
-  return response.body as ProjectContributor
+  const values = [user_id, project_id]
+
+  const result = await pool.query(text, values)
+
+  return result.rows[0]
 }
 
 const createTestIssue = async (
