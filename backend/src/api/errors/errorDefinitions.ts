@@ -3,10 +3,16 @@ type ErrorDictionary = {
 }
 
 export const ERROR_DEFS: ErrorDictionary = {
-  // error middleware test
+  // error middleware
   ROUTE_NOT_FOUND: {
     statusCode: 404,
     message: 'Route not found',
+  },
+
+  // auth errors
+  UNAUTHORIZED_REQUEST: {
+    statusCode: 403,
+    message: 'Provided token id is not authorized to make this request',
   },
 
   // user route errors

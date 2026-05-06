@@ -1,178 +1,150 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
+import { createTestUser, setUsername } from './helpers/createTestRows.js'
+import { getProfile } from '../../src/db/services/userServices.js'
+import { createAuthToken } from './helpers/createAuthToken.js'
+import { Application } from 'express'
+import { User } from '../../src/types/db.js'
 
-describe('/profiles', () => {
-  it('creates a new profile with status 201, returning the new row', async () => {
-    const app = createApp()
+describe('GET /profiles', () => {
+  let app: Application
+  let user: User
+  let token: string
 
-    const payload = {
-      username: 'nameyName',
-    }
-
-    const response = await request(app)
-      .post('/profiles')
-      .send(payload)
-      .expect(201)
-      .expect('Content-Type', /json/)
-
-    expect(response.body).toMatchObject(payload)
-  })
-
-  it('rejects new profile request missing a username with status 400', async () => {
-    const app = createApp()
-
-    const response = await request(app)
-      .post('/profiles')
-      .expect(400)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('MISSING_USERNAME')
-  })
-
-  it('rejects a username with status 409 if the username is already in use', async () => {
-    const app = createApp()
-
-    const payload = {
-      username: 'usedAgain',
-    }
-
-    // make username unavailable
-    await request(app).post('/profiles').send(payload).expect(201)
-
-    const response = await request(app)
-      .post('/profiles')
-      .send(payload)
-      .expect(409)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('USERNAME_CONFLICT')
+  beforeEach(async () => {
+    app = createApp()
+    user = await createTestUser()
+    token = createAuthToken(user.id)
   })
 
   it('retrieves a user row by id with status 200', async () => {
-    const app = createApp()
-
-    const payload = {
-      username: 'IDmePlease',
-    }
-
-    // create user to test/retrieve
-    const created = await request(app)
-      .post('/profiles')
-      .send(payload)
-      .expect(201)
+    const username = 'testMePunk'
+    await setUsername(app, user.id, username, token)
 
     const response = await request(app)
-      .get(`/profiles/${created.body.id}`)
+      .get(`/profiles/${user.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
     expect(response.body).toMatchObject({
-      ...payload,
-      id: created.body.id,
+      id: user.id,
+      username: username,
     })
   })
 
   it('rejects a request for nonexistent user with status 404', async () => {
-    const app = createApp()
-
     const response = await request(app)
       .get(`/profiles/${crypto.randomUUID()}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(404)
       .expect('Content-Type', /json/)
 
     expect(response.body.error.code).toBe('USER_NOT_FOUND')
   })
+})
 
-  it('rejects a username change with status 409 if the username is already in use', async () => {
-    const app = createApp()
+// only changeable field is username
+describe('PATCH /profiles', () => {
+  let app: Application
+  let user: User
+  let oldUsername: string
+  let token: string
 
-    const conflictingUsername = {
-      username: 'usernameTaken',
-    }
-
-    // make username unavailable
-    await request(app).post('/profiles').send(conflictingUsername).expect(201)
-
-    const changingUser = await request(app)
-      .post('/profiles')
-      .send({ username: 'uncleverID' })
-      .expect(201)
-
-    const response = await request(app)
-      .patch(`/profiles/${changingUser.body.id}`)
-      .send(conflictingUsername)
-      .expect(409)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('USERNAME_CONFLICT')
+  beforeEach(async () => {
+    app = createApp()
+    user = await createTestUser()
+    oldUsername = (await getProfile(user.id)).username
+    token = createAuthToken(user.id)
   })
 
   it('successfully changes a users username with status 200', async () => {
-    const app = createApp()
-
-    const changingUser = await request(app)
-      .post('/profiles')
-      .send({ username: 'uncleverName' })
-      .expect(201)
-
     const payload = {
-      username: 'clevererName',
+      username: 'kacy',
     }
 
     const response = await request(app)
-      .patch(`/profiles/${changingUser.body.id}`)
+      .patch(`/profiles/${user.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(200)
       .expect('Content-Type', /json/)
 
     expect(response.body).toMatchObject({
       ...payload,
-      id: changingUser.body.id,
+      id: user.id,
     })
+    expect(response.body.username).not.toBe(oldUsername)
   })
 
-  it('rejects a request to modify a nonexistent user with status 404', async () => {
-    const app = createApp()
+  it('rejects a request with mistmatched id and token id with status 403', async () => {
+    const newUser = await createTestUser('other@users.email')
 
     const payload = {
       username: 'nullUser',
     }
 
     const response = await request(app)
-      .patch(`/profiles/${crypto.randomUUID()}`)
+      .patch(`/profiles/${newUser.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
-      .expect(404)
+      .expect(403)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('USER_NOT_FOUND')
+    expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('rejects a request when the username is already in use with status 409', async () => {
+    const newUser = await createTestUser('other@users.email')
+    const newToken = createAuthToken(newUser.id)
+
+    const payload = {
+      username: oldUsername,
+    }
+
+    const response = await request(app)
+      .patch(`/profiles/${newUser.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(409)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('USERNAME_CONFLICT')
+  })
+})
+
+describe('DELETE /profiles', () => {
+  let app: Application
+  let user: User
+  let token: string
+
+  beforeEach(async () => {
+    app = createApp()
+    user = await createTestUser()
+    token = createAuthToken(user.id)
   })
 
   it('soft deletes a user by setting the deactivated_at field with status 200', async () => {
-    const app = createApp()
-
-    const toDelete = await request(app)
-      .post('/profiles')
-      .send({ username: 'unmakeMe' })
-      .expect(201)
-
     const deleted = await request(app)
-      .delete(`/profiles/${toDelete.body.id}`)
+      .delete(`/profiles/${user.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
     expect(deleted.body.deactivated_at).toBeTruthy()
   })
 
-  it('rejects a request to delete a nonexistent user with status 404', async () => {
-    const app = createApp()
+  it('rejects a request with mistmatched id and token id with status 403', async () => {
+    const newUser = await createTestUser('fake@email.blah')
 
     const response = await request(app)
-      .delete(`/profiles/${crypto.randomUUID()}`)
-      .expect(404)
+      .delete(`/profiles/${newUser.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(403)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('USER_NOT_FOUND')
+    expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })

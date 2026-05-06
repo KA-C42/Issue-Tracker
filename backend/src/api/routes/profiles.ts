@@ -3,28 +3,12 @@ import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import type { DbError } from '../errors/DbError.js'
-import {
-  validateProfilePatch,
-  validateProfilePost,
-} from '../validators/profiles_validation.js'
+import { validateProfilePatch } from '../validators/profiles_validation.js'
+import type { AuthenticatedRequest } from '../../types/authenticatedRequest.js'
 
 const profileRouter = Router()
 
-profileRouter.post('/', async (req, res) => {
-  validateProfilePost(req)
-
-  const text = 'INSERT INTO profiles (username) VALUES ($1) RETURNING *'
-  const values = [req.body.username]
-
-  try {
-    const result = await pool.query(text, values)
-    return res.status(201).json(result.rows[0])
-  } catch (err) {
-    dbErrorMapper(err as DbError)
-  }
-})
-
-profileRouter.get('/:id', async (req, res) => {
+profileRouter.get('/:id', async (req: AuthenticatedRequest, res) => {
   const text = 'SELECT * FROM profiles WHERE id = $1'
   const values = [req.params.id]
 
@@ -39,8 +23,12 @@ profileRouter.get('/:id', async (req, res) => {
   }
 })
 
-profileRouter.patch('/:id', async (req, res) => {
-  validateProfilePatch(req)
+profileRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
+  const username = req.body.username
+  const id = req.params.id
+  const user = (req as AuthenticatedRequest).user
+
+  validateProfilePatch(username, id, user)
 
   const text = 'UPDATE profiles SET username = $1 WHERE id = $2 RETURNING *'
   const values = [req.body.username, req.params.id]
@@ -56,7 +44,10 @@ profileRouter.patch('/:id', async (req, res) => {
   }
 })
 
-profileRouter.delete('/:id', async (req, res) => {
+profileRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
+  if (!req.user || req.user.sub !== req.params.id)
+    throw new AppError('UNAUTHORIZED_REQUEST')
+
   const text =
     'UPDATE profiles SET deactivated_at = now() WHERE id = $1 RETURNING *'
   const values = [req.params.id]

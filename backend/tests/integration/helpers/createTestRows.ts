@@ -37,6 +37,23 @@ const createTestProfile = async (
   } as Profile
 }
 
+const setUsername = async (
+  app: Application,
+  id: string,
+  username: string,
+  token: string,
+): Promise<Profile> => {
+  const response = await request(app)
+    .patch(`/profiles/${id}`)
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      username: username,
+    })
+    .expect(200)
+
+  return response.body as Profile
+}
+
 const createTestProject = async (
   app: Application,
   owner_id: string,
@@ -131,6 +148,7 @@ const createInvitation = async (
 export {
   createTestUser,
   createTestProfile,
+  setUsername,
   createTestProject,
   makeContributor,
   createTestIssue,
