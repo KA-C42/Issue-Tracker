@@ -1,3 +1,4 @@
+import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { AppError } from '../errors/AppError.js'
 
 type CreateProjectBody = {
@@ -12,24 +13,50 @@ type PatchProjectBody = {
   description?: string
 }
 
-function validateProjectPost(req: CreateProjectBody) {
-  if (!req.owner_id) {
-    throw new AppError('MISSING_OWNER_ID')
-  }
+// prettier-ignore
+function validateProjectGet(projectId: string | undefined, user: JwtUser | undefined) {
+    if (!user) throw new AppError('UNAUTHORIZED_REQUEST')
+    if (!projectId) throw new AppError('MISSING_PROJECT_ID')
 
-  if (!req.name) {
-    throw new AppError('MISSING_PROJECT_NAME')
-  }
-
-  if (!req.code) {
-    throw new AppError('MISSING_PROJECT_CODE')
-  }
+  return { projectId, user }
 }
 
-function validateProjectPatch(req: PatchProjectBody) {
-  if (!req) {
+// prettier-ignore
+function validateProjectPost(body: CreateProjectBody) {
+  if (!body.name) throw new AppError('MISSING_PROJECT_NAME')
+  if (!body.code) throw new AppError('MISSING_PROJECT_CODE')
+}
+
+function validateProjectPatch(
+  id: string | undefined,
+  body: PatchProjectBody,
+  user: JwtUser | undefined,
+) {
+  if (!id) {
+    throw new AppError('MISSING_PROJECT_ID')
+  }
+  if (!body) {
     throw new AppError('NO_PROJECT_FIELDS_PROVIDED')
   }
+  if (!user) {
+    throw new AppError('UNAUTHORIZED_REQUEST')
+  }
+
+  return { id, user }
 }
 
-export { validateProjectPost, validateProjectPatch }
+function validateProjectDelete(
+  id: string | undefined,
+  user: JwtUser | undefined,
+) {
+  if (!id) throw new AppError('MISSING_PROJECT_ID')
+  if (!user) throw new AppError('UNAUTHORIZED_REQUEST')
+
+  return { id, user }
+}
+export {
+  validateProjectGet,
+  validateProjectPost,
+  validateProjectPatch,
+  validateProjectDelete,
+}

@@ -56,17 +56,17 @@ const setUsername = async (
 
 const createTestProject = async (
   app: Application,
-  owner_id: string,
+  token: string,
   name: string = 'testProject',
   code: string = 'PROJ',
   description: string = 'project for dev testing only',
 ): Promise<Project> => {
   const response = await request(app)
     .post('/projects')
+    .set('Authorization', `Bearer ${token}`)
     .send({
       name: name,
       description: description,
-      owner_id: owner_id,
       code: code,
     })
     .expect(201)

@@ -15,6 +15,7 @@ type Project = {
   id: string
   name: string
   description: string
+  code: string
   owner_id: string
   modified_at: string
   created_at: string
