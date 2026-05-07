@@ -93,7 +93,7 @@ const makeContributor = async (
 
 const createTestIssue = async (
   app: Application,
-  creator_id: string,
+  token: string,
   project_id: string,
   title: string = 'issue',
   assignee_id: string | undefined = undefined,
@@ -101,8 +101,8 @@ const createTestIssue = async (
 ): Promise<Issue> => {
   const response = await request(app)
     .post(`/projects/${project_id}/issues`)
+    .set('Authorization', `Bearer ${token}`)
     .send({
-      creator_id: creator_id,
       title: title,
       assignee_id: assignee_id,
       status: status,
