@@ -189,10 +189,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Too many search parameters provided',
   },
-  INVALID_STATUS_CHANGE: {
+  INVALID_STATUS_VALUE: {
     statusCode: 400,
     message:
-      'Invitation status can only change from PENDING to one of [ ACCEPTED, REJECTED, REVOKED ]',
+      'Invitation status change can only be one of [ ACCEPTED, REJECTED, REVOKED ]',
   },
   MISSING_STATUS: {
     statusCode: 400,
@@ -201,6 +201,10 @@ export const ERROR_DEFS: ErrorDictionary = {
   INVITATION_NOT_FOUND: {
     statusCode: 404,
     message: 'Provided invitation id not found',
+  },
+  INVITATION_NOT_PENDING: {
+    statusCode: 409,
+    message: 'Invite has already received a response and can not be modified',
   },
 }
 

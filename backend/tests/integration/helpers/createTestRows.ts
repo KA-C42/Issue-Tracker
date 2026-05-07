@@ -131,14 +131,14 @@ const createTestComment = async (
 
 const createInvitation = async (
   app: Application,
-  sender_id: string,
+  token: string,
   receiver_id: string,
   project_id: string,
 ): Promise<Invitation> => {
   const response = await request(app)
     .post(`/projects/${project_id}/invitations`)
+    .set('Authorization', `Bearer ${token}`)
     .send({
-      sender_id: sender_id,
       receiver_id: receiver_id,
     })
     .expect(201)
