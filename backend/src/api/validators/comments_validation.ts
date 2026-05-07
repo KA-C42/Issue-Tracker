@@ -1,50 +1,58 @@
 import { getComment } from '../../db/services/commentServices.js'
-import { getContributor } from '../../db/services/contributorServices.js'
 import { getIssue } from '../../db/services/issueServies.js'
-import { getProject } from '../../db/services/project.services.js'
-import { getProfile } from '../../db/services/userServices.js'
+import { isProjectMember } from '../../db/services/project.services.js'
+import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { AppError } from '../errors/AppError.js'
 
 async function validateCommentPost(
-  author_id: string,
-  issue_id: string,
-  comment: string,
+  user: JwtUser,
+  issue_id: string | undefined,
+  comment: string | undefined,
 ) {
   if (!comment) throw new AppError('MISSING_COMMENT_TEXT')
+  if (!issue_id) throw new AppError('MISSING_ISSUE_ID')
 
-  let user
-  let issue
+  const issue = await getIssue(issue_id)
+  if (!issue) throw new AppError('ISSUE_NOT_FOUND')
 
-  if (author_id) {
-    user = await getProfile(author_id)
-    if (!user) throw new AppError('AUTHOR_NOT_FOUND')
-  } else throw new AppError('MISSING_AUTHOR_ID')
+  const isMember = await isProjectMember(issue.project_id, user.sub)
+  if (!isMember) throw new AppError('UNAUTHORIZED_REQUEST')
+}
 
-  if (issue_id) {
-    issue = await getIssue(issue_id)
-    if (!issue) throw new AppError('ISSUE_NOT_FOUND')
-  } else throw new AppError('MISSING_ISSUE_ID')
+async function validateCommentGet(user: JwtUser, issue_id: string | undefined) {
+  if (!issue_id) throw new AppError('MISSING_ISSUE_ID')
 
-  const project = await getProject(issue.project_id)
-  if (author_id !== project.owner_id) {
-    const contributor = await getContributor(issue.project_id, author_id)
-    if (!contributor) throw new AppError('INVALID_AUTHOR')
-  }
+  const issue = await getIssue(issue_id)
+  if (!issue) throw new AppError('ISSUE_NOT_FOUND')
+
+  const isMember = await isProjectMember(issue.project_id, user.sub)
+  if (!isMember) throw new AppError('UNAUTHORIZED_REQUEST')
 }
 
 async function validateCommentPatch(
-  id: string,
-  author_id: string,
-  comment: string,
+  user: JwtUser,
+  id: string | undefined,
+  newComment: string | undefined,
 ) {
-  if (!comment) throw new AppError('MISSING_COMMENT_TEXT')
-  if (!author_id) throw new AppError('MISSING_AUTHOR_ID')
-  else {
-    const comment = await getComment(id)
-    if (!comment) throw new AppError('COMMENT_NOT_FOUND')
-    if (author_id !== comment.author_id)
-      throw new AppError('NOT_COMMENT_AUTHOR')
-  }
+  if (!newComment) throw new AppError('MISSING_COMMENT_TEXT')
+  if (!id) throw new AppError('MISSING_COMMENT_ID')
+
+  const comment = await getComment(id)
+  if (!comment) throw new AppError('COMMENT_NOT_FOUND')
+  if (user.sub !== comment.author_id) throw new AppError('UNAUTHORIZED_REQUEST')
 }
 
-export { validateCommentPost, validateCommentPatch }
+async function validateCommentDelete(user: JwtUser, id: string | undefined) {
+  if (!id) throw new AppError('MISSING_COMMENT_ID')
+
+  const comment = await getComment(id)
+  if (!comment) throw new AppError('COMMENT_NOT_FOUND')
+  if (user.sub !== comment.author_id) throw new AppError('UNAUTHORIZED_REQUEST')
+}
+
+export {
+  validateCommentPost,
+  validateCommentGet,
+  validateCommentPatch,
+  validateCommentDelete,
+}

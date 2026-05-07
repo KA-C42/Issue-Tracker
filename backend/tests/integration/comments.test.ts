@@ -3,35 +3,40 @@ import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
 import {
-  createTestProfile,
   createTestProject,
   createTestIssue,
   createTestComment,
+  createTestUser,
+  makeContributor,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
-import { Comment, Issue, Project, Profile } from '../../src/types/db.js'
+import { Comment, Issue, Project, User } from '../../src/types/db.js'
+import { createAuthToken } from './helpers/createAuthToken.js'
+import { getComment } from '../../src/db/services/commentServices.js'
 
 describe('POST comments', () => {
   let app: Application
-  let user: Profile
+  let user: User
+  let token: string
   let project: Project
   let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestProfile(app)
-    project = await createTestProject(app, user.id)
-    issue = await createTestIssue(app, user.id, project.id)
+    user = await createTestUser()
+    token = createAuthToken(user.id)
+    project = await createTestProject(app, token)
+    issue = await createTestIssue(app, token, project.id)
   })
 
   it('creates and returns a new comment with status 201', async () => {
     const payload = {
-      author_id: user.id,
       comment: 'this looks really hard haha glad i dont have to do it :p',
     }
 
     const result = await request(app)
       .post(`/issues/${issue.id}/comments`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(201)
       .expect('Content-Type', /json/)
@@ -46,12 +51,11 @@ describe('POST comments', () => {
   })
 
   it('returns 400 when lacking text in the comment field', async () => {
-    const payload = {
-      author_id: user.id,
-    }
+    const payload = {}
 
     const result = await request(app)
       .post(`/issues/${issue.id}/comments`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(400)
       .expect('Content-Type', /json/)
@@ -59,43 +63,14 @@ describe('POST comments', () => {
     expect(result.body.error.code).toBe('MISSING_COMMENT_TEXT')
   })
 
-  it('returns 400 when lacking an author_id', async () => {
-    const payload = {
-      comment: 'who said that!?',
-    }
-
-    const result = await request(app)
-      .post(`/issues/${issue.id}/comments`)
-      .send(payload)
-      .expect(400)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('MISSING_AUTHOR_ID')
-  })
-
-  it('returns 404 when author_id not found', async () => {
-    const payload = {
-      author_id: crypto.randomUUID(),
-      comment: 'i love my imaginary friends',
-    }
-
-    const result = await request(app)
-      .post(`/issues/${issue.id}/comments`)
-      .send(payload)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('AUTHOR_NOT_FOUND')
-  })
-
   it('returns 404 when issue_id not found', async () => {
     const payload = {
-      author_id: user.id,
       comment: 'how did i get here?',
     }
 
     const result = await request(app)
       .post(`/issues/${crypto.randomUUID()}/comments`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(404)
       .expect('Content-Type', /json/)
@@ -103,35 +78,38 @@ describe('POST comments', () => {
     expect(result.body.error.code).toBe('ISSUE_NOT_FOUND')
   })
 
-  it('returns 422 when author_id is not owner or contributor to the project', async () => {
-    const newUser = await createTestProfile(app, 'strangerDanger')
+  it('returns 403 when token id is not owner or contributor to the project', async () => {
+    const newUser = await createTestUser('stranger@danger.com')
+    const newToken = createAuthToken(newUser.id)
 
     const payload = {
-      author_id: newUser.id,
       comment: "you're not supposed to be here",
     }
 
     const result = await request(app)
       .post(`/issues/${issue.id}/comments`)
+      .set('Authorization', `Bearer ${newToken}`)
       .send(payload)
-      .expect(422)
+      .expect(403)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('INVALID_AUTHOR')
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })
 
 describe('GET comments', () => {
   let app: Application
-  let user: Profile
+  let user: User
+  let token: string
   let project: Project
   let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestProfile(app)
-    project = await createTestProject(app, user.id)
-    issue = await createTestIssue(app, user.id, project.id)
+    user = await createTestUser()
+    token = createAuthToken(user.id)
+    project = await createTestProject(app, token)
+    issue = await createTestIssue(app, token, project.id)
   })
 
   it("returns all by issue_id, excluding other issues' comments, ordered ascending by created_at", async () => {
@@ -141,17 +119,18 @@ describe('GET comments', () => {
     // testing returned order, comments are posted explicitly sequentially
     for (let i = 0; i < commentCount; i++) {
       comments.push(
-        await createTestComment(app, user.id, issue.id, `comment #${i}`),
+        await createTestComment(app, token, issue.id, `comment #${i}`),
       )
     }
 
     // prettier-ignore
-    const otherIssue = await createTestIssue(app, user.id, project.id, 'not my issue')
+    const otherIssue = await createTestIssue(app, token, project.id, 'not my issue')
     // prettier-ignore
-    const otherComment = await createTestComment(app, user.id, otherIssue.id, 'shhh who even cares')
+    const otherComment = await createTestComment(app, token, otherIssue.id, 'shhh who even cares')
 
     const result = await request(app)
       .get(`/issues/${issue.id}/comments`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
@@ -167,6 +146,7 @@ describe('GET comments', () => {
   it('returns an empty array when issue_id search matches an issue but no comments', async () => {
     const result = await request(app)
       .get(`/issues/${issue.id}/comments`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
@@ -176,97 +156,95 @@ describe('GET comments', () => {
   it('returns 404 when issue_id does not match an issue', async () => {
     const result = await request(app)
       .get(`/issues/${crypto.randomUUID()}/comments`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(404)
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('ISSUE_NOT_FOUND')
   })
 
-  it('returns comment by id with status 200', async () => {
-    const comment = await createTestComment(app, user.id, issue.id, 'first')
+  it('returns 403 when token id is not project member', async () => {
+    const newUser = await createTestUser('code@code.code')
+    const newToken = createAuthToken(newUser.id)
 
     const result = await request(app)
-      .get(`/comments/${comment.id}`)
-      .expect(200)
+      .get(`/issues/${issue.id}/comments`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(403)
       .expect('Content-Type', /json/)
 
-    expect(result.body).toMatchObject(comment)
-  })
-
-  it('returns 404 when id does not match any comment', async () => {
-    const result = await request(app)
-      .get(`/comments/${crypto.randomUUID()}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('COMMENT_NOT_FOUND')
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })
 
 describe('PATCH comments', () => {
   let app: Application
-  let user: Profile
+  let user: User
+  let token: string
   let project: Project
   let issue: Issue
   let comment: Comment
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestProfile(app)
-    project = await createTestProject(app, user.id)
-    issue = await createTestIssue(app, user.id, project.id)
-    comment = await createTestComment(app, user.id, issue.id, 'comment')
+    user = await createTestUser()
+    token = createAuthToken(user.id)
+    project = await createTestProject(app, token)
+    issue = await createTestIssue(app, token, project.id)
+    comment = await createTestComment(app, token, issue.id, 'comment')
   })
 
   it('successfully edits, updating the comment text/modified_at and returning the updated row', async () => {
     const payload = {
-      author_id: user.id,
       comment: "Not to worry, I'll patch you up!",
     }
 
     const result = await request(app)
       .patch(`/comments/${comment.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(200)
       .expect('Content-Type', /json/)
 
     expect(result.body.comment).toBe(payload.comment)
 
-    const updatedComment = await request(app)
-      .get(`/comments/${comment.id}`)
-      .expect(200)
+    const updatedComment = await getComment(comment.id)
 
-    expect(updatedComment.body).toMatchObject({
+    expect(updatedComment).toMatchObject({
       ...payload,
       id: comment.id,
-      created_at: comment.created_at,
     })
-    expect(updatedComment.body.modified_at).not.toMatch(comment.modified_at)
+    expect(String(updatedComment.modified_at)).not.toMatch(comment.modified_at)
   })
 
-  it('returns 403 when author_id not matching comments author', async () => {
+  it('returns 403 when token id not author_id', async () => {
+    const newUser = await createTestUser('zzz@zzz.zzz')
+    const newToken = createAuthToken(newUser.id)
+    await makeContributor(newUser.id, project.id)
+
     const payload = {
-      author_id: crypto.randomUUID(),
       comment: 'boo',
     }
 
     const result = await request(app)
       .patch(`/comments/${comment.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
       .send(payload)
       .expect(403)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('NOT_COMMENT_AUTHOR')
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 
   it('returns 404 when comment id not found', async () => {
     const payload = {
-      author_id: user.id,
+      author_id: token,
       comment: 'boo',
     }
 
     const result = await request(app)
       .patch(`/comments/${crypto.randomUUID()}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(404)
       .expect('Content-Type', /json/)
@@ -274,68 +252,71 @@ describe('PATCH comments', () => {
     expect(result.body.error.code).toBe('COMMENT_NOT_FOUND')
   })
 
-  it('returns 400 when lacking comment text', async () => {
+  it('returns 400 when lacking comment string', async () => {
     const payload = {
-      author_id: crypto.randomUUID(),
       comment: null,
     }
 
     const result = await request(app)
       .patch(`/comments/${comment.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(400)
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('MISSING_COMMENT_TEXT')
   })
-
-  it('returns 400 when lacking author_id', async () => {
-    const payload = {
-      author_id: undefined,
-      comment: 'the wind',
-    }
-
-    const result = await request(app)
-      .patch(`/comments/${comment.id}`)
-      .send(payload)
-      .expect(400)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('MISSING_AUTHOR_ID')
-  })
 })
 
-describe('PATCH comments', () => {
+describe('DELETE comments', () => {
   let app: Application
-  let user: Profile
+  let user: User
+  let token: string
   let project: Project
   let issue: Issue
   let comment: Comment
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestProfile(app)
-    project = await createTestProject(app, user.id)
-    issue = await createTestIssue(app, user.id, project.id)
-    comment = await createTestComment(app, user.id, issue.id, 'comment')
+    user = await createTestUser()
+    token = createAuthToken(user.id)
+    project = await createTestProject(app, token)
+    issue = await createTestIssue(app, token, project.id)
+    comment = await createTestComment(app, token, issue.id, 'comment')
   })
 
   it('deletes a comment, returning code 204', async () => {
-    await request(app).delete(`/comments/${comment.id}`).expect(204)
+    await request(app)
+      .delete(`/comments/${comment.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(204)
 
     // verify comment is gone
-    await request(app)
-      .get(`/comments/${comment.id}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
+    const commentRow = await getComment(comment.id)
+    expect(commentRow).toBeNull()
   })
 
   it('rejects a delete request with status 404 when comment not found', async () => {
     const response = await request(app)
       .delete(`/comments/${crypto.randomUUID()}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(404)
       .expect('Content-Type', /json/)
 
     expect(response.body.error.code).toBe('COMMENT_NOT_FOUND')
+  })
+
+  it('returns 403 when token id is not author_id', async () => {
+    const newUser = await createTestUser('m@m.m')
+    const newToken = createAuthToken(newUser.id)
+    await makeContributor(newUser.id, project.id)
+
+    const response = await request(app)
+      .delete(`/comments/${comment.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })

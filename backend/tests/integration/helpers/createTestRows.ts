@@ -114,14 +114,14 @@ const createTestIssue = async (
 
 const createTestComment = async (
   app: Application,
-  author_id: string,
+  token: string,
   issue_id: string,
   comment: string = 'blah blah blahbalh',
 ): Promise<Comment> => {
   const response = await request(app)
     .post(`/issues/${issue_id}/comments`)
+    .set('Authorization', `Bearer ${token}`)
     .send({
-      author_id: author_id,
       comment: comment,
     })
     .expect(201)
