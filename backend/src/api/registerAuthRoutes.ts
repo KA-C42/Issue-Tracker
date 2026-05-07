@@ -1,14 +1,12 @@
 import type { Express } from 'express'
-import healthRouter from './routes/health.js'
 import profileRouter from './routes/profiles.js'
 import projectRouter from './routes/projects.js'
 import issueRouter from './routes/issues.js'
 import commentRouter from './routes/comments.js'
 import invitationRouter from './routes/invitations.js'
 
-export default function registerRoutes(app: Express) {
-  // add routes here!!
-  app.use('/health', healthRouter)
+export default function registerAuthRoutes(app: Express) {
+  // add auth protected routes here!!
   app.use('/profiles', profileRouter)
   app.use('/projects', projectRouter)
   app.use('/projects/:project_id/issues', issueRouter)
