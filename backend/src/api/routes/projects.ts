@@ -61,16 +61,22 @@ projectRouter.get('/:id', async (req: AuthenticatedRequest, res) => {
   }
 })
 
-// Get projects by owner_id
-// TODO: change to get all owned/contributing
-// TODO: add auth to this route
+// Get all projects the seesion user owns or contributes to
 projectRouter.get('/', async (req: AuthenticatedRequest, res) => {
-  if (!req.query.owner_id) {
-    throw new AppError('MISSING_OWNER_ID')
-  }
+  const user = req.user as JwtUser
 
-  const text = 'SELECT * FROM projects WHERE owner_id = $1'
-  const values = [req.query.owner_id]
+  const text = `
+    SELECT p.* 
+    FROM projects p 
+    LEFT JOIN project_contributors pc
+    ON pc.project_id = p.id
+    WHERE p.owner_id = $1
+    OR pc.user_id = $1
+    ORDER BY 
+      CASE WHEN p.owner_id = $1 THEN 0 ELSE 1 END,
+      CASE WHEN p.owner_id = $1 THEN p.created_at ELSE pc.joined_at END ASC
+    `
+  const values = [user.sub]
 
   try {
     const result = await pool.query(text, values)

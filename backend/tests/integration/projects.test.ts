@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
-import { createTestProject, createTestUser } from './helpers/createTestRows.js'
+import {
+  createTestProject,
+  createTestUser,
+  makeContributor,
+} from './helpers/createTestRows.js'
 import { Application } from 'express'
 import { Project, User } from '../../src/types/db.js'
 import { createAuthToken } from './helpers/createAuthToken.js'
@@ -134,8 +138,8 @@ describe('POST /projects', () => {
 })
 
 // GET by id
-// - 132 success
-// - 150 no project
+// - success
+// - no project
 describe('GET /projects/:id', () => {
   let app: Application
   let user: User
@@ -183,11 +187,10 @@ describe('GET /projects/:id', () => {
   })
 })
 
-// GET ALL by owner_id
-// - 156 success
-// - 171 no projects
-// - 183 missing owner_id
-describe('GET /projects?owner_id=###', () => {
+// GET ALL by token id as owner or contributor
+// - success
+// - no projects
+describe('GET /projects by session id, owned + contributing', () => {
   let app: Application
   let user: User
   let token: string
@@ -198,44 +201,49 @@ describe('GET /projects?owner_id=###', () => {
     token = createAuthToken(user.id)
   })
 
-  it('selects all projects with a given owner_id with status 200', async () => {
+  it('returns owned/contributing in order of owned (created_at ASC), then contributing (joined_at ASC)', async () => {
     const user2 = await createTestUser('uggh@sleepy.snore')
     const token2 = createAuthToken(user2.id)
-    const otherProject = createTestProject(app, token2, 'p2', 'PTWO')
 
-    const projects: Project[] = []
-    for (let i = 0; i < 3; i++) {
-      projects.push(await createTestProject(app, token, `project ${i + 1}`))
-    }
+    // making contributor projects first to ensure verification of ORDER BY (default return would fail)
+
+    const contributingProjects: Project[] = await Promise.all([
+      createTestProject(app, token2, 'contributing2'),
+      createTestProject(app, token2, 'contributing3'),
+    ])
+
+    await makeContributor(user.id, contributingProjects[0].id)
+    await makeContributor(user.id, contributingProjects[1].id)
+
+    const ownedProjects: Project[] = await Promise.all([
+      createTestProject(app, token, 'owned1'),
+      createTestProject(app, token, 'owned2'),
+    ])
+
+    // should be omitted
+    const otherProject = await createTestProject(app, token2, 'nunya')
 
     const response = await request(app)
-      .get(`/projects?owner_id=${user.id}`)
+      .get(`/projects`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
-    expect(response.body).toMatchObject(projects)
+    expect(response.body).toMatchObject([
+      ...ownedProjects,
+      ...contributingProjects,
+    ])
     expect(response.body).not.toContain(otherProject)
   })
 
-  it('get by owner id returns empty array with status 200 when 0 responses', async () => {
+  it('returns empty array when session user has 0 owned/contributing projects', async () => {
     const response = await request(app)
-      .get(`/projects?owner_id=${user.id}`)
+      .get(`/projects`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
-    expect(response.body).toHaveLength(0)
-  })
-
-  it('rejects a request for projects by owner_id missing an owner_id with status 400', async () => {
-    const response = await request(app)
-      .get('/projects')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(400)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('MISSING_OWNER_ID')
+    expect(response.body).toStrictEqual([])
   })
 })
 
