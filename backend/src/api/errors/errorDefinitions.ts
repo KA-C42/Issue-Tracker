@@ -3,10 +3,24 @@ type ErrorDictionary = {
 }
 
 export const ERROR_DEFS: ErrorDictionary = {
-  // error middleware test
+  // error middleware
   ROUTE_NOT_FOUND: {
     statusCode: 404,
     message: 'Route not found',
+  },
+
+  // auth errors
+  UNAUTHORIZED_REQUEST: {
+    statusCode: 403,
+    message: 'Provided token id is not authorized to make this request',
+  },
+  MISSING_TOKEN: {
+    statusCode: 401,
+    message: 'No auth token provided, please login or register',
+  },
+  INVALID_TOKEN: {
+    statusCode: 403,
+    message: 'Invalid or expired token',
   },
 
   // user route errors
@@ -24,6 +38,7 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
 
   // project route errors
+  // TODO remove once get projects by user id fixed
   MISSING_OWNER_ID: {
     statusCode: 400,
     message: 'Invalid request due to missing owner_id',
@@ -87,25 +102,17 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Please provide an issue title',
   },
-  MISSING_CREATOR_ID: {
-    statusCode: 400,
-    message: 'Please provide a creator_id',
-  },
   CREATOR_NOT_FOUND: {
     statusCode: 404,
-    message: 'Requested creator_id not found in users',
+    message: 'Requested creator_id not found in profiles',
   },
   ASSIGNEE_NOT_FOUND: {
     statusCode: 404,
-    message: 'Requested creator_id not found in users',
+    message: 'Requested assignee_id not found in profiles',
   },
   INVALID_ASSIGNEE: {
     statusCode: 422,
     message: 'Requested assignee_id not owner or contributor to this project',
-  },
-  INVALID_CREATOR: {
-    statusCode: 422,
-    message: 'Requested creator_id not owner or contributor to this project',
   },
   ISSUE_TITLE_CONFLICT: {
     statusCode: 409,
@@ -125,17 +132,13 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
 
   // COMMENT ERRORS
-  MISSING_AUTHOR_ID: {
-    statusCode: 400,
-    message: 'Please provide an author_id',
-  },
   MISSING_COMMENT_TEXT: {
     statusCode: 400,
     message: 'Please provide comment text',
   },
   AUTHOR_NOT_FOUND: {
     statusCode: 404,
-    message: 'Provided author_id does not match any users',
+    message: 'Provided author_id does not match any profiles',
   },
   INVALID_AUTHOR: {
     statusCode: 422,
@@ -183,10 +186,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Too many search parameters provided',
   },
-  INVALID_STATUS_CHANGE: {
+  INVALID_STATUS_VALUE: {
     statusCode: 400,
     message:
-      'Invitation status can only change from PENDING to one of [ ACCEPTED, REJECTED, REVOKED ]',
+      'Invitation status change can only be one of [ ACCEPTED, REJECTED, REVOKED ]',
   },
   MISSING_STATUS: {
     statusCode: 400,
@@ -195,6 +198,10 @@ export const ERROR_DEFS: ErrorDictionary = {
   INVITATION_NOT_FOUND: {
     statusCode: 404,
     message: 'Provided invitation id not found',
+  },
+  INVITATION_NOT_PENDING: {
+    statusCode: 409,
+    message: 'Invite has already received a response and can not be modified',
   },
 }
 

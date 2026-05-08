@@ -6,10 +6,7 @@ type projectPatchReqBody = {
   code?: string
 }
 
-function buildProjectPatchQuery(
-  req: projectPatchReqBody,
-  id: string,
-): [string, string[]] {
+function buildProjectPatchQuery(req: projectPatchReqBody, id: string) {
   const fields = []
   const values = []
   let i = 1
@@ -42,7 +39,7 @@ function buildProjectPatchQuery(
     RETURNING *
     `
 
-  return [text, values]
+  return { text, values }
 }
 
 export { buildProjectPatchQuery }

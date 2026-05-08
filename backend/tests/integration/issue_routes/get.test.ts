@@ -4,13 +4,26 @@ import {
   createTestIssue,
   createTestProject,
   createTestUser,
-  issue,
 } from '../helpers/createTestRows'
 import request from 'supertest'
 import { Application } from 'express'
 import { seedVariedIssues, seedVariedIssuesReturn } from '../helpers/seedDb'
+import { Issue, Project, User } from '../../../src/types/db'
+import { createAuthToken } from '../helpers/createAuthToken'
 
-describe('GET issues collection', () => {
+// GET collections
+// - by project
+// - empty by project
+// - 404 project
+// - by assignee
+// - empty by assignee
+// - 404 assignee
+// - 400 no query/params
+// - by project and assignee
+// - filter by status
+// - 403 by project
+// - 403 by assignee
+describe('GET /issues collection', () => {
   let app: Application
   let seed: seedVariedIssuesReturn
 
@@ -22,10 +35,11 @@ describe('GET issues collection', () => {
   it('GET issues by project_id returns only that projects issues, ordered by status', async () => {
     const result = await request(app)
       .get(`/projects/${seed.mainProject.id}/issues`)
+      .set('Authorization', `Bearer ${seed.ownerToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
-    const body = result.body as issue[]
+    const body = result.body as Issue[]
 
     const expected = seed.issues.filter(
       (issue) => issue.project_id === seed.mainProject.id,
@@ -45,14 +59,11 @@ describe('GET issues collection', () => {
   })
 
   it('GETs an empty array when project_id exists but has no issues, status 200', async () => {
-    const emptyProject = await createTestProject(
-      app,
-      seed.mainProjectOwner.id,
-      'empty project',
-    )
+    const emptyProject = await createTestProject(app, seed.ownerToken)
 
     const result = await request(app)
       .get(`/projects/${emptyProject.id}/issues`)
+      .set('Authorization', `Bearer ${seed.ownerToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
@@ -62,6 +73,7 @@ describe('GET issues collection', () => {
   it('returns 404 when project_id not found', async () => {
     const result = await request(app)
       .get(`/projects/${crypto.randomUUID()}/issues`)
+      .set('Authorization', `Bearer ${seed.ownerToken}`)
       .expect(404)
       .expect('Content-Type', /json/)
 
@@ -69,12 +81,14 @@ describe('GET issues collection', () => {
   })
 
   it('GET issues by assignee_id returns only that users assigned issues, ordered by status', async () => {
+    const contributorToken = createAuthToken(seed.projectContributor.id)
     const result = await request(app)
       .get(`/issues?assignee_id=${seed.projectContributor.id}`)
+      .set('Authorization', `Bearer ${contributorToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
-    const body = result.body as issue[]
+    const body = result.body as Issue[]
 
     const expected = seed.issues.filter(
       (issue) => issue.assignee_id === seed.projectContributor.id,
@@ -94,10 +108,12 @@ describe('GET issues collection', () => {
   })
 
   it('GETs an empty array when assignee_id exists but has no issues, status 200', async () => {
-    const newUser = await createTestUser(app, 'newUser')
+    const newUser = await createTestUser('u@jkjk.afs')
+    const newToken = createAuthToken(newUser.id)
 
     const result = await request(app)
       .get(`/issues?assignee_id=${newUser.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
@@ -105,8 +121,12 @@ describe('GET issues collection', () => {
   })
 
   it('returns 404 when assignee_id not found', async () => {
+    const fakeId = crypto.randomUUID()
+    const fakeIdToken = createAuthToken(fakeId)
+
     const result = await request(app)
-      .get(`/issues?assignee_id=${crypto.randomUUID()}`)
+      .get(`/issues?assignee_id=${fakeId}`)
+      .set('Authorization', `Bearer ${fakeIdToken}`)
       .expect(404)
       .expect('Content-Type', /json/)
 
@@ -116,6 +136,7 @@ describe('GET issues collection', () => {
   it('returns 400 when no assignee_id or project_id is provided', async () => {
     const result = await request(app)
       .get(`/issues`)
+      .set('Authorization', `Bearer ${seed.ownerToken}`)
       .expect(400)
       .expect('Content-Type', /json/)
 
@@ -127,10 +148,11 @@ describe('GET issues collection', () => {
       .get(
         `/projects/${seed.mainProject.id}/issues?assignee_id=${seed.projectContributor.id}`,
       )
+      .set('Authorization', `Bearer ${seed.ownerToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
-    const body = result.body as issue[]
+    const body = result.body as Issue[]
     const expected = seed.issues.filter(
       (issue) =>
         issue.assignee_id === seed.projectContributor.id &&
@@ -151,13 +173,16 @@ describe('GET issues collection', () => {
   })
 
   it('allows filter by status', async () => {
+    const contributorToken = createAuthToken(seed.projectContributor.id)
     const status = 'IN_PROGRESS'
+
     const result = await request(app)
       .get(`/issues?assignee_id=${seed.projectContributor.id}&status=${status}`)
+      .set('Authorization', `Bearer ${contributorToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
-    const body = result.body as issue[]
+    const body = result.body as Issue[]
 
     const expected = seed.issues.filter(
       (issue) =>
@@ -172,21 +197,52 @@ describe('GET issues collection', () => {
       expect(issue.status).toBe(status)
     }
   })
+
+  it('returns 403 by project if not member', async () => {
+    const newUser = await createTestUser('let@me.in')
+    const newToken = createAuthToken(newUser.id)
+
+    const result = await request(app)
+      .get(`/projects/${seed.mainProject.id}/issues`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 403 by assignee id (specifically no project id) if not assignee', async () => {
+    const newUser = await createTestUser('snoopy@no.privacy')
+    const newToken = createAuthToken(newUser.id)
+
+    const result = await request(app)
+      .get(`/issues?assignee_id=${seed.projectContributor.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
 })
 
 describe('GET /issues/:id', () => {
   let app: Application
+  let user: User
+  let token: string
+  let project: Project
+  let issue: Issue
 
-  beforeEach(() => {
+  beforeEach(async () => {
     app = createApp()
+    user = await createTestUser()
+    token = createAuthToken(user.id)
+    project = await createTestProject(app, token)
+    issue = await createTestIssue(app, token, project.id)
   })
   it('success with status 200', async () => {
-    const user = await createTestUser(app)
-    const project = await createTestProject(app, user.id)
-    const issue = await createTestIssue(app, user.id, project.id)
-
     const result = await request(app)
       .get(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
@@ -196,6 +252,7 @@ describe('GET /issues/:id', () => {
   it('returns 400 when missing id', async () => {
     const result = await request(app)
       .get('/issues')
+      .set('Authorization', `Bearer ${token}`)
       .expect(400)
       .expect('Content-Type', /json/)
 
@@ -205,9 +262,23 @@ describe('GET /issues/:id', () => {
   it('returns 404 when issue not found', async () => {
     const result = await request(app)
       .get(`/issues/${crypto.randomUUID()}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(404)
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('ISSUE_NOT_FOUND')
+  })
+
+  it('returns 403 when token id not member of issue project', async () => {
+    const otherUser = await createTestUser('sds@jnk.sfds')
+    const otherToken = createAuthToken(otherUser.id)
+
+    const result = await request(app)
+      .get(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })

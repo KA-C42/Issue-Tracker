@@ -1,7 +1,11 @@
+import {
+  getProject,
+  isProjectMember,
+} from '../../db/services/project.services.js'
+import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { AppError } from '../errors/AppError.js'
 
 type CreateProjectBody = {
-  owner_id: string
   name: string
   code: string
 }
@@ -12,24 +16,50 @@ type PatchProjectBody = {
   description?: string
 }
 
-function validateProjectPost(req: CreateProjectBody) {
-  if (!req.owner_id) {
-    throw new AppError('MISSING_OWNER_ID')
-  }
+async function validateProjectGet(
+  user: JwtUser,
+  projectId: string | undefined,
+) {
+  if (!projectId) throw new AppError('MISSING_PROJECT_ID')
 
-  if (!req.name) {
-    throw new AppError('MISSING_PROJECT_NAME')
-  }
-
-  if (!req.code) {
-    throw new AppError('MISSING_PROJECT_CODE')
-  }
+  if (!(await isProjectMember(projectId, user.sub)))
+    throw new AppError('UNAUTHORIZED_REQUEST')
 }
 
-function validateProjectPatch(req: PatchProjectBody) {
-  if (!req) {
+// prettier-ignore
+function validateProjectPost(body: CreateProjectBody) {
+  if (!body.name) throw new AppError('MISSING_PROJECT_NAME')
+  if (!body.code) throw new AppError('MISSING_PROJECT_CODE')
+}
+
+async function validateProjectPatch(
+  user: JwtUser,
+  id: string | undefined,
+  body: PatchProjectBody,
+) {
+  if (!id) {
+    throw new AppError('MISSING_PROJECT_ID')
+  }
+  if (!body.name && !body.code && !body.description)
     throw new AppError('NO_PROJECT_FIELDS_PROVIDED')
-  }
+
+  const project = await getProject(id)
+  if (!project) throw new AppError('PROJECT_NOT_FOUND')
+
+  if (user.sub !== project.owner_id) throw new AppError('UNAUTHORIZED_REQUEST')
 }
 
-export { validateProjectPost, validateProjectPatch }
+async function validateProjectDelete(user: JwtUser, id: string | undefined) {
+  if (!id) throw new AppError('MISSING_PROJECT_ID')
+
+  const project = await getProject(id)
+  if (!project) throw new AppError('PROJECT_NOT_FOUND')
+
+  if (user.sub !== project.owner_id) throw new AppError('UNAUTHORIZED_REQUEST')
+}
+export {
+  validateProjectGet,
+  validateProjectPost,
+  validateProjectPatch,
+  validateProjectDelete,
+}

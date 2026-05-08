@@ -1,51 +1,74 @@
-import { pool } from '../../db/pool.js'
-import { getProject } from '../../db/services/project.services.js'
-import { getUser } from '../../db/services/userServices.js'
+import { getInvitation } from '../../db/services/inviteServices.js'
+import {
+  getProject,
+  isProjectMember,
+  isProjectOwner,
+} from '../../db/services/project.services.js'
+import { getProfile } from '../../db/services/userServices.js'
+import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { AppError } from '../errors/AppError.js'
 
 async function validateInvitePost(
-  sender_id: string,
-  receiver_id: string,
-  project_id: string,
+  user: JwtUser,
+  receiver_id: string | undefined,
+  project_id: string | undefined,
 ) {
-  if (sender_id) {
-    const sender = await getUser(sender_id)
-    if (!sender) throw new AppError('SENDER_NOT_FOUND')
-  } else throw new AppError('MISSING_SENDER_ID')
-
   if (receiver_id) {
-    const receiver = await getUser(receiver_id)
+    const receiver = await getProfile(receiver_id)
     if (!receiver) throw new AppError('RECEIVER_NOT_FOUND')
   } else throw new AppError('MISSING_RECEIVER_ID')
 
-  const project = await getProject(project_id)
-  if (!project) throw new AppError('PROJECT_NOT_FOUND')
+  if (project_id) {
+    if (!(await isProjectMember(project_id, user.sub)))
+      throw new AppError('UNAUTHORIZED_REQUEST')
+  } else throw new AppError('MISSING_PROJECT_ID')
 }
 
-async function validateInviteGet(project_id: string, receiver_id: string) {
+async function validateInviteGet(
+  user: JwtUser,
+  project_id: string | undefined,
+  receiver_id: string | undefined,
+) {
   if (project_id && receiver_id) throw new AppError('TOO_MANY_PARAMETERS')
 
-  if (project_id && typeof project_id === 'string') {
+  if (project_id) {
     const project = await getProject(project_id)
     if (!project) throw new AppError('PROJECT_NOT_FOUND')
-  } else if (receiver_id && typeof receiver_id === 'string') {
-    const receiver = await getUser(receiver_id)
+    if (!(await isProjectMember(project_id, user.sub)))
+      throw new AppError('UNAUTHORIZED_REQUEST')
+  } else if (receiver_id) {
+    if (user.sub !== receiver_id) throw new AppError('UNAUTHORIZED_REQUEST')
+    const receiver = await getProfile(receiver_id)
     if (!receiver) throw new AppError('USER_NOT_FOUND')
   } else throw new AppError('MISSING_SEARCH_PARAMETER')
 }
 
-async function validateInvitePatch(invite_id: string, status: string) {
+async function validateInvitePatch(
+  user: JwtUser,
+  invite_id: string | undefined,
+  status: string | undefined,
+) {
   if (!status) throw new AppError('MISSING_STATUS')
-  else if (status === 'PENDING') throw new AppError('INVALID_STATUS_CHANGE')
+  if (!invite_id) throw new AppError('MISSING_INVITE_ID')
 
-  const existing = await pool.query(
-    'SELECT status FROM invitations WHERE id = $1',
-    [invite_id],
+  const validStatuses = ['ACCEPTED', 'REJECTED', 'REVOKED']
+  if (!validStatuses.includes(status))
+    throw new AppError('INVALID_STATUS_VALUE')
+
+  const current = await getInvitation(invite_id)
+  if (!current) throw new AppError('INVITATION_NOT_FOUND')
+
+  if (current.status !== 'PENDING') throw new AppError('INVITATION_NOT_PENDING')
+
+  // For each possible status update, does the token user have the correct role
+  if (status === 'REVOKED' && user.sub !== current.sender_id) {
+    if (!(await isProjectOwner(current.project_id, user.sub)))
+      throw new AppError('UNAUTHORIZED_REQUEST')
+  } else if (
+    (status === 'ACCEPTED' || status === 'REJECTED') &&
+    user.sub !== current.receiver_id
   )
-
-  if (!existing.rows[0]) throw new AppError('INVITATION_NOT_FOUND')
-  if (existing.rows[0].status !== 'PENDING')
-    throw new AppError('INVALID_STATUS_CHANGE')
+    throw new AppError('UNAUTHORIZED_REQUEST')
 }
 
 export { validateInvitePost, validateInviteGet, validateInvitePatch }

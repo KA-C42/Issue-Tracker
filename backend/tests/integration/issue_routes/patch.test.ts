@@ -3,28 +3,45 @@ import {
   createTestIssue,
   createTestProject,
   createTestUser,
-  issue,
   makeContributor,
-  project,
-  user,
 } from '../helpers/createTestRows'
+import { Issue, Project, User } from '../../../src/types/db'
 import createApp from '../../../src/api/app'
 import { beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
+import { createAuthToken } from '../helpers/createAuthToken'
 
-describe('PATCH issues', () => {
+// PATCH
+// - success maximum fields
+// - success only status
+// - success only assignee
+// - success assignee to null
+// - success only details
+// - 400 no body
+// - 404 issue
+// - 404 assignee
+// - 422 assignee
+
+// - success creator patches
+// - success project owner patches
+// - success non-creator/owner assignee changes status
+// - 403 non-creator/owner assignee changes non-status field
+// - 403 non-creator/owner/assignee
+describe('PATCH /issues', () => {
   let app: Application
-  let user: user
-  let project: project
-  let issue: issue
+  let user: User
+  let token: string
+  let project: Project
+  let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser(app)
-    project = await createTestProject(app, user.id)
+    user = await createTestUser()
+    token = createAuthToken(user.id)
+    project = await createTestProject(app, token)
     issue = await createTestIssue(
       app,
-      user.id,
+      token,
       project.id,
       'old title',
       user.id,
@@ -32,9 +49,10 @@ describe('PATCH issues', () => {
     )
   })
 
-  it('returns 201 patching maximum fields of issue without changing others', async () => {
-    const newUser = await createTestUser(app, 'newUser')
-    await makeContributor(app, newUser.id, project.id)
+  it('returns 200 patching maximum fields of issue without changing others', async () => {
+    const newUser = await createTestUser('looking@for.work')
+    await makeContributor(newUser.id, project.id)
+
     const payload = {
       title: 'new title',
       details: 'new details',
@@ -44,8 +62,9 @@ describe('PATCH issues', () => {
 
     const result = await request(app)
       .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
-      .expect(201)
+      .expect(200)
       .expect('Content-Type', /json/)
 
     const modifiedIssue = result.body
@@ -71,8 +90,9 @@ describe('PATCH issues', () => {
 
     const result = await request(app)
       .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
-      .expect(201)
+      .expect(200)
       .expect('Content-Type', /json/)
 
     const modifiedIssue = result.body
@@ -94,16 +114,17 @@ describe('PATCH issues', () => {
   })
 
   it('patches only assignee_id, not updating the modified_at or status_changed_at rows', async () => {
-    const newUser = await createTestUser(app, 'new user')
-    await makeContributor(app, newUser.id, project.id)
+    const newUser = await createTestUser('asfd@fds.co')
+    await makeContributor(newUser.id, project.id)
     const payload = {
       assignee_id: newUser.id,
     }
 
     const result = await request(app)
       .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
-      .expect(201)
+      .expect(200)
       .expect('Content-Type', /json/)
 
     const modifiedIssue = result.body
@@ -130,8 +151,9 @@ describe('PATCH issues', () => {
 
     const result = await request(app)
       .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
-      .expect(201)
+      .expect(200)
       .expect('Content-Type', /json/)
 
     const modifiedIssue = result.body
@@ -159,8 +181,9 @@ describe('PATCH issues', () => {
 
     const result = await request(app)
       .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
-      .expect(201)
+      .expect(200)
       .expect('Content-Type', /json/)
 
     const modifiedIssue = result.body
@@ -187,6 +210,7 @@ describe('PATCH issues', () => {
 
     const result = await request(app)
       .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(400)
       .expect('Content-Type', /json/)
@@ -201,6 +225,7 @@ describe('PATCH issues', () => {
     }
     const result = await request(app)
       .patch(`/issues/${crypto.randomUUID()}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(404)
       .expect('Content-Type', /json/)
@@ -214,6 +239,7 @@ describe('PATCH issues', () => {
     }
     const result = await request(app)
       .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(404)
       .expect('Content-Type', /json/)
@@ -222,16 +248,138 @@ describe('PATCH issues', () => {
   })
 
   it('returns 422 when assignee is not project owner or conributor', async () => {
-    const newUser = await createTestUser(app, 'newUser')
+    const newUser = await createTestUser('r@asf.sgg')
     const payload = {
       assignee_id: newUser.id,
     }
     const result = await request(app)
       .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(422)
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('INVALID_ASSIGNEE')
+  })
+
+  it('allows the issue creator to patch all patchable fields', async () => {
+    const newUser = await createTestUser('r@asf.sgg')
+    await makeContributor(newUser.id, project.id)
+    const newToken = createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(app, newToken, project.id, 'oldie')
+
+    const payload = {
+      title: 'new title',
+      details: 'so detailed wow',
+      assignee_id: newUser.id,
+      status: 'DONE',
+    }
+
+    await request(app)
+      .patch(`/issues/${newIssue.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+  })
+
+  it('allows the project owner (who is not creator) to patch all patchable fields', async () => {
+    const newUser = await createTestUser('lemme@at.it')
+    await makeContributor(newUser.id, project.id)
+    const newToken = createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(app, newToken, project.id)
+
+    const payload = {
+      title: 'new title',
+      details: 'so detailed wow',
+      assignee_id: newUser.id,
+      status: 'DONE',
+    }
+
+    await request(app)
+      .patch(`/issues/${newIssue.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+  })
+
+  it('allows the assignee (who is neither owner nor creator) to patch status', async () => {
+    const newUser = await createTestUser('lemme@at.it')
+    await makeContributor(newUser.id, project.id)
+    const newToken = createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'titleytitle',
+      newUser.id,
+    )
+
+    const payload = {
+      status: 'DONE',
+    }
+
+    await request(app)
+      .patch(`/issues/${newIssue.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+  })
+
+  it('returns 403 when assignee (not owner/creator) attempts patching a non-status field', async () => {
+    const newUser = await createTestUser('lemme@it.now')
+    await makeContributor(newUser.id, project.id)
+    const newToken = createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'titleytitle',
+      newUser.id,
+    )
+
+    const payload = {
+      title: 'grrrr',
+      details: 'keeeeeep it going',
+      assignee_id: user.id,
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${newIssue.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 403 when non-creator/owner/assignee user attempts a patch', async () => {
+    const newUser = await createTestUser('lemme@it.now')
+    await makeContributor(newUser.id, project.id)
+    const newToken = createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'titleytitle',
+    )
+
+    const payload = {
+      title: 'grrrr',
+      details: 'keeeeeep it going',
+      assignee_id: user.id,
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${newIssue.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })

@@ -3,25 +3,26 @@ import { pool } from '../../db/pool.js'
 import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import {
+  validateCommentDelete,
+  validateCommentGet,
   validateCommentPatch,
   validateCommentPost,
 } from '../validators/comments_validation.js'
-import { getIssue } from '../../db/services/issueServies.js'
-import { AppError } from '../errors/AppError.js'
+import type {
+  AuthenticatedRequest,
+  JwtUser,
+} from '../../types/authenticatedRequest.js'
 
 const commentRouter = Router({ mergeParams: true })
 
 // Create new comment
-commentRouter.post<{ issue_id: string }>('/', async (req, res) => {
-  await validateCommentPost(
-    req.body.author_id,
-    req.params.issue_id,
-    req.body.comment,
-  )
+commentRouter.post('/', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+  await validateCommentPost(user, req.params.issue_id, req.body.comment)
 
   const text =
     'INSERT INTO comments (author_id, issue_id, comment) VALUES ($1, $2, $3) RETURNING *'
-  const values = [req.body.author_id, req.params.issue_id, req.body.comment]
+  const values = [user.sub, req.params.issue_id, req.body.comment]
 
   try {
     const result = await pool.query(text, values)
@@ -31,9 +32,9 @@ commentRouter.post<{ issue_id: string }>('/', async (req, res) => {
   }
 })
 
-commentRouter.get<{ issue_id: string }>('/', async (req, res) => {
-  const issue = await getIssue(req.params.issue_id)
-  if (!issue) throw new AppError('ISSUE_NOT_FOUND')
+commentRouter.get('/', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+  await validateCommentGet(user, req.params.issue_id)
 
   const text = `SELECT * FROM comments WHERE issue_id = $1 ORDER BY created_at ASC`
   const values = [req.params.issue_id]
@@ -46,29 +47,13 @@ commentRouter.get<{ issue_id: string }>('/', async (req, res) => {
   }
 })
 
-commentRouter.get('/:id', async (req, res) => {
-  const text = `SELECT * FROM comments WHERE id = $1`
-  const values = [req.params.id]
-
-  try {
-    const result = await pool.query(text, values)
-    if (result.rows.length === 0) throw new AppError('COMMENT_NOT_FOUND')
-    return res.status(200).json(result.rows[0])
-  } catch (err) {
-    dbErrorMapper(err as DbError)
-  }
-})
-
-commentRouter.patch('/:id', async (req, res) => {
-  await validateCommentPatch(
-    req.params.id,
-    req.body.author_id,
-    req.body.comment,
-  )
+commentRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+  await validateCommentPatch(user, req.params.id, req.body.comment)
 
   const text =
     'UPDATE comments SET comment = $1 WHERE id = $2 AND author_id = $3 RETURNING *'
-  const values = [req.body.comment, req.params.id, req.body.author_id]
+  const values = [req.body.comment, req.params.id, user.sub]
 
   try {
     const result = await pool.query(text, values)
@@ -78,20 +63,19 @@ commentRouter.patch('/:id', async (req, res) => {
   }
 })
 
-commentRouter.delete('/:id', async (req, res) => {
+commentRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+  await validateCommentDelete(user, req.params.id)
+
   const text = `
     DELETE FROM comments
     WHERE id = $1
-    RETURNING *
     `
 
   const values = [req.params.id]
 
   try {
-    const result = await pool.query(text, values)
-    if (result.rowCount === 0) {
-      throw new AppError('COMMENT_NOT_FOUND')
-    }
+    await pool.query(text, values)
     return res.status(204).send()
   } catch (err) {
     dbErrorMapper(err as DbError)

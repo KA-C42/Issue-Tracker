@@ -8,24 +8,21 @@ import {
   validateInvitePost,
 } from '../validators/invitations_validation.js'
 import { buildInviteGetQuery } from '../queries/invitationQueryBuilders.js'
+import type {
+  AuthenticatedRequest,
+  JwtUser,
+} from '../../types/authenticatedRequest.js'
 
 const invitationRouter = Router({ mergeParams: true })
 
 // Create new invitation
-invitationRouter.post<{ project_id: string }>('/', async (req, res) => {
-  await validateInvitePost(
-    req.body.sender_id,
-    req.body.receiver_id,
-    req.params.project_id,
-  )
+invitationRouter.post('/', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+  await validateInvitePost(user, req.body.receiver_id, req.params.project_id)
 
   const text =
     'INSERT INTO invitations (sender_id, receiver_id, project_id) VALUES ($1, $2, $3) RETURNING *'
-  const values = [
-    req.body.sender_id,
-    req.body.receiver_id,
-    req.params.project_id,
-  ]
+  const values = [user.sub, req.body.receiver_id, req.params.project_id]
 
   try {
     const result = await pool.query(text, values)
@@ -35,15 +32,15 @@ invitationRouter.post<{ project_id: string }>('/', async (req, res) => {
   }
 })
 
-invitationRouter.get('/', async (req, res) => {
-  await validateInviteGet(
-    req.query.project_id as string,
-    req.query.receiver_id as string,
-  )
-  const { text, values } = buildInviteGetQuery(
-    req.query.project_id as string,
-    req.query.receiver_id as string,
-  )
+invitationRouter.get('/', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+  const { project_id, receiver_id } = req.query as {
+    project_id?: string
+    receiver_id?: string
+  }
+  await validateInviteGet(user, project_id, receiver_id)
+
+  const { text, values } = buildInviteGetQuery(project_id, receiver_id)
 
   try {
     const result = await pool.query(text, values)
@@ -53,8 +50,9 @@ invitationRouter.get('/', async (req, res) => {
   }
 })
 
-invitationRouter.patch('/:id', async (req, res) => {
-  await validateInvitePatch(req.params.id as string, req.body.status as string)
+invitationRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+  await validateInvitePatch(user, req.params.id, req.body.status)
 
   const text = `UPDATE invitations
     SET status = $1

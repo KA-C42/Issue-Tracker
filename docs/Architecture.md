@@ -87,7 +87,7 @@ Will use a relational model with PostreSQL through Supabase
 
 ### Core tables include:
 
-**users**
+**profiles**
 Stores: User profiles
 Relationships:
  - projects (as creator): one-to-many
@@ -103,22 +103,22 @@ Relationships:
 **project_contributors**
 Stores: junction table tracking to match contributing users with projects
 Relationships:
-- users: many-to-one
+- profiles: many-to-one
 - projects: many-to-one
 
 **projects**
 Stores: Workspaces to group issues by
 Relationships: 
- - users (creator): many-to-one
- - users (contributors): many-to-many (through project_contributors)
+ - profiles (creator): many-to-one
+ - profiles (contributors): many-to-many (through project_contributors)
  - issues: one-to-many
  - Future consideration: notifications: one-to-many (optional, polymorphic in code)
 
 **issues**
 Stores: Single issues with relevant details
 Relationships:
- - users (creator): many-to-one
- - users (assignee): many-to-one
+ - profiles (creator): many-to-one
+ - profiles (assignee): many-to-one
  - projects: many-to-one
  - comments: one-to-many
  - Future consideration: notifications: one-to-many (optional, polymorphic in code)
@@ -126,14 +126,14 @@ Relationships:
 **comments**
 Stores: User-created comments left in response to issues
 Relationships:
- - users: many-to-one
+ - profiles: many-to-one
  - issues: many-to-one
  - Future consideration: notifications: one-to-many (optional, polymorphic in code)
 
 **Future consideration: notifications**
 Stores: In-app notification data
 Relationships:
- - users (actor): many-to-one
+ - profiles (actor): many-to-one
  - invitations | projects | issues | comments: many-to-one (optional polymorphic relationship, enforced in code)
 
 **Future consideration: notification_templates**
@@ -142,14 +142,14 @@ Stores: Templates for defining notification messages
 **Future consideration: sent_notifications**
 Stores: Which notifications are sent to which users, and when they were seen
 Relationships:
- - users (recipient): many-to-one
+ - profiles (recipient): many-to-one
  - notifications: many-to-one
 
 **invitations**
 Stores: Project invitations sent from a project owner to another user
 Relationships:
- - users (sender/project owner): many-to-one
- - users (recipient): many-to-one
+ - profiles (sender/project owner): many-to-one
+ - profiles (recipient): many-to-one
  - projects: many-to-one
  - Future consideration: notifications: one-to-many (optional, polymorphic in code)
 

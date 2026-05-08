@@ -1,43 +1,72 @@
 import request from 'supertest'
 import type { Application } from 'express'
 import {
-  User,
+  Profile,
   Project,
   ProjectContributor,
   Issue,
   Comment,
   Invitation,
-} from '../../../src/db/types/db'
-import { IssueStatus } from '../../../src/db/types/enums'
+  User,
+} from '../../../src/types/db'
+import { IssueStatus } from '../../../src/types/enums'
+import { pool } from '../../../src/db/pool'
 
 const createTestUser = async (
-  app: Application,
-  username: string = 'testUser',
+  email: string = 'hacker42@aol.gotcha',
 ): Promise<User> => {
+  const text = 'INSERT INTO auth.users (id, email) VALUES ($1, $2) RETURNING *'
+  const values = [crypto.randomUUID(), email]
+
+  const result = await pool.query(text, values)
+  return result.rows[0]
+}
+
+const createTestProfile = async (
+  app: Application,
+  username: string = 'testProfile',
+): Promise<Profile> => {
   const response = await request(app)
-    .post('/users')
+    .post('/profiles')
     .send({ username: username })
     .expect(201)
 
   return {
     id: response.body.id,
     username: response.body.username,
-  } as User
+  } as Profile
+}
+
+const setUsername = async (
+  app: Application,
+  id: string,
+  username: string,
+  token: string,
+): Promise<Profile> => {
+  const response = await request(app)
+    .patch(`/profiles/${id}`)
+    .set('Authorization', `Bearer ${token}`)
+    .send({
+      username: username,
+    })
+    .expect(200)
+
+  return response.body as Profile
 }
 
 const createTestProject = async (
   app: Application,
-  owner_id: string,
+  token: string,
   name: string = 'testProject',
   code: string = 'PROJ',
   description: string = 'project for dev testing only',
 ): Promise<Project> => {
   const response = await request(app)
     .post('/projects')
+    .set('Authorization', `Bearer ${token}`)
     .send({
       name: name,
       description: description,
-      owner_id: owner_id,
       code: code,
     })
     .expect(201)
@@ -46,24 +75,25 @@ const createTestProject = async (
 }
 
 const makeContributor = async (
-  app: Application,
   user_id: string,
   project_id: string,
 ): Promise<ProjectContributor> => {
-  const response = await request(app)
-    .post('/project-contributors')
-    .send({
-      user_id: user_id,
-      project_id: project_id,
-    })
-    .expect(201)
+  const text = `
+    INSERT INTO project_contributors (user_id, project_id) 
+    VALUES ($1, $2)
+    RETURNING *
+  `
 
-  return response.body as ProjectContributor
+  const values = [user_id, project_id]
+
+  const result = await pool.query(text, values)
+
+  return result.rows[0]
 }
 
 const createTestIssue = async (
   app: Application,
-  creator_id: string,
+  token: string,
   project_id: string,
   title: string = 'issue',
   assignee_id: string | undefined = undefined,
@@ -71,8 +101,8 @@ const createTestIssue = async (
 ): Promise<Issue> => {
   const response = await request(app)
     .post(`/projects/${project_id}/issues`)
+    .set('Authorization', `Bearer ${token}`)
     .send({
-      creator_id: creator_id,
       title: title,
       assignee_id: assignee_id,
       status: status,
@@ -84,14 +114,14 @@ const createTestIssue = async (
 
 const createTestComment = async (
   app: Application,
-  author_id: string,
+  token: string,
   issue_id: string,
   comment: string = 'blah blah blahbalh',
 ): Promise<Comment> => {
   const response = await request(app)
     .post(`/issues/${issue_id}/comments`)
+    .set('Authorization', `Bearer ${token}`)
     .send({
-      author_id: author_id,
       comment: comment,
     })
     .expect(201)
@@ -101,14 +131,14 @@ const createTestComment = async (
 
 const createInvitation = async (
   app: Application,
-  sender_id: string,
+  token: string,
   receiver_id: string,
   project_id: string,
 ): Promise<Invitation> => {
   const response = await request(app)
     .post(`/projects/${project_id}/invitations`)
+    .set('Authorization', `Bearer ${token}`)
     .send({
-      sender_id: sender_id,
       receiver_id: receiver_id,
     })
     .expect(201)
@@ -118,6 +148,8 @@ const createInvitation = async (
 
 export {
   createTestUser,
+  createTestProfile,
+  setUsername,
   createTestProject,
   makeContributor,
   createTestIssue,
