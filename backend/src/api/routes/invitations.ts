@@ -40,10 +40,7 @@ invitationRouter.get('/', async (req: AuthenticatedRequest, res) => {
   }
   await validateInviteGet(user, project_id, receiver_id)
 
-  const { text, values } = buildInviteGetQuery(
-    req.query.project_id as string,
-    req.query.receiver_id as string,
-  )
+  const { text, values } = buildInviteGetQuery(project_id, receiver_id)
 
   try {
     const result = await pool.query(text, values)
@@ -55,7 +52,7 @@ invitationRouter.get('/', async (req: AuthenticatedRequest, res) => {
 
 invitationRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
   const user = req.user as JwtUser
-  await validateInvitePatch(user, req.params.id as string, req.body.status)
+  await validateInvitePatch(user, req.params.id, req.body.status)
 
   const text = `UPDATE invitations
     SET status = $1

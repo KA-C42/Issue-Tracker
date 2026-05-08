@@ -1,5 +1,8 @@
-function buildInviteGetQuery(project_id: string, receiver_id: string) {
-  let field
+function buildInviteGetQuery(
+  project_id: string | undefined,
+  receiver_id: string | undefined,
+) {
+  let field: string | undefined
   const values = []
 
   if (project_id) {

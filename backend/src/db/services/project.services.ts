@@ -1,10 +1,8 @@
 import { AppError } from '../../api/errors/AppError.js'
-import type { DbError } from '../../api/errors/DbError.js'
-import dbErrorMapper from '../../api/errors/dbErrorMapper.js'
 import type { Project } from '../../types/db.js'
 import { pool } from '../pool.js'
 
-export async function getProject(projectId: string): Promise<Project> {
+export async function getProject(projectId: string): Promise<Project | null> {
   const result = await pool.query('SELECT * FROM projects WHERE id = $1', [
     projectId,
   ])
@@ -27,31 +25,26 @@ export async function isProjectMember(
       )`
   const values = [projectId, userId]
 
-  try {
-    const result = await pool.query(text, values)
-    if (result.rowCount === 0) {
-      if (!(await getProject(projectId))) {
-        throw new AppError('PROJECT_NOT_FOUND')
-      }
-      return false
+  const result = await pool.query(text, values)
+  if (result.rowCount === 0) {
+    if (!(await getProject(projectId))) {
+      throw new AppError('PROJECT_NOT_FOUND')
     }
-    return true
-  } catch (err) {
-    dbErrorMapper(err as DbError)
+    return false
   }
+  return true
 }
 
 export async function isProjectOwner(projectId: string, userId: string) {
   const text = 'SELECT * FROM projects WHERE id = $1 and owner_id = $2'
   const values = [projectId, userId]
 
-  try {
-    const result = await pool.query(text, values)
-    if (result.rowCount === 0) {
-      throw new AppError('UNAUTHORIZED_REQUEST')
+  const result = await pool.query(text, values)
+  if (result.rowCount === 0) {
+    if (!(await getProject(projectId))) {
+      throw new AppError('PROJECT_NOT_FOUND')
     }
-    return true
-  } catch (err) {
-    dbErrorMapper(err as DbError)
+    return false
   }
+  return true
 }

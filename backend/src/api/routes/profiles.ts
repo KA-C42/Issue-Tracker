@@ -4,7 +4,10 @@ import { AppError } from '../errors/AppError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import type { DbError } from '../errors/DbError.js'
 import { validateProfilePatch } from '../validators/profiles_validation.js'
-import type { AuthenticatedRequest } from '../../types/authenticatedRequest.js'
+import type {
+  AuthenticatedRequest,
+  JwtUser,
+} from '../../types/authenticatedRequest.js'
 import {
   validateContributorsDelete,
   validateContributorsGet,
@@ -28,11 +31,8 @@ profileRouter.get('/:id', async (req: AuthenticatedRequest, res) => {
 })
 
 profileRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
-  const username = req.body.username
-  const id = req.params.id
-  const user = (req as AuthenticatedRequest).user
-
-  validateProfilePatch(username, id, user)
+  const user = req.user as JwtUser
+  validateProfilePatch(user, req.params.id, req.body.username)
 
   const text = 'UPDATE profiles SET username = $1 WHERE id = $2 RETURNING *'
   const values = [req.body.username, req.params.id]
@@ -49,8 +49,8 @@ profileRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
 })
 
 profileRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
-  if (!req.user || req.user.sub !== req.params.id)
-    throw new AppError('UNAUTHORIZED_REQUEST')
+  const user = req.user as JwtUser
+  if (user.sub !== req.params.id) throw new AppError('UNAUTHORIZED_REQUEST')
 
   const text =
     'UPDATE profiles SET deactivated_at = now() WHERE id = $1 RETURNING *'
@@ -67,12 +67,13 @@ profileRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
   }
 })
 
+// this is NOT the standard get route for profiles
+// this gets contributors by user id
 profileRouter.get(
   '/:id/contributors',
   async (req: AuthenticatedRequest, res) => {
-    const id = req.params.id as string
-
-    await validateContributorsGet(req.user, id, 'user')
+    const user = req.user as JwtUser
+    await validateContributorsGet(user, req.params.id, 'user')
 
     const text = `
         SELECT 
@@ -84,19 +85,19 @@ profileRouter.get(
         WHERE p.id = $1
         ORDER BY pc.joined_at
     `
-    const values = [id]
+    const values = [req.params.id]
 
     try {
       const result = await pool.query(text, values)
 
       if (result.rowCount === 0) {
-        // if no row, no project
+        // if no row, no profile
         throw new AppError('USER_NOT_FOUND')
       } else if (result.rowCount === 1 && result.rows[0].user_id === null) {
         // if 1 row w/ null user_id, no contributors
         return res.status(200).send([])
       } else {
-        // project w/ contributors
+        // profile w/ contributors
         return res.status(200).send(result.rows)
       }
     } catch (err) {
@@ -105,14 +106,16 @@ profileRouter.get(
   },
 )
 
+// delete contributor row as invitee, not delete profile
 profileRouter.delete(
   '/:user_id/contributors/:project_id',
   async (req: AuthenticatedRequest, res) => {
+    const user = req.user as JwtUser
     const { user_id, project_id } = req.params as {
-      user_id: string
-      project_id: string
+      user_id?: string
+      project_id?: string
     }
-    await validateContributorsDelete(req.user, project_id, user_id, 'user')
+    await validateContributorsDelete(user, project_id, user_id, 'user')
 
     const text = `
     DELETE FROM project_contributors

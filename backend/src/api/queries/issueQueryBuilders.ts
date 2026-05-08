@@ -10,16 +10,51 @@ type issuePostFields = {
   project_id: string
 }
 
+type issuePatchFields = {
+  title?: string
+  details?: string
+  status?: IssueStatus
+  assignee_id?: string | null
+}
+
 function buildIssuePostQuery(body: issuePostFields) {
   const fields = []
   const values = []
   let i = 1
   const valuesNumberList = []
 
-  for (const [key, value] of Object.entries(body)) {
-    fields.push(key)
-    values.push(value)
+  fields.push(`creator_id`)
+  values.push(body.creator_id)
+  valuesNumberList.push(i++)
+
+  fields.push(`project_id`)
+  values.push(body.project_id)
+  valuesNumberList.push(i++)
+
+  fields.push(`title`)
+  values.push(body.title)
+  valuesNumberList.push(i++)
+
+  if (body.details !== undefined) {
+    fields.push(`details`)
+    values.push(body.details)
     valuesNumberList.push(i++)
+  }
+
+  if (body.status !== undefined) {
+    fields.push(`status`)
+    values.push(body.status)
+    valuesNumberList.push(i++)
+  }
+
+  if (body.assignee_id !== undefined) {
+    fields.push(`assignee_id`)
+    values.push(body.assignee_id)
+    valuesNumberList.push(i++)
+  }
+
+  if (fields.length === 0) {
+    throw new AppError('NO_PROJECT_FIELDS_PROVIDED')
   }
 
   const text = `INSERT INTO issues (${fields.join(', ')}) VALUES ($${valuesNumberList.join(', $')}) RETURNING *`
@@ -62,35 +97,29 @@ function buildIssueGetQuery(
   return { text, values }
 }
 
-function buildIssuePatchQuery(
-  id: string,
-  title: string | undefined,
-  details: string | undefined,
-  status: IssueStatus | undefined,
-  assignee_id: string | undefined,
-) {
+function buildIssuePatchQuery(id: string | undefined, body: issuePatchFields) {
   const fields = []
   const values = []
   let i = 1
 
-  if (title !== undefined) {
+  if (body.title !== undefined) {
     fields.push(`title = $${i++}`)
-    values.push(title)
+    values.push(body.title)
   }
 
-  if (details !== undefined) {
+  if (body.details !== undefined) {
     fields.push(`details = $${i++}`)
-    values.push(details)
+    values.push(body.details)
   }
 
-  if (status !== undefined) {
+  if (body.status !== undefined) {
     fields.push(`status = $${i++}`)
-    values.push(status)
+    values.push(body.status)
   }
 
-  if (assignee_id !== undefined) {
+  if (body.assignee_id !== undefined) {
     fields.push(`assignee_id = $${i++}`)
-    values.push(assignee_id)
+    values.push(body.assignee_id)
   }
 
   if (fields.length === 0) {
@@ -110,4 +139,4 @@ function buildIssuePatchQuery(
 }
 
 export { buildIssuePostQuery, buildIssueGetQuery, buildIssuePatchQuery }
-export type { issuePostFields }
+export type { issuePostFields, issuePatchFields }

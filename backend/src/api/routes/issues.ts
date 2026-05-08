@@ -25,9 +25,8 @@ const issueRouter = Router({ mergeParams: true })
 
 // Create new issue
 issueRouter.post('/', async (req: AuthenticatedRequest, res) => {
-  const id = req.params.project_id as string
   const user = req.user as JwtUser
-  await validateIssuePost(user, req.body, id)
+  await validateIssuePost(user, req.body, req.params.project_id)
 
   const { text, values } = buildIssuePostQuery({
     creator_id: user.sub,
@@ -44,16 +43,18 @@ issueRouter.post('/', async (req: AuthenticatedRequest, res) => {
 })
 
 issueRouter.get('/', async (req: AuthenticatedRequest, res) => {
-  const projectId = req.params.project_id as string
   const { assignee_id, status } = req.query as {
     assignee_id?: string
     status?: IssueStatus
   }
   const user = req.user as JwtUser
+  await validateIssueGet(user, req.params.project_id, assignee_id)
 
-  await validateIssueGet(projectId, user, assignee_id)
-
-  const { text, values } = buildIssueGetQuery(projectId, assignee_id, status)
+  const { text, values } = buildIssueGetQuery(
+    req.params.project_id,
+    assignee_id,
+    status,
+  )
 
   try {
     const result = await pool.query(text, values)
@@ -63,6 +64,8 @@ issueRouter.get('/', async (req: AuthenticatedRequest, res) => {
   }
 })
 
+// this route validates after request to minimize DB requests
+// may change when I revisit for my validation pass later
 issueRouter.get('/:id', async (req: AuthenticatedRequest, res) => {
   const user = req.user as JwtUser
   const text = 'SELECT * FROM issues WHERE id = $1'
@@ -84,24 +87,9 @@ issueRouter.get('/:id', async (req: AuthenticatedRequest, res) => {
 
 issueRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
   const user = req.user as JwtUser
-  const id = req.params.id as string
+  await validateIssuePatch(user, req.params.id, req.body)
 
-  await validateIssuePatch(
-    id,
-    req.body.title,
-    req.body.details,
-    req.body.status,
-    req.body.assignee_id,
-    user,
-  )
-
-  const { text, values } = buildIssuePatchQuery(
-    id,
-    req.body.title,
-    req.body.details,
-    req.body.status,
-    req.body.assignee_id,
-  )
+  const { text, values } = buildIssuePatchQuery(req.params.id, req.body)
 
   try {
     const result = await pool.query(text, values)
@@ -113,15 +101,14 @@ issueRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
 
 issueRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
   const user = req.user as JwtUser
-  const id = req.params.id as string
-  await validateIssueDelete(user, id)
+  await validateIssueDelete(user, req.params.id)
 
   const text = `
     DELETE FROM issues
     WHERE id = $1
     `
 
-  const values = [id]
+  const values = [req.params.id]
 
   try {
     await pool.query(text, values)

@@ -14,6 +14,14 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 403,
     message: 'Provided token id is not authorized to make this request',
   },
+  MISSING_TOKEN: {
+    statusCode: 401,
+    message: 'No auth token provided, please login or register',
+  },
+  INVALID_TOKEN: {
+    statusCode: 403,
+    message: 'Invalid or expired token',
+  },
 
   // user route errors
   MISSING_USERNAME: {
@@ -30,6 +38,7 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
 
   // project route errors
+  // TODO remove once get projects by user id fixed
   MISSING_OWNER_ID: {
     statusCode: 400,
     message: 'Invalid request due to missing owner_id',
@@ -93,25 +102,17 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Please provide an issue title',
   },
-  MISSING_CREATOR_ID: {
-    statusCode: 400,
-    message: 'Please provide a creator_id',
-  },
   CREATOR_NOT_FOUND: {
     statusCode: 404,
     message: 'Requested creator_id not found in profiles',
   },
   ASSIGNEE_NOT_FOUND: {
     statusCode: 404,
-    message: 'Requested creator_id not found in profiles',
+    message: 'Requested assignee_id not found in profiles',
   },
   INVALID_ASSIGNEE: {
     statusCode: 422,
     message: 'Requested assignee_id not owner or contributor to this project',
-  },
-  INVALID_CREATOR: {
-    statusCode: 422,
-    message: 'Requested creator_id not owner or contributor to this project',
   },
   ISSUE_TITLE_CONFLICT: {
     statusCode: 409,
@@ -131,10 +132,6 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
 
   // COMMENT ERRORS
-  MISSING_AUTHOR_ID: {
-    statusCode: 400,
-    message: 'Please provide an author_id',
-  },
   MISSING_COMMENT_TEXT: {
     statusCode: 400,
     message: 'Please provide comment text',

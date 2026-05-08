@@ -13,12 +13,10 @@ import {
   buildProjectPatchQuery,
   type projectPatchReqBody,
 } from '../queries/projectPatchQuery.js'
-import type { AuthenticatedRequest } from '../../types/authenticatedRequest.js'
-import {
-  getProject,
-  isProjectMember,
-  isProjectOwner,
-} from '../../db/services/project.services.js'
+import type {
+  AuthenticatedRequest,
+  JwtUser,
+} from '../../types/authenticatedRequest.js'
 import {
   validateContributorsDelete,
   validateContributorsGet,
@@ -28,17 +26,15 @@ const projectRouter = Router()
 
 // Create new project
 projectRouter.post('/', async (req: AuthenticatedRequest, res) => {
-  const user = req.user
-  if (!user) throw new AppError('UNAUTHORIZED_REQUEST')
-
+  const user = req.user as JwtUser
   validateProjectPost(req.body)
 
   const text =
-    'INSERT INTO projects (name, description, owner_id, code) VALUES ($1, $2, $3, $4) RETURNING *'
+    'INSERT INTO projects (owner_id, name, description, code) VALUES ($1, $2, $3, $4) RETURNING *'
   const values = [
+    user.sub,
     req.body.name,
     req.body.description ?? null,
-    user.sub,
     req.body.code,
   ]
 
@@ -51,32 +47,24 @@ projectRouter.post('/', async (req: AuthenticatedRequest, res) => {
 })
 
 projectRouter.get('/:id', async (req: AuthenticatedRequest, res) => {
-  const { user, projectId } = validateProjectGet(req.params.id, req.user)
-  const authorized = await isProjectMember(projectId, user.sub)
+  const user = req.user as JwtUser
+  await validateProjectGet(user, req.params.id)
 
-  const text = `SELECT * FROM projects WHERE id = $1` // be owner or contributor
-  const values = [projectId]
+  const text = `SELECT * FROM projects WHERE id = $1`
+  const values = [req.params.id]
 
   try {
     const result = await pool.query(text, values)
-
-    // Differentiating despite security cost because this is a portfolio/practice project
-    if (result.rowCount !== 0) {
-      if (authorized) {
-        return res.status(200).json(result.rows[0])
-      } else {
-        throw new AppError('UNAUTHORIZED_REQUEST')
-      }
-    } else {
-      throw new AppError('PROJECT_NOT_FOUND')
-    }
+    return res.status(200).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
   }
 })
 
 // Get projects by owner_id
-projectRouter.get('/', async (req, res) => {
+// TODO: change to get all owned/contributing
+// TODO: add auth to this route
+projectRouter.get('/', async (req: AuthenticatedRequest, res) => {
   if (!req.query.owner_id) {
     throw new AppError('MISSING_OWNER_ID')
   }
@@ -93,11 +81,12 @@ projectRouter.get('/', async (req, res) => {
 })
 
 projectRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
-  const { id, user } = validateProjectPatch(req.params.id, req.body, req.user)
+  const user = req.user as JwtUser
+  await validateProjectPatch(user, req.params.id, req.body)
 
-  const [text, values] = buildProjectPatchQuery(
+  const { text, values } = buildProjectPatchQuery(
     req.body as projectPatchReqBody,
-    id,
+    req.params.id as string,
   )
 
   try {
@@ -105,7 +94,6 @@ projectRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
     if (result.rowCount === 0) {
       throw new AppError('PROJECT_NOT_FOUND')
     }
-    await isProjectOwner(id, user.sub)
     return res.status(200).json(result.rows[0])
   } catch (err) {
     dbErrorMapper(err as DbError)
@@ -113,25 +101,21 @@ projectRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
 })
 
 projectRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
-  const { id, user } = validateProjectDelete(req.params.id, req.user)
+  const user = req.user as JwtUser
+  await validateProjectDelete(user, req.params.id)
 
   const text = `
     DELETE FROM projects
     WHERE id = $1
-    AND owner_id = $2
     RETURNING *
     `
 
-  const values = [id, user.sub]
+  const values = [req.params.id]
 
   try {
     const result = await pool.query(text, values)
     if (result.rowCount === 0) {
-      if (await getProject(id)) {
-        throw new AppError('UNAUTHORIZED_REQUEST')
-      } else {
-        throw new AppError('PROJECT_NOT_FOUND')
-      }
+      throw new AppError('PROJECT_NOT_FOUND')
     }
     return res.status(204).send()
   } catch (err) {
@@ -139,12 +123,12 @@ projectRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
   }
 })
 
+// get contributors by project, not project
 projectRouter.get(
   '/:id/contributors',
   async (req: AuthenticatedRequest, res) => {
-    const id = req.params.id as string
-
-    await validateContributorsGet(req.user, id, 'project')
+    const user = req.user as JwtUser
+    await validateContributorsGet(user, req.params.id, 'project')
 
     const text = `
         SELECT 
@@ -156,7 +140,7 @@ projectRouter.get(
         WHERE p.id = $1
         ORDER BY pc.joined_at
     `
-    const values = [id]
+    const values = [req.params.id]
 
     try {
       const result = await pool.query(text, values)
@@ -180,11 +164,12 @@ projectRouter.get(
 projectRouter.delete<{ id: string; user_id: string }>(
   '/:project_id/contributors/:user_id',
   async (req: AuthenticatedRequest, res) => {
+    const user = req.user as JwtUser
     const { project_id, user_id } = req.params as {
-      project_id: string
-      user_id: string
+      project_id?: string
+      user_id?: string
     }
-    await validateContributorsDelete(req.user, project_id, user_id, 'project')
+    await validateContributorsDelete(user, project_id, user_id, 'project')
 
     const text = `
     DELETE FROM project_contributors

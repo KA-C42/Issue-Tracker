@@ -32,23 +32,20 @@ commentRouter.post('/', async (req: AuthenticatedRequest, res) => {
   }
 })
 
-commentRouter.get<{ issue_id: string }>(
-  '/',
-  async (req: AuthenticatedRequest, res) => {
-    const user = req.user as JwtUser
-    await validateCommentGet(user, req.params.issue_id)
+commentRouter.get('/', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+  await validateCommentGet(user, req.params.issue_id)
 
-    const text = `SELECT * FROM comments WHERE issue_id = $1 ORDER BY created_at ASC`
-    const values = [req.params.issue_id]
+  const text = `SELECT * FROM comments WHERE issue_id = $1 ORDER BY created_at ASC`
+  const values = [req.params.issue_id]
 
-    try {
-      const result = await pool.query(text, values)
-      return res.status(200).json(result.rows)
-    } catch (err) {
-      dbErrorMapper(err as DbError)
-    }
-  },
-)
+  try {
+    const result = await pool.query(text, values)
+    return res.status(200).json(result.rows)
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
+})
 
 commentRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
   const user = req.user as JwtUser

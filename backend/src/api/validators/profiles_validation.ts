@@ -1,17 +1,10 @@
-import type { Request } from 'express'
 import { AppError } from '../errors/AppError.js'
 import type { JwtUser } from '../../types/authenticatedRequest.js'
 
-function validateProfilePost(req: Request) {
-  if (!req.body || !req.body.username) {
-    throw new AppError('MISSING_USERNAME')
-  }
-}
-
 function validateProfilePatch(
-  username: string,
+  user: JwtUser,
   id: string | undefined,
-  user: JwtUser | undefined,
+  username: string | undefined,
 ) {
   if (!id) {
     throw new AppError('MISSING_USER_ID')
@@ -24,4 +17,4 @@ function validateProfilePatch(
   }
 }
 
-export { validateProfilePost, validateProfilePatch }
+export { validateProfilePatch }

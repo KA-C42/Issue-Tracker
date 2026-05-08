@@ -1,5 +1,5 @@
 import { getComment } from '../../db/services/commentServices.js'
-import { getIssue } from '../../db/services/issueServies.js'
+import { getIssue } from '../../db/services/issueServices.js'
 import { isProjectMember } from '../../db/services/project.services.js'
 import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { AppError } from '../errors/AppError.js'

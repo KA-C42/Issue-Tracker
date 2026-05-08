@@ -1,8 +1,11 @@
+import {
+  getProject,
+  isProjectMember,
+} from '../../db/services/project.services.js'
 import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { AppError } from '../errors/AppError.js'
 
 type CreateProjectBody = {
-  owner_id: string
   name: string
   code: string
 }
@@ -13,12 +16,14 @@ type PatchProjectBody = {
   description?: string
 }
 
-// prettier-ignore
-function validateProjectGet(projectId: string | undefined, user: JwtUser | undefined) {
-    if (!user) throw new AppError('UNAUTHORIZED_REQUEST')
-    if (!projectId) throw new AppError('MISSING_PROJECT_ID')
+async function validateProjectGet(
+  user: JwtUser,
+  projectId: string | undefined,
+) {
+  if (!projectId) throw new AppError('MISSING_PROJECT_ID')
 
-  return { projectId, user }
+  if (!(await isProjectMember(projectId, user.sub)))
+    throw new AppError('UNAUTHORIZED_REQUEST')
 }
 
 // prettier-ignore
@@ -27,32 +32,30 @@ function validateProjectPost(body: CreateProjectBody) {
   if (!body.code) throw new AppError('MISSING_PROJECT_CODE')
 }
 
-function validateProjectPatch(
+async function validateProjectPatch(
+  user: JwtUser,
   id: string | undefined,
   body: PatchProjectBody,
-  user: JwtUser | undefined,
 ) {
   if (!id) {
     throw new AppError('MISSING_PROJECT_ID')
   }
-  if (!body) {
+  if (!body.name && !body.code && !body.description)
     throw new AppError('NO_PROJECT_FIELDS_PROVIDED')
-  }
-  if (!user) {
-    throw new AppError('UNAUTHORIZED_REQUEST')
-  }
 
-  return { id, user }
+  const project = await getProject(id)
+  if (!project) throw new AppError('PROJECT_NOT_FOUND')
+
+  if (user.sub !== project.owner_id) throw new AppError('UNAUTHORIZED_REQUEST')
 }
 
-function validateProjectDelete(
-  id: string | undefined,
-  user: JwtUser | undefined,
-) {
+async function validateProjectDelete(user: JwtUser, id: string | undefined) {
   if (!id) throw new AppError('MISSING_PROJECT_ID')
-  if (!user) throw new AppError('UNAUTHORIZED_REQUEST')
 
-  return { id, user }
+  const project = await getProject(id)
+  if (!project) throw new AppError('PROJECT_NOT_FOUND')
+
+  if (user.sub !== project.owner_id) throw new AppError('UNAUTHORIZED_REQUEST')
 }
 export {
   validateProjectGet,

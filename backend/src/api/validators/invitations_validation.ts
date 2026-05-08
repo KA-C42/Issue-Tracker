@@ -45,10 +45,11 @@ async function validateInviteGet(
 
 async function validateInvitePatch(
   user: JwtUser,
-  invite_id: string,
+  invite_id: string | undefined,
   status: string | undefined,
 ) {
   if (!status) throw new AppError('MISSING_STATUS')
+  if (!invite_id) throw new AppError('MISSING_INVITE_ID')
 
   const validStatuses = ['ACCEPTED', 'REJECTED', 'REVOKED']
   if (!validStatuses.includes(status))
