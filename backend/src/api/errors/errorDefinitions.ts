@@ -38,11 +38,6 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
 
   // project route errors
-  // TODO remove once get projects by user id fixed
-  MISSING_OWNER_ID: {
-    statusCode: 400,
-    message: 'Invalid request due to missing owner_id',
-  },
   MISSING_PROJECT_ID: {
     statusCode: 400,
     message: 'Invalid request due to missing project id',
