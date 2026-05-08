@@ -38,10 +38,16 @@ jobs:
             frontend/package-lock.json
             backend/package-lock.json
 
+      - name: Run auth schema setup
+        env:
+          DATABASE_URL: ${{secrets.DB_URL}}
+        run: |
+          echo "Running 000_create_auth_users.sql"  
+          psql $DATABASE_URL -f supabase/ci_setup/000_create_auth_users.sql
+
       - name: Run DB migrations
         env:
           DATABASE_URL: ${{secrets.DB_URL}}
-          SUPABASE_AUTH_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
           for file in supabase/migrations/*.sql; do
             echo "Running $file"
@@ -56,7 +62,8 @@ jobs:
 
       - name: Backend Vitest
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          DATABASE_URL: ${{ secrets.DB_URL }}
+          SUPABASE_AUTH_SECRET: ${{ secrets.JWT_SECRET }}
         run: npm run test --prefix backend
 
       - name: Frontend Vitest
@@ -64,7 +71,7 @@ jobs:
 
       - name: Playwright e2e
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          DATABASE_URL: ${{ secrets.DB_URL }}
         working-directory: frontend
         run: |
           npx playwright install --with-deps

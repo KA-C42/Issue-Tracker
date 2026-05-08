@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS profiles (
 
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  id uuid PRIMARY KEY REFERENCES auth.users (id),
 
   username text UNIQUE NOT NULL CHECK (char_length(username) BETWEEN 1 and 30),
 
