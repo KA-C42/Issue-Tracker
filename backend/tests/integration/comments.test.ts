@@ -209,6 +209,7 @@ describe('PATCH comments', () => {
     expect(result.body.comment).toBe(payload.comment)
 
     const updatedComment = await getComment(comment.id)
+    if (!updatedComment) throw new Error('missing comment')
 
     expect(updatedComment).toMatchObject({
       ...payload,

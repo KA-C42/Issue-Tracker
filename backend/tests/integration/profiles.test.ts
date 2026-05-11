@@ -12,17 +12,17 @@ describe('GET /profiles', () => {
   let app: Application
   let user: User
   let token: string
+  const username = 'testMe'
 
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
     token = createAuthToken(user.id)
+
+    await setUsername(app, user.id, username, token)
   })
 
   it('retrieves a user row by id with status 200', async () => {
-    const username = 'testMePunk'
-    await setUsername(app, user.id, username, token)
-
     const response = await request(app)
       .get(`/profiles/${user.id}`)
       .set('Authorization', `Bearer ${token}`)
@@ -43,6 +43,22 @@ describe('GET /profiles', () => {
       .expect('Content-Type', /json/)
 
     expect(response.body.error.code).toBe('USER_NOT_FOUND')
+  })
+
+  it('allows a user to retrieve a different profile than their own', async () => {
+    const newUser = await createTestUser('other@m.m')
+    const newToken = createAuthToken(newUser.id)
+
+    const response = await request(app)
+      .get(`/profiles/${user.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(response.body).toMatchObject({
+      id: user.id,
+      username: username,
+    })
   })
 })
 
