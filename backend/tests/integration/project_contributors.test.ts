@@ -157,7 +157,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
 // - 404 no contributor row
 // - 403 by project owner
 // - 403 by contributor
-describe('DELETE /project-contributors?project_id=###&user_id=###', () => {
+describe('DELETE project-contributors', () => {
   let app: Application
   let owner: User
   let ownerToken: string
