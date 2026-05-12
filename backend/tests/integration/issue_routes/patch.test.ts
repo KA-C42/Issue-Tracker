@@ -218,6 +218,28 @@ describe('PATCH /issues', () => {
     expect(result.body.error.code).toBe('MISSING_ISSUE_PATCH_FIELDS')
   })
 
+  it('returns 400 when provided with an empty body', async () => {
+    const existingIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'fix that one thing',
+    )
+
+    const payload = {
+      title: existingIssue.title,
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(409)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('ISSUE_TITLE_CONFLICT')
+  })
+
   it('returns 404 when issue id not found', async () => {
     const payload = {
       details:
