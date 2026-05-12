@@ -1,16 +1,17 @@
 # Issue-Tracker
 
 ## Overview
-A lightweight issue tracker for managing shared projects and issues among individuals and small teams. It is built as a full-stack web application with a focus on clear requirements, thorough testing, and a structured development process. Currently in the building phase.
+A lightweight issue tracker for managing shared projects and issues among individuals and small teams. It is built as a full-stack web application with a focus on clear requirements, thorough testing, and a structured development process. Currently in the building phase with a roughly complete backend, frontend in progress.
 
 
 ## MVP Features
- - User Accounts & Authentication: Account creation, authentication, and authorization based on project roles.
+ - User Accounts & Authentication: Account creation, authentication, and authorization based on project roles (MVP limited to owner or contributor).
  - Project Management: Shared projects with a single owner and invited contributors.
  - Issue Tracking (Kanban-style): Issue creation, editing, assignment, and status tracking via a Backlog / In Progress / Done kanban view.
  - User Dashboard: Displays account info and project lists.
- - Project Dashboard: Displays member lists and the issue board.
+ - Project Dashboard: Displays member lists and the issue board with expandable issue modals.
  - Issue Comments: A comment system with create, edit, and delete support.
+ - Invitations: An invite system which allows project owners and contributors to invite other contributors.
 
 
 ## Documentation
@@ -22,6 +23,8 @@ A lightweight issue tracker for managing shared projects and issues among indivi
   [docs/Test_Strategy.md](docs/Test_Strategy.md) 
 - **Schema:** Database tables, relationships, and key constraints
   [docs/Schema.md](docs/Schema.md)
+- **API:** Endpoints, authentication, and request/response reference
+  [docs/API.md](docs/API.md)
 
 
 ## Tech Stack
@@ -31,12 +34,19 @@ Full-stack web application built with React, Node.js/TypeScript, and Supabase (A
 
 **Backend:** Node.js, TypeScript
 
-**Backend Services:** Supabase (Auth + PostgreSQL)
+**Backend Services:** Supabase (Auth + hosting PostgreSQL DB)
 
 **Testing:** Vitest (unit & integration), Supertest (API whitebox), Playwright (E2E)
 
 **CI:** GitHub Actions
 
+## API
+REST API with endpoints for profiles, projects, project_contributors, issues, comments, and invitations. 
+Authentication via Supabase JWT — include a Bearer token in the Authorization header.
+
+Base URL: `http://localhost:3000` (local) / TBD (deployed)
+
+Full endpoint reference: [docs/API.md](docs/API.md)
 
 ## Tooling & Code Quality
 CI checks planned, enforced once scaffolding in place  
