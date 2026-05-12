@@ -4,6 +4,8 @@ CREATE TABLE IF NOT EXISTS profiles (
 
   username text UNIQUE NOT NULL CHECK (char_length(username) BETWEEN 1 and 30),
 
+  email text UNIQUE NOT NULL,
+
   created_at timestamptz NOT NULL DEFAULT now(),
 
   deactivated_at timestamptz DEFAULT NULL
@@ -13,8 +15,8 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE OR REPLACE FUNCTION create_new_user_profile()
     RETURNS trigger AS $$
     BEGIN
-      INSERT INTO profiles (id, username)
-        VALUES (NEW.id, 'user_' || substring(NEW.id::text from 1 for 6))
+      INSERT INTO profiles (id, username, email)
+        VALUES (NEW.id, 'user_' || substring(NEW.id::text from 1 for 6), NEW.email)
         ON CONFLICT (username) DO UPDATE SET username = 'user_' || substring(NEW.id::text from 1 for 8 );
     RETURN new;
     END;

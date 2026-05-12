@@ -23,7 +23,7 @@ export const ERROR_DEFS: ErrorDictionary = {
     message: 'Invalid or expired token',
   },
 
-  // user route errors
+  // profile route errors
   MISSING_USERNAME: {
     statusCode: 400,
     message: 'Invalid request due to missing username',
@@ -35,6 +35,10 @@ export const ERROR_DEFS: ErrorDictionary = {
   USERNAME_CONFLICT: {
     statusCode: 409,
     message: 'Requested username is already in use',
+  },
+  MISSING_USER_QUERY: {
+    statusCode: 400,
+    message: 'Please provide a username or email',
   },
 
   // project route errors
