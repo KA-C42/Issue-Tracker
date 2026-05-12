@@ -343,6 +343,36 @@ describe('PATCH /projects/:id', () => {
     expect(response.body.error.code).toBe('ROUTE_NOT_FOUND')
   })
 
+  it('rejects a patch request with invalid code characters with status 409', async () => {
+    const payload = {
+      code: ':3',
+    }
+
+    const response = await request(app)
+      .patch(`/projects/${project.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('INVALID_CODE')
+  })
+
+  it('rejects a patch request with a code > 4 characters with status 409', async () => {
+    const payload = {
+      code: 'three',
+    }
+
+    const response = await request(app)
+      .patch(`/projects/${project.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('INVALID_CODE')
+  })
+
   it('rejects a request to modify a nonexistent project with status 404', async () => {
     const payload = {
       name: 'newProjectName',
@@ -378,11 +408,30 @@ describe('PATCH /projects/:id', () => {
 
     expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
+
+  it('rejects a patch request with a name already in use by the owner with status 409', async () => {
+    const existingProject = await createTestProject(app, token, 'one of a kind')
+
+    const payload = {
+      name: existingProject.name,
+      description: 'should not',
+    }
+
+    const response = await request(app)
+      .patch(`/projects/${project.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(409)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('PROJECT_NAME_CONFLICT')
+  })
 })
 
 // DELETE
 // - success
 // - no project
+// - not owner
 describe('DELETE /projects/:id', () => {
   let app: Application
   let user: User
