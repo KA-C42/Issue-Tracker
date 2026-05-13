@@ -36,6 +36,35 @@
 
 </details>
 
+
+<details>
+ <summary><code>GET</code> <code><b>/profiles</b></code> <code>Finds user profile by username or email</code></summary>
+
+
+##### Auth
+
+- Required
+- Accessible to any authenticated user
+
+
+##### Parameters
+
+> | name      |  type     | data type               | description                                                           |
+> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
+> | 'user'    |  query    | string    | The target user's username or email  |
+
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`                | Profile record                                |
+> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`                            |
+> | `400`         | `application/json`                | `{"code":"MISSING_USER_QUERY"}`                            |
+
+</details>
+
+
 <details>
  <summary><code>PATCH</code> <code><b>/profiles/:id</b></code> <code>Modifies profile row (username only)</code></summary>
 

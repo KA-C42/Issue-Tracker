@@ -6,9 +6,9 @@ import { createTestUser, setUsername } from './helpers/createTestRows.js'
 import { getProfile } from '../../src/db/services/userServices.js'
 import { createAuthToken } from './helpers/createAuthToken.js'
 import { Application } from 'express'
-import { User } from '../../src/types/db.js'
+import { Profile, User } from '../../src/types/db.js'
 
-describe('GET /profiles', () => {
+describe('GET /profiles/:id', () => {
   let app: Application
   let user: User
   let token: string
@@ -59,6 +59,76 @@ describe('GET /profiles', () => {
       id: user.id,
       username: username,
     })
+  })
+})
+
+describe('GET /profiles?user', () => {
+  let app: Application
+  let user: User
+  let token: string
+  let otherUser: User
+  let otherToken: string
+  const username = 'nameyName'
+  const email = 'test@issue.tracker'
+  let otherProfile: Profile
+
+  beforeEach(async () => {
+    app = createApp()
+    user = await createTestUser()
+    token = createAuthToken(user.id)
+    otherUser = await createTestUser(email)
+    otherToken = createAuthToken(otherUser.id)
+    otherProfile = await setUsername(app, otherUser.id, username, otherToken)
+  })
+
+  it("returns another user's profile by username", async () => {
+    const result = await request(app)
+      .get(`/profiles?user=${username}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(result.body).toMatchObject(otherProfile)
+  })
+
+  it("returns another user's profile by email", async () => {
+    const result = await request(app)
+      .get(`/profiles?user=${email}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(result.body).toMatchObject(otherProfile)
+  })
+
+  it('returns 404 when user not found by username', async () => {
+    const result = await request(app)
+      .get(`/profiles?user=${'4040404'}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('USER_NOT_FOUND')
+  })
+
+  it('returns 404 when user not found by email', async () => {
+    const result = await request(app)
+      .get(`/profiles?user=${'404@not.found'}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('USER_NOT_FOUND')
+  })
+
+  it('returns 400 when user query not provided', async () => {
+    const result = await request(app)
+      .get(`/profiles`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('MISSING_USER_QUERY')
   })
 })
 
