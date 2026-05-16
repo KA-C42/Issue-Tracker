@@ -13,8 +13,10 @@
     "typecheck": "npx tsc --noEmit -p tsconfig.app.json"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.3.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

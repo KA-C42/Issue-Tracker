@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
-import './App.css'
+import './style.css'
 import HealthScreen from './pages/HealthScreen'
 
 function App() {
