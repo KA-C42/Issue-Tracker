@@ -58,6 +58,14 @@ export default defineConfig([
     ...reactRefresh.configs.vite,
   },
 
+  // ignore shadcn component exports
+  {
+    files: ['frontend/src/components/ui/**'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+
   // SERVER (Express) — Node globals
   {
     files: ['backend/**/*.{ts,js}'],
