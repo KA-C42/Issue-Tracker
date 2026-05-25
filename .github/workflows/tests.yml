@@ -69,13 +69,15 @@ jobs:
       - name: Frontend Vitest
         run: npm run test:ui --prefix frontend
 
+      - name: Install Playwright
+        working-directory: frontend
+        run: npx playwright install --with-deps
+
       - name: Playwright e2e
         env:
           DATABASE_URL: ${{ secrets.DB_URL }}
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          working-directory: frontend
-        run: |
-          npx playwright install --with-deps
-          npm run test:e2e
+        working-directory: frontend
+        run: npm run test:e2e
 
