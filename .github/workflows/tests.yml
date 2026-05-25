@@ -72,7 +72,9 @@ jobs:
       - name: Playwright e2e
         env:
           DATABASE_URL: ${{ secrets.DB_URL }}
-        working-directory: frontend
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          working-directory: frontend
         run: |
           npx playwright install --with-deps
           npm run test:e2e
