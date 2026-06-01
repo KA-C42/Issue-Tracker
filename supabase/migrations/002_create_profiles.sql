@@ -15,12 +15,12 @@ CREATE TABLE IF NOT EXISTS profiles (
 CREATE OR REPLACE FUNCTION create_new_user_profile()
     RETURNS trigger AS $$
     BEGIN
-      INSERT INTO profiles (id, username, email)
+      INSERT INTO public.profiles (id, username, email)
         VALUES (NEW.id, 'user_' || substring(NEW.id::text from 1 for 6), NEW.email)
         ON CONFLICT (username) DO UPDATE SET username = 'user_' || substring(NEW.id::text from 1 for 8 );
     RETURN new;
     END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE OR REPLACE TRIGGER new_user
     AFTER INSERT ON auth.users

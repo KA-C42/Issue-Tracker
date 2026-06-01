@@ -16,7 +16,7 @@ export type AuthContextType = {
     password: string,
   ) => Promise<AuthError | null>
 
-  signOut: () => Promise<AuthError | null>
+  signOutProcess: () => Promise<AuthError | null>
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null)
