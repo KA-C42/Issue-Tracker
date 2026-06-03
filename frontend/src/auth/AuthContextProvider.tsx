@@ -5,7 +5,7 @@ import { supabase } from './supabaseClient'
 import { AuthContext } from './AuthContext'
 import { useQueryClient } from '@tanstack/react-query'
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthContextProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const queryClient = useQueryClient()
