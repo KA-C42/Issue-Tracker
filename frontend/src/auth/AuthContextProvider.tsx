@@ -3,10 +3,12 @@ import type { User } from '@supabase/supabase-js'
 import type { ReactNode } from 'react'
 import { supabase } from './supabaseClient'
 import { AuthContext } from './AuthContext'
+import { useQueryClient } from '@tanstack/react-query'
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthContextProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     async function fetchUser() {
@@ -42,8 +44,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
+  async function signInWithEmail(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    return error
+  }
+
+  async function signUpWithEmail(email: string, password: string) {
+    const { error } = await supabase.auth.signUp({ email, password })
+    return error
+  }
+
+  async function signOutProcess() {
+    // clear local data and pending queries before sign out
+    queryClient.clear()
+
+    const { error } = await supabase.auth.signOut()
+    return error
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signInWithEmail,
+        signUpWithEmail,
+        signOutProcess,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
