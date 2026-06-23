@@ -1,13 +1,8 @@
-import { useContext } from 'react'
 import { useAuth } from '@/auth/UseAuth'
-import { NavContext } from '@/lib/NavContext'
+import { useNavContext } from '@/lib/NavContext'
 
 export function Navbar() {
-  // TODO extract null check??
-  const context = useContext(NavContext)
-  if (!context)
-    throw new Error('Navbar must be used within a NavContextProvider')
-  const { pageName } = context
+  const { pageName } = useNavContext()
 
   const { signOutProcess } = useAuth()
 
