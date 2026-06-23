@@ -457,7 +457,7 @@
 </details>
 
 <details>
- <summary><code>GET</code> <code><b>/issues</b></code> <code>Find issues by assignee_id (provided as a query)</code></summary>
+ <summary><code>GET</code> <code><b>/issues</b></code> <code>Find issues by assignee_id (provided by auth jwt)</code></summary>
 
 
 ##### Auth
@@ -470,7 +470,6 @@
 
 > | name      |  type     | data type               | description                                                           |
 > |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | `assignee_id` | query | uuid | Filter issues by assignee |
 > | `status` | query | enum | Optional. Filter by status: `BACKLOG` \| `IN_PROGRESS` \| `DONE` |
 
 
@@ -480,7 +479,6 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Array of issue records             |
 > | `404`         | `application/json`                | `{"code":"ASSIGNEE_NOT_FOUND"}`          |
-> | `400`         | `application/json`                | `{"code":"MISSING_SEARCH_PARAMETER"}`     |
 
 - response is sorted by status in order of `BACKLOG` \| `IN_PROGRESS` \| `DONE` 
 
