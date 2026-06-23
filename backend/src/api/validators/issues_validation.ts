@@ -56,8 +56,6 @@ async function validateIssueGet(
         throw new AppError('UNAUTHORIZED_REQUEST')
     }
   }
-  if (!project_id && !assignee_id)
-    throw new AppError('MISSING_SEARCH_PARAMETER')
 }
 
 async function validateIssuePatch(

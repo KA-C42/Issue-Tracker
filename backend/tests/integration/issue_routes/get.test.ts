@@ -12,17 +12,6 @@ import { Issue, Project, User } from '../../../src/types/db'
 import { createAuthToken } from '../helpers/createAuthToken'
 
 // GET collections
-// - by project
-// - empty by project
-// - 404 project
-// - by assignee
-// - empty by assignee
-// - 404 assignee
-// - 400 no query/params
-// - by project and assignee
-// - filter by status
-// - 403 by project
-// - 403 by assignee
 describe('GET /issues collection', () => {
   let app: Application
   let seed: seedVariedIssuesReturn
@@ -83,7 +72,7 @@ describe('GET /issues collection', () => {
   it('GET issues by assignee_id returns only that users assigned issues, ordered by status', async () => {
     const contributorToken = createAuthToken(seed.projectContributor.id)
     const result = await request(app)
-      .get(`/issues?assignee_id=${seed.projectContributor.id}`)
+      .get(`/issues`)
       .set('Authorization', `Bearer ${contributorToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
@@ -112,35 +101,12 @@ describe('GET /issues collection', () => {
     const newToken = createAuthToken(newUser.id)
 
     const result = await request(app)
-      .get(`/issues?assignee_id=${newUser.id}`)
+      .get(`/issues`)
       .set('Authorization', `Bearer ${newToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
     expect(result.body).toHaveLength(0)
-  })
-
-  it('returns 404 when assignee_id not found', async () => {
-    const fakeId = crypto.randomUUID()
-    const fakeIdToken = createAuthToken(fakeId)
-
-    const result = await request(app)
-      .get(`/issues?assignee_id=${fakeId}`)
-      .set('Authorization', `Bearer ${fakeIdToken}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('ASSIGNEE_NOT_FOUND')
-  })
-
-  it('returns 400 when no assignee_id or project_id is provided', async () => {
-    const result = await request(app)
-      .get(`/issues`)
-      .set('Authorization', `Bearer ${seed.ownerToken}`)
-      .expect(400)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('MISSING_SEARCH_PARAMETER')
   })
 
   it('GETs by project_id and assignee_id when both are provided, ordered by status', async () => {
@@ -177,7 +143,7 @@ describe('GET /issues collection', () => {
     const status = 'IN_PROGRESS'
 
     const result = await request(app)
-      .get(`/issues?assignee_id=${seed.projectContributor.id}&status=${status}`)
+      .get(`/issues?status=${status}`)
       .set('Authorization', `Bearer ${contributorToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
@@ -247,16 +213,6 @@ describe('GET /issues/:id', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body).toMatchObject(issue)
-  })
-
-  it('returns 400 when missing id', async () => {
-    const result = await request(app)
-      .get('/issues')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(400)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('MISSING_SEARCH_PARAMETER')
   })
 
   it('returns 404 when issue not found', async () => {

@@ -51,6 +51,7 @@ issueRouter.get('/', async (req: AuthenticatedRequest, res) => {
   await validateIssueGet(user, req.params.project_id, assignee_id)
 
   const { text, values } = buildIssueGetQuery(
+    user.sub,
     req.params.project_id,
     assignee_id,
     status,

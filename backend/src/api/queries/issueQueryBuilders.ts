@@ -63,6 +63,7 @@ function buildIssuePostQuery(body: issuePostFields) {
 }
 
 function buildIssueGetQuery(
+  user_id: string,
   project_id: string | undefined,
   assignee_id: string | undefined,
   status: IssueStatus | undefined,
@@ -72,10 +73,13 @@ function buildIssueGetQuery(
   if (project_id) {
     searchParameters.push('project_id')
     values.push(project_id)
-  }
-  if (assignee_id) {
+    if (assignee_id) {
+      searchParameters.push('assignee_id')
+      values.push(assignee_id)
+    }
+  } else {
     searchParameters.push('assignee_id')
-    values.push(assignee_id)
+    values.push(user_id)
   }
   if (status) {
     searchParameters.push('status')
