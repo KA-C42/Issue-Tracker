@@ -11,9 +11,13 @@ export default function AuthPage() {
 
   const navigate = useNavigate()
 
+  // I intend to revisit all visual and verification when the frontend functionality is complete
+  // for v1, some repetition of tailwind classes and wrappers is okay
+  // TODO: loading state, ZOD, alerts
   return (
-    <div>
+    <div className="flex min-h-screen items-center justify-center">
       <form
+        className="flex w-full max-w-sm flex-col gap-4"
         onSubmit={handleSubmit(async (data) => {
           let error: AuthError | null
 
@@ -25,15 +29,39 @@ export default function AuthPage() {
           } else navigate('/')
         })}
       >
-        <input {...register('email')} placeholder="Email" />
-        <input {...register('password')} placeholder="Password" />
-        <input type="submit" />
+        <h1 className="text-xl font-semibold">
+          {newUser ? 'Sign up' : 'Sign in'}
+        </h1>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="email">Email</label>
+          <input id="email" {...register('email')} className="border p-2" />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="password">Password</label>
+          <input
+            id="password"
+            type="password"
+            {...register('password')}
+            className="border p-2"
+          />
+        </div>
+
+        <button type="submit" className="border p-2">
+          Submit
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setNewUser(!newUser)}
+          className="text-sm underline"
+        >
+          {newUser
+            ? 'Already have an account? Sign in'
+            : 'Need an account? Sign up'}
+        </button>
       </form>
-      <button type="button" onClick={() => setNewUser(!newUser)}>
-        {newUser
-          ? 'Already have an account? Sign in'
-          : 'Need an account? Sign up'}
-      </button>
     </div>
   )
 }
