@@ -8,8 +8,7 @@ import {
   createTestUser,
   makeContributor,
 } from '../helpers/createTestRows'
-import { Issue, Project, User } from '../../../src/types/db'
-import { createAuthToken } from '../helpers/createAuthToken'
+import { Issue, Project } from '../../../src/types/db'
 
 // DELETE
 // - success
@@ -17,15 +16,13 @@ import { createAuthToken } from '../helpers/createAuthToken'
 // - 403
 describe('DELETE issues', () => {
   let app: Application
-  let user: User
   let token: string
   let project: Project
   let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
+    ;({ token } = await createTestUser())
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
   })
@@ -55,8 +52,8 @@ describe('DELETE issues', () => {
   })
 
   it('returns 403 when request made by non owner/creator', async () => {
-    const newUser = await createTestUser('gonna@tack.you')
-    const newToken = createAuthToken(newUser.id)
+    const { user: newUser, token: newToken } =
+      await createTestUser('gonna@tack.you')
     await makeContributor(newUser.id, project.id)
 
     const response = await request(app)

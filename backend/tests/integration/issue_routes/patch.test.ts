@@ -9,7 +9,6 @@ import { Issue, Project, User } from '../../../src/types/db'
 import createApp from '../../../src/api/app'
 import { beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
-import { createAuthToken } from '../helpers/createAuthToken'
 
 // PATCH
 // - success maximum fields
@@ -36,8 +35,7 @@ describe('PATCH /issues', () => {
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
+    ;({ user, token } = await createTestUser())
     project = await createTestProject(app, token)
     issue = await createTestIssue(
       app,
@@ -50,7 +48,7 @@ describe('PATCH /issues', () => {
   })
 
   it('returns 200 patching maximum fields of issue without changing others', async () => {
-    const newUser = await createTestUser('looking@for.work')
+    const { user: newUser } = await createTestUser('looking@for.work')
     await makeContributor(newUser.id, project.id)
 
     const payload = {
@@ -114,7 +112,7 @@ describe('PATCH /issues', () => {
   })
 
   it('patches only assignee_id, not updating the modified_at or status_changed_at rows', async () => {
-    const newUser = await createTestUser('asfd@fds.co')
+    const { user: newUser } = await createTestUser('asfd@fds.co')
     await makeContributor(newUser.id, project.id)
     const payload = {
       assignee_id: newUser.id,
@@ -270,7 +268,7 @@ describe('PATCH /issues', () => {
   })
 
   it('returns 422 when assignee is not project owner or conributor', async () => {
-    const newUser = await createTestUser('r@asf.sgg')
+    const { user: newUser } = await createTestUser('r@asf.sgg')
     const payload = {
       assignee_id: newUser.id,
     }
@@ -285,9 +283,8 @@ describe('PATCH /issues', () => {
   })
 
   it('allows the issue creator to patch all patchable fields', async () => {
-    const newUser = await createTestUser('r@asf.sgg')
+    const { user: newUser, token: newToken } = await createTestUser('r@asf.sgg')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
     const newIssue = await createTestIssue(app, newToken, project.id, 'oldie')
 
     const payload = {
@@ -306,9 +303,9 @@ describe('PATCH /issues', () => {
   })
 
   it('allows the project owner (who is not creator) to patch all patchable fields', async () => {
-    const newUser = await createTestUser('lemme@at.it')
+    const { user: newUser, token: newToken } =
+      await createTestUser('lemme@at.it')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
     const newIssue = await createTestIssue(app, newToken, project.id)
 
     const payload = {
@@ -327,9 +324,9 @@ describe('PATCH /issues', () => {
   })
 
   it('allows the assignee (who is neither owner nor creator) to patch status', async () => {
-    const newUser = await createTestUser('lemme@at.it')
+    const { user: newUser, token: newToken } =
+      await createTestUser('lemme@at.it')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
     const newIssue = await createTestIssue(
       app,
       token,
@@ -351,9 +348,9 @@ describe('PATCH /issues', () => {
   })
 
   it('returns 403 when assignee (not owner/creator) attempts patching a non-status field', async () => {
-    const newUser = await createTestUser('lemme@it.now')
+    const { user: newUser, token: newToken } =
+      await createTestUser('lemme@it.now')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
     const newIssue = await createTestIssue(
       app,
       token,
@@ -379,9 +376,9 @@ describe('PATCH /issues', () => {
   })
 
   it('returns 403 when non-creator/owner/assignee user attempts a patch', async () => {
-    const newUser = await createTestUser('lemme@it.now')
+    const { user: newUser, token: newToken } =
+      await createTestUser('lemme@it.now')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
     const newIssue = await createTestIssue(
       app,
       token,

@@ -8,7 +8,6 @@ import {
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
 import { Project, User } from '../../../src/types/db.js'
-import { createAuthToken } from '../helpers/createAuthToken.js'
 
 // POST
 // - by project owner
@@ -30,8 +29,9 @@ describe('POST /issues', () => {
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser()
-    ownerToken = createAuthToken(owner.id)
+    const result = await createTestUser()
+    owner = result.user
+    ownerToken = result.token
     project = await createTestProject(app, ownerToken)
   })
 
@@ -62,8 +62,8 @@ describe('POST /issues', () => {
   })
 
   it('contributor inserts a new issue, returning 201', async () => {
-    const contributor = await createTestUser('serana@aol.vamp')
-    const contributorToken = createAuthToken(contributor.id)
+    const { user: contributor, token: contributorToken } =
+      await createTestUser('serana@aol.vamp')
     await makeContributor(contributor.id, project.id)
 
     const payload = {
@@ -189,9 +189,10 @@ describe('POST /issues', () => {
   })
 
   it('returns 409 when using a duplicate title (per project)', async () => {
-    const otherUser = await createTestUser('flightlessVictory@dovahs.meet')
-    await makeContributor(otherUser.id, project.id)
-    const otherToken = createAuthToken(otherUser.id)
+    const { user: newUser, token: newToken } = await createTestUser(
+      'flightlessVictory@dovahs.meet',
+    )
+    await makeContributor(newUser.id, project.id)
 
     const payload = {
       title: 'defeat Alduin ',
@@ -199,7 +200,7 @@ describe('POST /issues', () => {
 
     await request(app)
       .post(`/projects/${project.id}/issues`)
-      .set('Authorization', `Bearer ${otherToken}`)
+      .set('Authorization', `Bearer ${newToken}`)
       .send(payload)
       .expect(201)
       .expect('Content-Type', /json/)
@@ -247,7 +248,9 @@ describe('POST /issues', () => {
   })
 
   it('returns 422 when assignee_id is not an owner or contributor of the project', async () => {
-    const randomUser = await createTestUser('loneWolfPaarthy@dovahs.meet')
+    const { user: randomUser } = await createTestUser(
+      'loneWolfPaarthy@dovahs.meet',
+    )
 
     const payload = {
       title: 'collect greybeards breathing fee',
@@ -265,8 +268,9 @@ describe('POST /issues', () => {
   })
 
   it('returns 403 when creator_id is not an owner or contributor of the project', async () => {
-    const randomUser = await createTestUser('itsAMukbangWorld@dovahs.meet')
-    const newToken = createAuthToken(randomUser.id)
+    const { token: newToken } = await createTestUser(
+      'itsAMukbangWorld@dovahs.meet',
+    )
 
     const payload = {
       title: 'eat that bilingual humanoid',

@@ -9,7 +9,6 @@ import {
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
 import { Project, User } from '../../../src/types/db.js'
-import { createAuthToken } from '../helpers/createAuthToken.js'
 
 describe('POST invitations', () => {
   let app: Application
@@ -20,10 +19,9 @@ describe('POST invitations', () => {
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser()
-    token = createAuthToken(owner.id)
+    ;({ user: owner, token } = await createTestUser())
     project = await createTestProject(app, token)
-    invitee = await createTestUser('invite@me.please')
+    ;({ user: invitee } = await createTestUser('invite@me.please'))
   })
 
   it('creates a new invitation, returning 201', async () => {
@@ -176,8 +174,7 @@ describe('POST invitations', () => {
   })
 
   it('returns 403 when token id/sender is not project member', async () => {
-    const newUser = await createTestUser('s@d.d')
-    const newToken = createAuthToken(newUser.id)
+    const { token: newToken } = await createTestUser('s@d.d')
 
     const payload = {
       receiver_id: invitee.id,

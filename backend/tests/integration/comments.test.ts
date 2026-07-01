@@ -10,21 +10,18 @@ import {
   makeContributor,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
-import { Comment, Issue, Project, User } from '../../src/types/db.js'
-import { createAuthToken } from './helpers/createAuthToken.js'
+import { Comment, Issue, Project } from '../../src/types/db.js'
 import { getComment } from '../../src/db/services/commentServices.js'
 
 describe('POST comments', () => {
   let app: Application
-  let user: User
   let token: string
   let project: Project
   let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
+    ;({ token } = await createTestUser())
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
   })
@@ -79,8 +76,7 @@ describe('POST comments', () => {
   })
 
   it('returns 403 when token id is not owner or contributor to the project', async () => {
-    const newUser = await createTestUser('stranger@danger.com')
-    const newToken = createAuthToken(newUser.id)
+    const { token: newToken } = await createTestUser('stranger@danger.com')
 
     const payload = {
       comment: "you're not supposed to be here",
@@ -99,15 +95,13 @@ describe('POST comments', () => {
 
 describe('GET comments', () => {
   let app: Application
-  let user: User
   let token: string
   let project: Project
   let issue: Issue
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
+    ;({ token } = await createTestUser())
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
   })
@@ -164,8 +158,7 @@ describe('GET comments', () => {
   })
 
   it('returns 403 when token id is not project member', async () => {
-    const newUser = await createTestUser('code@code.code')
-    const newToken = createAuthToken(newUser.id)
+    const { token: newToken } = await createTestUser('code@code.code')
 
     const result = await request(app)
       .get(`/issues/${issue.id}/comments`)
@@ -179,7 +172,6 @@ describe('GET comments', () => {
 
 describe('PATCH comments', () => {
   let app: Application
-  let user: User
   let token: string
   let project: Project
   let issue: Issue
@@ -187,8 +179,7 @@ describe('PATCH comments', () => {
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
+    ;({ token } = await createTestUser())
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
     comment = await createTestComment(app, token, issue.id, 'comment')
@@ -219,8 +210,8 @@ describe('PATCH comments', () => {
   })
 
   it('returns 403 when token id not author_id', async () => {
-    const newUser = await createTestUser('zzz@zzz.zzz')
-    const newToken = createAuthToken(newUser.id)
+    const { user: newUser, token: newToken } =
+      await createTestUser('zzz@zzz.zzz')
     await makeContributor(newUser.id, project.id)
 
     const payload = {
@@ -271,7 +262,6 @@ describe('PATCH comments', () => {
 
 describe('DELETE comments', () => {
   let app: Application
-  let user: User
   let token: string
   let project: Project
   let issue: Issue
@@ -279,8 +269,7 @@ describe('DELETE comments', () => {
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
+    ;({ token } = await createTestUser())
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
     comment = await createTestComment(app, token, issue.id, 'comment')
@@ -308,8 +297,7 @@ describe('DELETE comments', () => {
   })
 
   it('returns 403 when token id is not author_id', async () => {
-    const newUser = await createTestUser('m@m.m')
-    const newToken = createAuthToken(newUser.id)
+    const { user: newUser, token: newToken } = await createTestUser('m@m.m')
     await makeContributor(newUser.id, project.id)
 
     const response = await request(app)
