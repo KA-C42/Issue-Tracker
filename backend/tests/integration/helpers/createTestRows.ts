@@ -11,15 +11,16 @@ import {
 } from '../../../src/types/db'
 import { IssueStatus } from '../../../src/types/enums'
 import { pool } from '../../../src/db/pool'
+import { supabase } from './supabaseClient'
 
 const createTestUser = async (
   email: string = 'hacker42@aol.gotcha',
-): Promise<User> => {
-  const text = 'INSERT INTO auth.users (id, email) VALUES ($1, $2) RETURNING *'
-  const values = [crypto.randomUUID(), email]
+  password: string = 'password',
+): Promise<{ user: User; token: string }> => {
+  const { data, error } = await supabase.auth.signUp({ email, password })
+  if (!data.user || !data.session) throw new Error(error?.message)
 
-  const result = await pool.query(text, values)
-  return result.rows[0]
+  return { user: data.user, token: data.session.access_token }
 }
 
 const createTestProfile = async (

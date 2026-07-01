@@ -10,7 +10,6 @@ import {
   createTestProject,
   createTestUser,
 } from '../integration/helpers/createTestRows'
-import { createAuthToken } from '../integration/helpers/createAuthToken'
 import jwt from 'jsonwebtoken'
 
 // tests for middleware need to go through a route. Choosing simple GET profile
@@ -22,8 +21,7 @@ describe('authenticateUser middleware function', () => {
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser(email)
-    token = createAuthToken(user.id)
+    ;({ user, token } = await createTestUser(email))
   })
 
   it('Succeeds with a valid jwt', async () => {
@@ -72,7 +70,8 @@ describe('auth protected routes hit auth first', () => {
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
+    ;({ user, token } = await createTestUser())
+    project = await createTestProject(app, token)
   })
 
   it('returns 401 if request a profile without auth provided', async () => {
@@ -80,11 +79,6 @@ describe('auth protected routes hit auth first', () => {
       .get(`/profiles/${user.id}`)
       .expect(401)
       .expect('Content-Type', /json/)
-  })
-
-  beforeEach(async () => {
-    token = createAuthToken(user.id)
-    project = await createTestProject(app, token)
   })
 
   it('returns 401 if request a project without auth provided', async () => {
@@ -121,7 +115,7 @@ describe('auth protected routes hit auth first', () => {
   })
 
   it('returns 401 if request an invitation without auth provided', async () => {
-    const invitee = await createTestUser('new@m.m')
+    const { user: invitee } = await createTestUser('new@m.m')
     await createInvitation(app, token, invitee.id, project.id)
 
     await request(app)

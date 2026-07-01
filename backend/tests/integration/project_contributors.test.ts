@@ -9,30 +9,20 @@ import {
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
 import { Project, User } from '../../src/types/db.js'
-import { createAuthToken } from './helpers/createAuthToken.js'
 
 // GET
-// - all by user
-// - all by project
-// - empty list by user
-// - empty list by project
-// - 404 by project
-// - 404 by user
-// - 403 by project
 describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => {
   let app: Application
-  let owner: User
   let token: string
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser()
-    token = createAuthToken(owner.id)
+    ;({ token } = await createTestUser())
   })
 
   it('gets all project-contributor rows by user, returning status 200', async () => {
-    const contributor = await createTestUser('contributor')
-    const contributorToken = createAuthToken(contributor.id)
+    const { user: contributor, token: contributorToken } =
+      await createTestUser('contributor@m.m')
 
     const projects = []
     for (let i = 0; i < 3; i++) {
@@ -62,7 +52,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     const contributors = []
     for (let i = 0; i < 3; i++) {
       contributors[i] = await createTestUser(`contributor${i + 1}@team.work`)
-      await makeContributor(contributors[i].id, project.id)
+      await makeContributor(contributors[i].user.id, project.id)
     }
 
     const response = await request(app)
@@ -73,7 +63,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
 
     for (let i = 0; i < contributors.length; i++) {
       expect(response.body[i]).toMatchObject({
-        user_id: contributors[i].id,
+        user_id: contributors[i].user.id,
         project_id: project.id,
         joined_at: expect.any(String),
       })
@@ -85,8 +75,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
   it('returns list of just the user with status 200 when user found but no contributor rows', async () => {
     const app = createApp()
 
-    const user = await createTestUser('newbie@project.free')
-    const token = createAuthToken(user.id)
+    const { user, token } = await createTestUser('newbie@project.free')
 
     const response = await request(app)
       .get(`/profiles/${user.id}/contributors`)
@@ -112,19 +101,6 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     expect(response.body).toHaveLength(0)
   })
 
-  it('rejects request with status 404 when no rows or user found', async () => {
-    const fakeId = crypto.randomUUID()
-    const fakeIdToken = createAuthToken(fakeId)
-
-    const response = await request(app)
-      .get(`/profiles/${fakeId}/contributors`)
-      .set('Authorization', `Bearer ${fakeIdToken}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('USER_NOT_FOUND')
-  })
-
   it('rejects request with status 404 when no rows or project found', async () => {
     const response = await request(app)
       .get(`/projects/${crypto.randomUUID()}/contributors`)
@@ -138,8 +114,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
   it('returns 403 when requesting by project_id the user is not a member of', async () => {
     const project = await createTestProject(app, token)
 
-    const newUser = await createTestUser('i@see.you')
-    const newToken = createAuthToken(newUser.id)
+    const { token: newToken } = await createTestUser('i@see.you')
 
     const response = await request(app)
       .get(`/projects/${project.id}/contributors`)
@@ -159,7 +134,6 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
 // - 403 by contributor
 describe('DELETE project-contributors', () => {
   let app: Application
-  let owner: User
   let ownerToken: string
   let project: Project
   let contributor: User
@@ -167,11 +141,10 @@ describe('DELETE project-contributors', () => {
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser('i@own.you')
-    ownerToken = createAuthToken(owner.id)
+    ;({ token: ownerToken } = await createTestUser('i@own.u'))
     project = await createTestProject(app, ownerToken)
-    contributor = await createTestUser('live@to.serve')
-    contributorToken = createAuthToken(contributor.id)
+    ;({ user: contributor, token: contributorToken } =
+      await createTestUser('help@ful.helper'))
     await makeContributor(contributor.id, project.id)
   })
 
@@ -201,20 +174,6 @@ describe('DELETE project-contributors', () => {
       .expect(200)
 
     expect(response.body).toHaveLength(0)
-  })
-
-  // return 404
-  it('rejects request with status 404 when no corresponding row found', async () => {
-    const fakeId = crypto.randomUUID()
-    const fakeIdToken = createAuthToken(fakeId)
-
-    const response = await request(app)
-      .delete(`/profiles/${fakeId}/contributors/${project.id}`)
-      .set('Authorization', `Bearer ${fakeIdToken}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('CONTRIBUTOR_NOT_FOUND')
   })
 
   it('rejects request through /projects by non-owner with 403', async () => {

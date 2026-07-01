@@ -6,7 +6,6 @@ import {
   makeContributor,
 } from './createTestRows'
 import { Issue, User, Project } from '../../../src/types/db'
-import { createAuthToken } from './createAuthToken'
 
 type seedVariedIssuesReturn = {
   mainProjectOwner: User
@@ -15,6 +14,7 @@ type seedVariedIssuesReturn = {
 
   ownerToken: string
   otherOwnerToken: string
+  contributorToken: string
 
   mainProject: Project
   otherProject: Project
@@ -24,11 +24,9 @@ type seedVariedIssuesReturn = {
 
 // prettier-ignore
 async function seedVariedIssues(app: Application) {
-    const mainProjectOwner = await createTestUser('boss@work.work')
-    const projectContributor = await createTestUser('worker@work.work')
-    const otherProjectOwner = await createTestUser('assistantBoss@work.work')
-    const ownerToken = createAuthToken(mainProjectOwner.id)
-    const otherOwnerToken = createAuthToken(otherProjectOwner.id)
+    const { user: mainProjectOwner, token: ownerToken } = await createTestUser('boss@work.work')
+    const { user: projectContributor, token: contributorToken } = await createTestUser('worker@work.work')
+    const { user: otherProjectOwner, token: otherOwnerToken } = await createTestUser('assistantBoss@work.work')
 
     const mainProject = await createTestProject(app, ownerToken, 'mainProject')
     const otherProject = await createTestProject(app, otherOwnerToken, 'otherProject')
@@ -63,6 +61,7 @@ async function seedVariedIssues(app: Application) {
 
         ownerToken,
         otherOwnerToken,
+        contributorToken,
 
         mainProject,
         otherProject,
