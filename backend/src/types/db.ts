@@ -2,7 +2,7 @@ import type { InviteStatus, IssueStatus } from './enums.js'
 
 type User = {
   id: string
-  email: string
+  email?: string
 }
 
 type Profile = {

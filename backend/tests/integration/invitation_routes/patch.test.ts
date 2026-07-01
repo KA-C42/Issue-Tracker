@@ -9,11 +9,9 @@ import {
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
 import { Invitation, Project, User } from '../../../src/types/db.js'
-import { createAuthToken } from '../helpers/createAuthToken.js'
 
 describe('PATCH invitations', () => {
   let app: Application
-  let owner: User
   let ownerToken: string
   let project: Project
   let invitee: User
@@ -22,11 +20,10 @@ describe('PATCH invitations', () => {
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser('owner@m.m')
-    ownerToken = createAuthToken(owner.id)
+    ;({ token: ownerToken } = await createTestUser('owner@m.m'))
     project = await createTestProject(app, ownerToken, 'project')
-    invitee = await createTestUser('invitee@m.m')
-    inviteeToken = createAuthToken(invitee.id)
+    ;({ user: invitee, token: inviteeToken } =
+      await createTestUser('invitee@m.m'))
     invitation = await createInvitation(app, ownerToken, invitee.id, project.id)
   })
 
@@ -91,8 +88,7 @@ describe('PATCH invitations', () => {
   })
 
   it('returns 403 if an unrelated user attempts a patch', async () => {
-    const newUser = await createTestUser('mess@you.up')
-    const newToken = createAuthToken(newUser.id)
+    const { token: newToken } = await createTestUser('mess@you.up')
 
     const payload = {
       status: 'ACCEPTED',

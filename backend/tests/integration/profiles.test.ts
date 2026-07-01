@@ -4,7 +4,6 @@ import request from 'supertest'
 import createApp from '../../src/api/app.js'
 import { createTestUser, setUsername } from './helpers/createTestRows.js'
 import { getProfile } from '../../src/db/services/userServices.js'
-import { createAuthToken } from './helpers/createAuthToken.js'
 import { Application } from 'express'
 import { Profile, User } from '../../src/types/db.js'
 
@@ -16,8 +15,7 @@ describe('GET /profiles/:id', () => {
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
+    ;({ user, token } = await createTestUser())
 
     await setUsername(app, user.id, username, token)
   })
@@ -46,8 +44,7 @@ describe('GET /profiles/:id', () => {
   })
 
   it('allows a user to retrieve a different profile than their own', async () => {
-    const newUser = await createTestUser('other@m.m')
-    const newToken = createAuthToken(newUser.id)
+    const { token: newToken } = await createTestUser('other@m.m')
 
     const response = await request(app)
       .get(`/profiles/${user.id}`)
@@ -64,7 +61,6 @@ describe('GET /profiles/:id', () => {
 
 describe('GET /profiles?user', () => {
   let app: Application
-  let user: User
   let token: string
   let otherUser: User
   let otherToken: string
@@ -74,10 +70,8 @@ describe('GET /profiles?user', () => {
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
-    otherUser = await createTestUser(email)
-    otherToken = createAuthToken(otherUser.id)
+    ;({ token } = await createTestUser())
+    ;({ user: otherUser, token: otherToken } = await createTestUser(email))
     otherProfile = await setUsername(app, otherUser.id, username, otherToken)
   })
 
@@ -136,14 +130,13 @@ describe('GET /profiles?user', () => {
 describe('PATCH /profiles', () => {
   let app: Application
   let user: User
-  let oldUsername: string
+  let oldUsername: string | undefined
   let token: string
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    oldUsername = (await getProfile(user.id)).username
-    token = createAuthToken(user.id)
+    ;({ user, token } = await createTestUser())
+    oldUsername = (await getProfile(user.id))?.username
   })
 
   it('successfully changes a users username with status 200', async () => {
@@ -166,7 +159,7 @@ describe('PATCH /profiles', () => {
   })
 
   it('rejects a request with mistmatched id and token id with status 403', async () => {
-    const newUser = await createTestUser('other@users.email')
+    const { user: newUser } = await createTestUser('other@users.email')
 
     const payload = {
       username: 'nullUser',
@@ -183,8 +176,8 @@ describe('PATCH /profiles', () => {
   })
 
   it('rejects a request when the username is already in use with status 409', async () => {
-    const newUser = await createTestUser('other@users.email')
-    const newToken = createAuthToken(newUser.id)
+    const { user: newUser, token: newToken } =
+      await createTestUser('other@users.email')
 
     const payload = {
       username: oldUsername,
@@ -208,8 +201,7 @@ describe('DELETE /profiles', () => {
 
   beforeEach(async () => {
     app = createApp()
-    user = await createTestUser()
-    token = createAuthToken(user.id)
+    ;({ user, token } = await createTestUser())
   })
 
   it('soft deletes a user by setting the deactivated_at field with status 200', async () => {
@@ -223,7 +215,7 @@ describe('DELETE /profiles', () => {
   })
 
   it('rejects a request with mistmatched id and token id with status 403', async () => {
-    const newUser = await createTestUser('fake@email.blah')
+    const { user: newUser } = await createTestUser('fake@email.blah')
 
     const response = await request(app)
       .delete(`/profiles/${newUser.id}`)

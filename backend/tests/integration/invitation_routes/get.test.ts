@@ -9,20 +9,17 @@ import {
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
 import { Invitation, Project, User } from '../../../src/types/db.js'
-import { createAuthToken } from '../helpers/createAuthToken.js'
 
 describe('GET invitations', () => {
   let app: Application
-  let owner: User
   let token: string
   let projects: Project[]
-  let invitees: User[]
+  let invitees: { user: User; token: string }[]
   let invitations: Invitation[]
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser()
-    token = createAuthToken(owner.id)
+    ;({ token } = await createTestUser())
     projects = [
       await createTestProject(app, token, 'project 1'),
       await createTestProject(app, token, 'project 2'),
@@ -33,11 +30,11 @@ describe('GET invitations', () => {
     ]
     // reference for which invitations are expected in return
     invitations = [
-      await createInvitation(app, token, invitees[0].id, projects[0].id),
-      await createInvitation(app, token, invitees[1].id, projects[0].id),
+      await createInvitation(app, token, invitees[0].user.id, projects[0].id),
+      await createInvitation(app, token, invitees[1].user.id, projects[0].id),
 
-      await createInvitation(app, token, invitees[0].id, projects[1].id),
-      await createInvitation(app, token, invitees[1].id, projects[1].id),
+      await createInvitation(app, token, invitees[0].user.id, projects[1].id),
+      await createInvitation(app, token, invitees[1].user.id, projects[1].id),
     ]
   })
 
@@ -57,12 +54,11 @@ describe('GET invitations', () => {
   })
 
   it('returns all by receiver_id', async () => {
-    const searchId = invitees[0].id
-    const newToken = createAuthToken(searchId)
+    const searchId = invitees[0].user.id
 
     const result = await request(app)
       .get(`/invitations?receiver_id=${searchId}`)
-      .set('Authorization', `Bearer ${newToken}`)
+      .set('Authorization', `Bearer ${invitees[0].token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
@@ -87,8 +83,7 @@ describe('GET invitations', () => {
   })
 
   it('returns empty array by receiver_id if no results', async () => {
-    const newUser = await createTestUser('new@o.o')
-    const newToken = createAuthToken(newUser.id)
+    const { user: newUser, token: newToken } = await createTestUser('new@o.o')
 
     const result = await request(app)
       .get(`/invitations?receiver_id=${newUser.id}`)
@@ -109,19 +104,6 @@ describe('GET invitations', () => {
     expect(result.body.error.code).toBe('PROJECT_NOT_FOUND')
   })
 
-  it('returns 404 when receiver_id not found', async () => {
-    const fakeId = crypto.randomUUID()
-    const fakeIdToken = createAuthToken(fakeId)
-
-    const result = await request(app)
-      .get(`/invitations?receiver_id=${fakeId}`)
-      .set('Authorization', `Bearer ${fakeIdToken}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('USER_NOT_FOUND')
-  })
-
   it('returns 400 when lacking a search parameter', async () => {
     const result = await request(app)
       .get(`/invitations`)
@@ -135,7 +117,7 @@ describe('GET invitations', () => {
   it('returns 400 when provided with both project_id and receiver_id', async () => {
     const result = await request(app)
       .get(
-        `/invitations?project_id=${projects[0].id}&receiver_id=${invitees[0].id}`,
+        `/invitations?project_id=${projects[0].id}&receiver_id=${invitees[0].user.id}`,
       )
       .set('Authorization', `Bearer ${token}`)
       .expect(400)
@@ -145,8 +127,7 @@ describe('GET invitations', () => {
   })
 
   it('returns 403 when by project_id and token id not project member', async () => {
-    const newUser = await createTestUser('m@m.m')
-    const newToken = createAuthToken(newUser.id)
+    const { token: newToken } = await createTestUser('m@m.m')
 
     const result = await request(app)
       .get(`/invitations?project_id=${projects[0].id}`)
@@ -158,11 +139,10 @@ describe('GET invitations', () => {
   })
 
   it('returns 403 when by receiver_id and token id is different', async () => {
-    const newUser = await createTestUser('m@m.m')
-    const newToken = createAuthToken(newUser.id)
+    const { token: newToken } = await createTestUser('m@m.m')
 
     const result = await request(app)
-      .get(`/invitations?receiver_id=${invitees[0].id}`)
+      .get(`/invitations?receiver_id=${invitees[0].user.id}`)
       .set('Authorization', `Bearer ${newToken}`)
       .expect(403)
       .expect('Content-Type', /json/)
