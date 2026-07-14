@@ -27,8 +27,8 @@ async function seedVariedIssues(app: Application) {
     const mainProjectOwner = await createTestUser('boss@work.work')
     const projectContributor = await createTestUser('worker@work.work')
     const otherProjectOwner = await createTestUser('assistantBoss@work.work')
-    const ownerToken = createAuthToken(mainProjectOwner.id)
-    const otherOwnerToken = createAuthToken(otherProjectOwner.id)
+    const ownerToken = await createAuthToken(mainProjectOwner.id)
+    const otherOwnerToken = await createAuthToken(otherProjectOwner.id)
 
     const mainProject = await createTestProject(app, ownerToken, 'mainProject')
     const otherProject = await createTestProject(app, otherOwnerToken, 'otherProject')

@@ -31,7 +31,7 @@ describe('POST /issues', () => {
   beforeEach(async () => {
     app = createApp()
     owner = await createTestUser()
-    ownerToken = createAuthToken(owner.id)
+    ownerToken = await createAuthToken(owner.id)
     project = await createTestProject(app, ownerToken)
   })
 
@@ -63,7 +63,7 @@ describe('POST /issues', () => {
 
   it('contributor inserts a new issue, returning 201', async () => {
     const contributor = await createTestUser('serana@aol.vamp')
-    const contributorToken = createAuthToken(contributor.id)
+    const contributorToken = await createAuthToken(contributor.id)
     await makeContributor(contributor.id, project.id)
 
     const payload = {
@@ -191,7 +191,7 @@ describe('POST /issues', () => {
   it('returns 409 when using a duplicate title (per project)', async () => {
     const otherUser = await createTestUser('flightlessVictory@dovahs.meet')
     await makeContributor(otherUser.id, project.id)
-    const otherToken = createAuthToken(otherUser.id)
+    const otherToken = await createAuthToken(otherUser.id)
 
     const payload = {
       title: 'defeat Alduin ',
@@ -266,7 +266,7 @@ describe('POST /issues', () => {
 
   it('returns 403 when creator_id is not an owner or contributor of the project', async () => {
     const randomUser = await createTestUser('itsAMukbangWorld@dovahs.meet')
-    const newToken = createAuthToken(randomUser.id)
+    const newToken = await createAuthToken(randomUser.id)
 
     const payload = {
       title: 'eat that bilingual humanoid',

@@ -37,7 +37,7 @@ describe('PATCH /issues', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
     issue = await createTestIssue(
       app,
@@ -287,7 +287,7 @@ describe('PATCH /issues', () => {
   it('allows the issue creator to patch all patchable fields', async () => {
     const newUser = await createTestUser('r@asf.sgg')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
     const newIssue = await createTestIssue(app, newToken, project.id, 'oldie')
 
     const payload = {
@@ -308,7 +308,7 @@ describe('PATCH /issues', () => {
   it('allows the project owner (who is not creator) to patch all patchable fields', async () => {
     const newUser = await createTestUser('lemme@at.it')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
     const newIssue = await createTestIssue(app, newToken, project.id)
 
     const payload = {
@@ -329,7 +329,7 @@ describe('PATCH /issues', () => {
   it('allows the assignee (who is neither owner nor creator) to patch status', async () => {
     const newUser = await createTestUser('lemme@at.it')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
     const newIssue = await createTestIssue(
       app,
       token,
@@ -353,7 +353,7 @@ describe('PATCH /issues', () => {
   it('returns 403 when assignee (not owner/creator) attempts patching a non-status field', async () => {
     const newUser = await createTestUser('lemme@it.now')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
     const newIssue = await createTestIssue(
       app,
       token,
@@ -381,7 +381,7 @@ describe('PATCH /issues', () => {
   it('returns 403 when non-creator/owner/assignee user attempts a patch', async () => {
     const newUser = await createTestUser('lemme@it.now')
     await makeContributor(newUser.id, project.id)
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
     const newIssue = await createTestIssue(
       app,
       token,

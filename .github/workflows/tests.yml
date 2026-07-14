@@ -14,7 +14,7 @@ jobs:
     services:
       postgres:
         # Docker Hub image
-        image: postgres
+        image: postgres:17
         env:
           POSTGRES_PASSWORD: postgres
         # Set health checks to wait until postgres has started
@@ -63,7 +63,7 @@ jobs:
       - name: Backend Vitest
         env:
           DATABASE_URL: ${{ secrets.DB_URL }}
-          SUPABASE_AUTH_SECRET: ${{ secrets.JWT_SECRET }}
+          SUPABASE_AUTH_URL: http://127.0.0.1:54321/auth/v1/.well-known/jwks.json
         run: npm run test --prefix backend
 
       - name: Frontend Vitest

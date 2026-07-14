@@ -23,7 +23,7 @@ describe('authenticateUser middleware function', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser(email)
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
   })
 
   it('Succeeds with a valid jwt', async () => {
@@ -50,12 +50,10 @@ describe('authenticateUser middleware function', () => {
   })
 
   it('fails when using an expired jwt', async () => {
-    const secret = process.env.SUPABASE_AUTH_SECRET
-    if (!secret) throw new Error('Missing auth secret')
-
-    const expiredToken = jwt.sign({ sub: user.id, email: email }, secret, {
-      expiresIn: -1,
-    })
+    const expiredToken = await createAuthToken(
+      user.id,
+      '-1h', // expired time
+    )
 
     await request(app)
       .get(`/profiles/${user.id}`)
@@ -83,7 +81,7 @@ describe('auth protected routes hit auth first', () => {
   })
 
   beforeEach(async () => {
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
   })
 

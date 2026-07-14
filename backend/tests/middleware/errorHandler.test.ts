@@ -8,7 +8,7 @@ describe('error middleware', () => {
   it('returns a 404 not found error for a request to unknown route /mcRoutey', async () => {
     const app = createApp()
     const user = await createTestUser()
-    const token = createAuthToken(user.id)
+    const token = await createAuthToken(user.id)
 
     const response = await request(app)
       .post('/mcRoutey')

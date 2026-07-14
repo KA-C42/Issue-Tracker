@@ -17,7 +17,7 @@ describe('GET /profiles/:id', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
 
     await setUsername(app, user.id, username, token)
   })
@@ -47,7 +47,7 @@ describe('GET /profiles/:id', () => {
 
   it('allows a user to retrieve a different profile than their own', async () => {
     const newUser = await createTestUser('other@m.m')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const response = await request(app)
       .get(`/profiles/${user.id}`)
@@ -75,9 +75,9 @@ describe('GET /profiles?user', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     otherUser = await createTestUser(email)
-    otherToken = createAuthToken(otherUser.id)
+    otherToken = await createAuthToken(otherUser.id)
     otherProfile = await setUsername(app, otherUser.id, username, otherToken)
   })
 
@@ -143,7 +143,7 @@ describe('PATCH /profiles', () => {
     app = createApp()
     user = await createTestUser()
     oldUsername = (await getProfile(user.id)).username
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
   })
 
   it('successfully changes a users username with status 200', async () => {
@@ -184,7 +184,7 @@ describe('PATCH /profiles', () => {
 
   it('rejects a request when the username is already in use with status 409', async () => {
     const newUser = await createTestUser('other@users.email')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const payload = {
       username: oldUsername,
@@ -209,7 +209,7 @@ describe('DELETE /profiles', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
   })
 
   it('soft deletes a user by setting the deactivated_at field with status 200', async () => {

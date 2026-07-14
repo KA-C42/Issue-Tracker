@@ -24,7 +24,7 @@ describe('POST /projects', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
   })
 
   it('inserts a new project with status 201, returning the new row', async () => {
@@ -149,7 +149,7 @@ describe('GET /projects/:id', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token, 'testProj', 'PROJ')
   })
 
@@ -175,7 +175,7 @@ describe('GET /projects/:id', () => {
 
   it('rejects request by unauthorized user (neither contributor or owner) with status 403', async () => {
     const newUser = await createTestUser('new@other.asfd')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const response = await request(app)
       .get(`/projects/${project.id}`)
@@ -198,12 +198,12 @@ describe('GET /projects by session id, owned + contributing', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
   })
 
   it('returns owned/contributing in order of owned (created_at ASC), then contributing (joined_at ASC)', async () => {
     const user2 = await createTestUser('uggh@sleepy.snore')
-    const token2 = createAuthToken(user2.id)
+    const token2 = await createAuthToken(user2.id)
 
     // making contributor projects first to ensure verification of ORDER BY (default return would fail)
 
@@ -215,10 +215,10 @@ describe('GET /projects by session id, owned + contributing', () => {
     await makeContributor(user.id, contributingProjects[0].id)
     await makeContributor(user.id, contributingProjects[1].id)
 
-    const ownedProjects: Project[] = await Promise.all([
-      createTestProject(app, token, 'owned1'),
-      createTestProject(app, token, 'owned2'),
-    ])
+    const ownedProjects: Project[] = [
+      await createTestProject(app, token, 'owned1'),
+      await createTestProject(app, token, 'owned2'),
+    ]
 
     // should be omitted
     const otherProject = await createTestProject(app, token2, 'nunya')
@@ -262,7 +262,7 @@ describe('PATCH /projects/:id', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(
       app,
       token,
@@ -391,7 +391,7 @@ describe('PATCH /projects/:id', () => {
 
   it('rejects a request by a non-project-owner with status 403', async () => {
     const newUser = await createTestUser('seepy@eepy.zzz')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const payload = {
       name: 'newProjectName',
@@ -441,7 +441,7 @@ describe('DELETE /projects/:id', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token, 'project')
   })
 
@@ -471,7 +471,7 @@ describe('DELETE /projects/:id', () => {
 
   it('rejects a request by non-owner with status 403', async () => {
     const newUser = await createTestUser('sdf@fasds.fasd')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const response = await request(app)
       .delete(`/projects/${project.id}`)
