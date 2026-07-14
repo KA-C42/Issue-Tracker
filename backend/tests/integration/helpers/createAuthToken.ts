@@ -16,11 +16,14 @@ export async function setupTestKeys() {
   localJwks = jose.createLocalJWKSet({ keys: [{ ...publicJwk, kid: 'test' }] })
 }
 
-export async function createAuthToken(userId: string) {
+export async function createAuthToken(
+  userId: string,
+  expiresIn: string | number = '1h',
+) {
   const jwt = new jose.SignJWT({ sub: userId })
     .setProtectedHeader({ alg: 'RS256', kid: 'test' })
     .setIssuedAt()
-    .setExpirationTime('1h')
+    .setExpirationTime(expiresIn)
     .sign(privateKey)
 
   return jwt
