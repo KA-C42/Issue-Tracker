@@ -23,10 +23,10 @@ describe('PATCH invitations', () => {
   beforeEach(async () => {
     app = createApp()
     owner = await createTestUser('owner@m.m')
-    ownerToken = createAuthToken(owner.id)
+    ownerToken = await createAuthToken(owner.id)
     project = await createTestProject(app, ownerToken, 'project')
     invitee = await createTestUser('invitee@m.m')
-    inviteeToken = createAuthToken(invitee.id)
+    inviteeToken = await createAuthToken(invitee.id)
     invitation = await createInvitation(app, ownerToken, invitee.id, project.id)
   })
 
@@ -92,7 +92,7 @@ describe('PATCH invitations', () => {
 
   it('returns 403 if an unrelated user attempts a patch', async () => {
     const newUser = await createTestUser('mess@you.up')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const payload = {
       status: 'ACCEPTED',

@@ -23,7 +23,7 @@ describe('authenticateUser middleware function', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser(email)
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
   })
 
   it('Succeeds with a valid jwt', async () => {
@@ -83,7 +83,7 @@ describe('auth protected routes hit auth first', () => {
   })
 
   beforeEach(async () => {
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
   })
 

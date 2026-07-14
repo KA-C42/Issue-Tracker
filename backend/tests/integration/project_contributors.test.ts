@@ -27,12 +27,12 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
   beforeEach(async () => {
     app = createApp()
     owner = await createTestUser()
-    token = createAuthToken(owner.id)
+    token = await createAuthToken(owner.id)
   })
 
   it('gets all project-contributor rows by user, returning status 200', async () => {
     const contributor = await createTestUser('contributor')
-    const contributorToken = createAuthToken(contributor.id)
+    const contributorToken = await createAuthToken(contributor.id)
 
     const projects = []
     for (let i = 0; i < 3; i++) {
@@ -86,7 +86,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     const app = createApp()
 
     const user = await createTestUser('newbie@project.free')
-    const token = createAuthToken(user.id)
+    const token = await createAuthToken(user.id)
 
     const response = await request(app)
       .get(`/profiles/${user.id}/contributors`)
@@ -114,7 +114,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
 
   it('rejects request with status 404 when no rows or user found', async () => {
     const fakeId = crypto.randomUUID()
-    const fakeIdToken = createAuthToken(fakeId)
+    const fakeIdToken = await createAuthToken(fakeId)
 
     const response = await request(app)
       .get(`/profiles/${fakeId}/contributors`)
@@ -139,7 +139,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     const project = await createTestProject(app, token)
 
     const newUser = await createTestUser('i@see.you')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const response = await request(app)
       .get(`/projects/${project.id}/contributors`)
@@ -168,10 +168,10 @@ describe('DELETE project-contributors', () => {
   beforeEach(async () => {
     app = createApp()
     owner = await createTestUser('i@own.you')
-    ownerToken = createAuthToken(owner.id)
+    ownerToken = await createAuthToken(owner.id)
     project = await createTestProject(app, ownerToken)
     contributor = await createTestUser('live@to.serve')
-    contributorToken = createAuthToken(contributor.id)
+    contributorToken = await createAuthToken(contributor.id)
     await makeContributor(contributor.id, project.id)
   })
 
@@ -206,7 +206,7 @@ describe('DELETE project-contributors', () => {
   // return 404
   it('rejects request with status 404 when no corresponding row found', async () => {
     const fakeId = crypto.randomUUID()
-    const fakeIdToken = createAuthToken(fakeId)
+    const fakeIdToken = await createAuthToken(fakeId)
 
     const response = await request(app)
       .delete(`/profiles/${fakeId}/contributors/${project.id}`)

@@ -21,7 +21,7 @@ describe('POST invitations', () => {
   beforeEach(async () => {
     app = createApp()
     owner = await createTestUser()
-    token = createAuthToken(owner.id)
+    token = await createAuthToken(owner.id)
     project = await createTestProject(app, token)
     invitee = await createTestUser('invite@me.please')
   })
@@ -177,7 +177,7 @@ describe('POST invitations', () => {
 
   it('returns 403 when token id/sender is not project member', async () => {
     const newUser = await createTestUser('s@d.d')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const payload = {
       receiver_id: invitee.id,

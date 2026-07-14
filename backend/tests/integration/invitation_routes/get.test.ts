@@ -22,7 +22,7 @@ describe('GET invitations', () => {
   beforeEach(async () => {
     app = createApp()
     owner = await createTestUser()
-    token = createAuthToken(owner.id)
+    token = await createAuthToken(owner.id)
     projects = [
       await createTestProject(app, token, 'project 1'),
       await createTestProject(app, token, 'project 2'),
@@ -58,7 +58,7 @@ describe('GET invitations', () => {
 
   it('returns all by receiver_id', async () => {
     const searchId = invitees[0].id
-    const newToken = createAuthToken(searchId)
+    const newToken = await createAuthToken(searchId)
 
     const result = await request(app)
       .get(`/invitations?receiver_id=${searchId}`)
@@ -88,7 +88,7 @@ describe('GET invitations', () => {
 
   it('returns empty array by receiver_id if no results', async () => {
     const newUser = await createTestUser('new@o.o')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const result = await request(app)
       .get(`/invitations?receiver_id=${newUser.id}`)
@@ -111,7 +111,7 @@ describe('GET invitations', () => {
 
   it('returns 404 when receiver_id not found', async () => {
     const fakeId = crypto.randomUUID()
-    const fakeIdToken = createAuthToken(fakeId)
+    const fakeIdToken = await createAuthToken(fakeId)
 
     const result = await request(app)
       .get(`/invitations?receiver_id=${fakeId}`)
@@ -146,7 +146,7 @@ describe('GET invitations', () => {
 
   it('returns 403 when by project_id and token id not project member', async () => {
     const newUser = await createTestUser('m@m.m')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const result = await request(app)
       .get(`/invitations?project_id=${projects[0].id}`)
@@ -159,7 +159,7 @@ describe('GET invitations', () => {
 
   it('returns 403 when by receiver_id and token id is different', async () => {
     const newUser = await createTestUser('m@m.m')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const result = await request(app)
       .get(`/invitations?receiver_id=${invitees[0].id}`)

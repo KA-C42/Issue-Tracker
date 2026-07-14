@@ -70,7 +70,7 @@ describe('GET /issues collection', () => {
   })
 
   it('GET issues by assignee_id returns only that users assigned issues, ordered by status', async () => {
-    const contributorToken = createAuthToken(seed.projectContributor.id)
+    const contributorToken = await createAuthToken(seed.projectContributor.id)
     const result = await request(app)
       .get(`/issues`)
       .set('Authorization', `Bearer ${contributorToken}`)
@@ -98,7 +98,7 @@ describe('GET /issues collection', () => {
 
   it('GETs an empty array when assignee_id exists but has no issues, status 200', async () => {
     const newUser = await createTestUser('u@jkjk.afs')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const result = await request(app)
       .get(`/issues`)
@@ -139,7 +139,7 @@ describe('GET /issues collection', () => {
   })
 
   it('allows filter by status', async () => {
-    const contributorToken = createAuthToken(seed.projectContributor.id)
+    const contributorToken = await createAuthToken(seed.projectContributor.id)
     const status = 'IN_PROGRESS'
 
     const result = await request(app)
@@ -166,7 +166,7 @@ describe('GET /issues collection', () => {
 
   it('returns 403 by project if not member', async () => {
     const newUser = await createTestUser('let@me.in')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const result = await request(app)
       .get(`/projects/${seed.mainProject.id}/issues`)
@@ -179,7 +179,7 @@ describe('GET /issues collection', () => {
 
   it('returns 403 by assignee id (specifically no project id) if not assignee', async () => {
     const newUser = await createTestUser('snoopy@no.privacy')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const result = await request(app)
       .get(`/issues?assignee_id=${seed.projectContributor.id}`)
@@ -201,7 +201,7 @@ describe('GET /issues/:id', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
   })
@@ -227,7 +227,7 @@ describe('GET /issues/:id', () => {
 
   it('returns 403 when token id not member of issue project', async () => {
     const otherUser = await createTestUser('sds@jnk.sfds')
-    const otherToken = createAuthToken(otherUser.id)
+    const otherToken = await createAuthToken(otherUser.id)
 
     const result = await request(app)
       .get(`/issues/${issue.id}`)

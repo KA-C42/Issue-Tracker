@@ -25,7 +25,7 @@ describe('DELETE issues', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
   })
@@ -56,7 +56,7 @@ describe('DELETE issues', () => {
 
   it('returns 403 when request made by non owner/creator', async () => {
     const newUser = await createTestUser('gonna@tack.you')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
     await makeContributor(newUser.id, project.id)
 
     const response = await request(app)

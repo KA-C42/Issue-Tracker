@@ -1,10 +1,27 @@
-import jwt from 'jsonwebtoken'
+// helpers/auth.ts
+import * as jose from 'jose'
 
-export function createAuthToken(uuid: string) {
-  const auth_key = process.env.SUPABASE_AUTH_SECRET
-  if (!auth_key) throw new Error('Missing supabase auth key')
+let privateKey: CryptoKey
+let localJwks: () => Promise<CryptoKey>
 
-  const token = jwt.sign({ sub: uuid }, auth_key)
+export function getTestJwks() {
+  return localJwks
+}
 
-  return token
+//
+export async function setupTestKeys() {
+  const keySet = await jose.generateKeyPair('RS256')
+  privateKey = keySet.privateKey
+  const publicJwk = await jose.exportJWK(keySet.publicKey)
+  localJwks = jose.createLocalJWKSet({ keys: [{ ...publicJwk, kid: 'test' }] })
+}
+
+export async function createAuthToken(userId: string) {
+  const jwt = new jose.SignJWT({ sub: userId })
+    .setProtectedHeader({ alg: 'RS256', kid: 'test' })
+    .setIssuedAt()
+    .setExpirationTime('1h')
+    .sign(privateKey)
+
+  return jwt
 }

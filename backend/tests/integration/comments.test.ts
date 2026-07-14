@@ -24,7 +24,7 @@ describe('POST comments', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
   })
@@ -80,7 +80,7 @@ describe('POST comments', () => {
 
   it('returns 403 when token id is not owner or contributor to the project', async () => {
     const newUser = await createTestUser('stranger@danger.com')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const payload = {
       comment: "you're not supposed to be here",
@@ -107,7 +107,7 @@ describe('GET comments', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
   })
@@ -165,7 +165,7 @@ describe('GET comments', () => {
 
   it('returns 403 when token id is not project member', async () => {
     const newUser = await createTestUser('code@code.code')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
 
     const result = await request(app)
       .get(`/issues/${issue.id}/comments`)
@@ -188,7 +188,7 @@ describe('PATCH comments', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
     comment = await createTestComment(app, token, issue.id, 'comment')
@@ -220,7 +220,7 @@ describe('PATCH comments', () => {
 
   it('returns 403 when token id not author_id', async () => {
     const newUser = await createTestUser('zzz@zzz.zzz')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
     await makeContributor(newUser.id, project.id)
 
     const payload = {
@@ -280,7 +280,7 @@ describe('DELETE comments', () => {
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    token = createAuthToken(user.id)
+    token = await createAuthToken(user.id)
     project = await createTestProject(app, token)
     issue = await createTestIssue(app, token, project.id)
     comment = await createTestComment(app, token, issue.id, 'comment')
@@ -309,7 +309,7 @@ describe('DELETE comments', () => {
 
   it('returns 403 when token id is not author_id', async () => {
     const newUser = await createTestUser('m@m.m')
-    const newToken = createAuthToken(newUser.id)
+    const newToken = await createAuthToken(newUser.id)
     await makeContributor(newUser.id, project.id)
 
     const response = await request(app)
