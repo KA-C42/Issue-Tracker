@@ -43,7 +43,7 @@ jobs:
           DATABASE_URL: ${{secrets.DB_URL}}
         run: |
           echo "Running 000_create_auth_users.sql"  
-          psql $DATABASE_URL -f supabase/ci_setup/000_create_auth_users.sql
+          psql $DATABASE_URL -f supabase/test_setup/000_create_auth_users.sql
 
       - name: Run DB migrations
         env:

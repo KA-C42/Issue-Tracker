@@ -1,0 +1,19 @@
+services:
+  postgres:
+    # Docker Hub image
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: postgres
+    # Set health checks to wait until postgres has started
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - 12345:5432
+    tmpfs:
+      - /var/lib/postgresql/data
+    volumes:
+      - ./supabase/test_setup:/docker-entrypoint-initdb.d
+      - ./supabase/migrations:/migrations

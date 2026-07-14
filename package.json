@@ -25,7 +25,9 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier . --check",
     "format:fix": "prettier . --write",
-    "typecheck": "npm run typecheck --prefix frontend && npm run typecheck --prefix backend"
+    "typecheck": "npm run typecheck --prefix frontend && npm run typecheck --prefix backend",
+    "testdb:up": "docker compose -f compose-test-db.yml up -d --wait",
+    "testdb:down": "docker compose -f compose-test-db.yml down -v"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
