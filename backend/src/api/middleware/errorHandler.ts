@@ -9,6 +9,7 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
       error: {
         code: err.code,
         message: error.message,
+        field: error.field,
       },
     })
   } catch {

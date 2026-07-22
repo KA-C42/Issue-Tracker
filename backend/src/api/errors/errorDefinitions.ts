@@ -1,5 +1,5 @@
 type ErrorDictionary = {
-  [key: string]: { statusCode: number; message: string }
+  [key: string]: { statusCode: number; message: string; field?: string }
 }
 
 export const ERROR_DEFS: ErrorDictionary = {
@@ -27,6 +27,7 @@ export const ERROR_DEFS: ErrorDictionary = {
   MISSING_USERNAME: {
     statusCode: 400,
     message: 'Invalid request due to missing username',
+    field: 'username',
   },
   USER_NOT_FOUND: {
     statusCode: 404,
@@ -35,6 +36,7 @@ export const ERROR_DEFS: ErrorDictionary = {
   USERNAME_CONFLICT: {
     statusCode: 409,
     message: 'Requested username is already in use',
+    field: 'username',
   },
   MISSING_USER_QUERY: {
     statusCode: 400,
@@ -49,10 +51,12 @@ export const ERROR_DEFS: ErrorDictionary = {
   MISSING_PROJECT_NAME: {
     statusCode: 400,
     message: 'Invalid request due to missing project name',
+    field: 'name',
   },
   MISSING_PROJECT_CODE: {
     statusCode: 400,
     message: 'Invalid request due to missing project code',
+    field: 'code',
   },
   PROJECT_NOT_FOUND: {
     statusCode: 404,
@@ -61,6 +65,7 @@ export const ERROR_DEFS: ErrorDictionary = {
   PROJECT_NAME_CONFLICT: {
     statusCode: 409,
     message: 'Requested project name is already in use by the user',
+    field: 'name',
   },
   NO_PROJECT_FIELDS_PROVIDED: {
     statusCode: 400,
@@ -71,6 +76,7 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message:
       'Invalid project code. Code must consist of 1-4 alphanumeric characters',
+    field: 'code',
   },
 
   // PROJECT_CONTRIBUTOR ERRORS

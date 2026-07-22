@@ -7,6 +7,7 @@ import { AuthContextProvider } from './auth/AuthContextProvider'
 import { ProtectedRoute } from './auth/ProtectedRoute'
 import { Layout } from './components/Layout'
 import { NavContextProvider } from './lib/NavContextProvider'
+import Dashboard from './pages/Dashboard'
 
 const queryClient = new QueryClient()
 
@@ -21,7 +22,7 @@ function App() {
               <Route path="/auth" element={<AuthPage />} />
               <Route element={<ProtectedRoute />}>
                 <Route element={<Layout />}>
-                  <Route path="/" element={<h1>Hooray! You made it!</h1>} />
+                  <Route path="/" element={<Dashboard />} />
                 </Route>
               </Route>
             </Routes>
