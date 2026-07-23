@@ -27,7 +27,8 @@
     "format:fix": "prettier . --write",
     "typecheck": "npm run typecheck --prefix frontend && npm run typecheck --prefix backend",
     "testdb:up": "docker compose -f compose-test-db.yml up -d --wait",
-    "testdb:down": "docker compose -f compose-test-db.yml down -v"
+    "testdb:down": "docker compose -f compose-test-db.yml down -v",
+    "checks": "npm run lint && npm run typecheck && npm run format && npm run test"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
