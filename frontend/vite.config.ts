@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import path from 'path'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
@@ -20,5 +20,13 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
     },
+  },
+  test: {
+    exclude: ['**/e2e/**', '**/node_modules/**'],
+    setupFiles: ['./tests/vitest.setup.ts'],
+    environment: 'jsdom',
+    clearMocks: true,
+    mockReset: true,
+    unstubGlobals: true,
   },
 })
