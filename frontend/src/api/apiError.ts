@@ -1,9 +1,4 @@
-import type {
-  ErrorOption,
-  FieldValues,
-  Path,
-  UseFormSetError,
-} from 'react-hook-form'
+import type { FieldValues, Path, UseFormSetError } from 'react-hook-form'
 
 export interface ApiErrorBody {
   code: string
@@ -30,7 +25,7 @@ export function apiErrorToFormDisplay<T extends FieldValues>(
 ) {
   if (!err.field) return false
 
-  setError(err.field as Path<T>, err.message as ErrorOption)
+  setError(err.field as Path<T>, { message: err.message })
 
   return true
 }

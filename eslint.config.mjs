@@ -66,6 +66,14 @@ export default defineConfig([
     },
   },
 
+  // Allow `any` in test fixtures
+  {
+    files: ['**/*.test.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+
   // SERVER (Express) — Node globals
   {
     files: ['backend/**/*.{ts,js}'],
