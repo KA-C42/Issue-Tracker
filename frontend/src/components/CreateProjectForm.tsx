@@ -10,9 +10,9 @@ import {
   InputGroupTextarea,
 } from './ui/input-group'
 import { Button } from './ui/button'
-import { postProject } from '@/api/projects'
+import { postProject, projectsQueryOptions } from '@/api/projects'
 import { Spinner } from './ui/spinner'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiError, apiErrorToFormDisplay } from '@/api/apiError'
 
@@ -34,6 +34,8 @@ const createProjectSchema = z.object({
 type FormData = z.infer<typeof createProjectSchema>
 
 export function CreateProjectForm({ close }: CreateProjectFormProps) {
+  const queryClient = useQueryClient()
+
   const form = useForm<FormData>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
@@ -48,6 +50,7 @@ export function CreateProjectForm({ close }: CreateProjectFormProps) {
     onSuccess: (data) => {
       // TODO: once projects are listed, queryClient.invalidateQueries({ queryKey: ['Projects'] })
       form.reset()
+      queryClient.invalidateQueries({ queryKey: projectsQueryOptions.queryKey })
       close()
       toast.success(`Project '${data.name}' successfully created`)
     },

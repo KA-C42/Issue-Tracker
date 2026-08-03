@@ -11,7 +11,7 @@ export function Navbar() {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b border-gray-300 bg-gray-200 px-3 py-2 text-lg">
+    <nav className="flex items-center justify-between border-b bg-background px-3 py-2 text-lg sticky top-0">
       <span>Issue Tracker</span>
       <span>{pageName ?? 'Loading...'}</span>
       <button
