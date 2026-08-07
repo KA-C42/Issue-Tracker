@@ -3,6 +3,7 @@ import type { AuthError } from '@supabase/supabase-js'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 export default function AuthPage() {
   const { register, handleSubmit } = useForm()
@@ -25,7 +26,7 @@ export default function AuthPage() {
           else error = await signInWithEmail(data.email, data.password)
 
           if (error) {
-            alert(error.message)
+            toast.error(error.message)
           } else navigate('/')
         })}
       >

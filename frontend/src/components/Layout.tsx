@@ -3,9 +3,11 @@ import { Navbar } from './Navbar'
 
 export function Layout() {
   return (
-    <div>
+    <div className="min-h-screen ">
       <Navbar />
-      <Outlet />
+      <main className="pt-6">
+        <Outlet />
+      </main>
     </div>
   )
 }
