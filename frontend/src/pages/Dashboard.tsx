@@ -1,3 +1,4 @@
+import { profileQueryOptions } from '@/api/profiles'
 import { projectsQueryOptions } from '@/api/projects'
 import { useAuthProtected } from '@/auth/UseAuth'
 import CardBox from '@/components/cards/CardBox'
@@ -6,11 +7,23 @@ import { CreateProjectForm } from '@/components/CreateProjectForm'
 import { FormDialog } from '@/components/FormDialog'
 import type { Project } from '@/types/db'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
+import { useOutletContext } from 'react-router-dom'
 
 // TODO as separate commit: load username in navbar from dashboard -> useAuth?
 export default function Dashboard() {
   const { user } = useAuthProtected()
+
+  const [, setPageName] =
+    useOutletContext<[string, Dispatch<SetStateAction<string>>]>()
+  const profileQuery = useQuery(profileQueryOptions)
+
+  useEffect(() => {
+    if (profileQuery.isLoading) setPageName('Loading...')
+    if (profileQuery.isSuccess)
+      setPageName(profileQuery.data?.username ?? 'Loading...')
+    if (profileQuery.isError) setPageName('profile unavailable')
+  }, [setPageName, profileQuery])
 
   const [showCreateForm, setShowCreateForm] = useState(false)
 

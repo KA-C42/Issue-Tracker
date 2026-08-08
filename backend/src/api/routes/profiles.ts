@@ -15,6 +15,23 @@ import {
 
 const profileRouter = Router()
 
+profileRouter.get('/me', async (req: AuthenticatedRequest, res) => {
+  const user = req.user as JwtUser
+
+  const text = 'SELECT * FROM profiles WHERE id = $1'
+  const values = [user.sub]
+
+  try {
+    const result = await pool.query(text, values)
+    if (result.rowCount === 0) {
+      throw new AppError('USER_NOT_FOUND')
+    }
+    return res.status(200).json(result.rows[0])
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
+})
+
 profileRouter.get('/:id', async (req: AuthenticatedRequest, res) => {
   const text = 'SELECT * FROM profiles WHERE id = $1'
   const values = [req.params.id]

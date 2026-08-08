@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import crypto from 'node:crypto'
+import crypto, { randomUUID } from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
 import { createTestUser, setUsername } from './helpers/createTestRows.js'
@@ -7,6 +7,41 @@ import { getProfile } from '../../src/db/services/userServices.js'
 import { createAuthToken } from './helpers/createAuthToken.js'
 import { Application } from 'express'
 import { Profile, User } from '../../src/types/db.js'
+
+describe('GET /profiles/me', () => {
+  let app: Application
+
+  beforeEach(async () => {
+    app = createApp()
+  })
+
+  it('retrieves a user row by session id with status 200', async () => {
+    const user = await createTestUser()
+    const token = await createAuthToken(user.id)
+
+    const response = await request(app)
+      .get(`/profiles/me`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(response.body).toMatchObject({
+      id: user.id,
+    })
+  })
+
+  it('rejects a request for nonexistent session user id with status 404', async () => {
+    const token = await createAuthToken(randomUUID())
+
+    const response = await request(app)
+      .get(`/profiles/me`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('USER_NOT_FOUND')
+  })
+})
 
 describe('GET /profiles/:id', () => {
   let app: Application
@@ -136,13 +171,13 @@ describe('GET /profiles?user', () => {
 describe('PATCH /profiles', () => {
   let app: Application
   let user: User
-  let oldUsername: string
+  let oldUsername: string | undefined
   let token: string
 
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
-    oldUsername = (await getProfile(user.id)).username
+    oldUsername = (await getProfile(user.id))?.username
     token = await createAuthToken(user.id)
   })
 

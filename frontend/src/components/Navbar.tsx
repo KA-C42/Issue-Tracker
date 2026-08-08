@@ -1,9 +1,6 @@
 import { useAuth } from '@/auth/UseAuth'
-import { useNavContext } from '@/lib/NavContext'
 
-export function Navbar() {
-  const { pageName } = useNavContext()
-
+export function Navbar({ pageName }: { pageName: string }) {
   const { signOutProcess } = useAuth()
 
   const handleLogout = () => {
@@ -13,7 +10,7 @@ export function Navbar() {
   return (
     <nav className="flex items-center justify-between border-b bg-background px-3 py-2 text-lg sticky top-0">
       <span>Issue Tracker</span>
-      <span>{pageName ?? 'Loading...'}</span>
+      <span>{pageName}</span>
       <button
         onClick={handleLogout}
         className="border border-gray-400 px-2 py-1 text-sm"
