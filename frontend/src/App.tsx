@@ -6,7 +6,6 @@ import AuthPage from './pages/AuthPage'
 import { AuthContextProvider } from './auth/AuthContextProvider'
 import { ProtectedRoute } from './auth/ProtectedRoute'
 import { Layout } from './components/Layout'
-import { NavContextProvider } from './lib/NavContextProvider'
 import Dashboard from './pages/Dashboard'
 
 const queryClient = new QueryClient()
@@ -15,19 +14,17 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContextProvider>
-        <NavContextProvider>
-          <Router>
-            <Routes>
-              <Route path="/health" element={<HealthScreen />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route element={<ProtectedRoute />}>
-                <Route element={<Layout />}>
-                  <Route path="/" element={<Dashboard />} />
-                </Route>
+        <Router>
+          <Routes>
+            <Route path="/health" element={<HealthScreen />} />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route element={<Layout />}>
+                <Route path="/" element={<Dashboard />} />
               </Route>
-            </Routes>
-          </Router>
-        </NavContextProvider>
+            </Route>
+          </Routes>
+        </Router>
       </AuthContextProvider>
     </QueryClientProvider>
   )
