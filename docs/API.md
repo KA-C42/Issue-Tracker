@@ -11,6 +11,24 @@
 #### profiles
 
 <details>
+ <summary><code>GET</code> <code><b>/profiles/me</b></code> <code>Finds user profile by session id</code></summary>
+
+
+##### Auth
+
+- Required
+- Accessible to any authenticated user
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Profile record                                |
+> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`                            |
+
+</details>
+
+<details>
  <summary><code>GET</code> <code><b>/profiles/:id</b></code> <code>Finds user profile by id</code></summary>
 
 
