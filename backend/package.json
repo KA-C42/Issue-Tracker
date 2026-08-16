@@ -13,7 +13,8 @@
     "express": "^5.2.1",
     "jose": "^6.2.3",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "shared": "*"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
