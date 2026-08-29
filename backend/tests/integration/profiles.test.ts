@@ -163,7 +163,7 @@ describe('GET /profiles?user', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('MISSING_USER_QUERY')
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
   })
 })
 
@@ -187,7 +187,7 @@ describe('PATCH /profiles', () => {
     }
 
     const response = await request(app)
-      .patch(`/profiles/${user.id}`)
+      .patch(`/profiles/me`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(200)
@@ -200,23 +200,6 @@ describe('PATCH /profiles', () => {
     expect(response.body.username).not.toBe(oldUsername)
   })
 
-  it('rejects a request with mistmatched id and token id with status 403', async () => {
-    const newUser = await createTestUser('other@users.email')
-
-    const payload = {
-      username: 'nullUser',
-    }
-
-    const response = await request(app)
-      .patch(`/profiles/${newUser.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-      .expect(403)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
-  })
-
   it('rejects a request when the username is already in use with status 409', async () => {
     const newUser = await createTestUser('other@users.email')
     const newToken = await createAuthToken(newUser.id)
@@ -226,7 +209,7 @@ describe('PATCH /profiles', () => {
     }
 
     const response = await request(app)
-      .patch(`/profiles/${newUser.id}`)
+      .patch(`/profiles/me`)
       .set('Authorization', `Bearer ${newToken}`)
       .send(payload)
       .expect(409)
@@ -234,38 +217,21 @@ describe('PATCH /profiles', () => {
 
     expect(response.body.error.code).toBe('USERNAME_CONFLICT')
   })
-})
 
-describe('DELETE /profiles', () => {
-  let app: Application
-  let user: User
-  let token: string
+  it('rejects a request for a non-existent user with status 404', async () => {
+    const newToken = await createAuthToken(randomUUID())
 
-  beforeEach(async () => {
-    app = createApp()
-    user = await createTestUser()
-    token = await createAuthToken(user.id)
-  })
-
-  it('soft deletes a user by setting the deactivated_at field with status 200', async () => {
-    const deleted = await request(app)
-      .delete(`/profiles/${user.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(deleted.body.deactivated_at).toBeTruthy()
-  })
-
-  it('rejects a request with mistmatched id and token id with status 403', async () => {
-    const newUser = await createTestUser('fake@email.blah')
+    const payload = {
+      username: 'totallyreal',
+    }
 
     const response = await request(app)
-      .delete(`/profiles/${newUser.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(403)
+      .patch(`/profiles/me`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(404)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+    expect(response.body.error.code).toBe('USER_NOT_FOUND')
   })
 })

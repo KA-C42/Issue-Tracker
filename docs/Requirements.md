@@ -28,7 +28,7 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
  - Project management and sharing
  - Issue management, assignment, and tracking
  - Issue comment system
- - User Dashboard (account info, project creation/lists, invitations)
+ - User Dashboard (account info, project creation/lists, invites)
  - Project Dashboard (project details, kanban view, members, issues, comments)
 
 ### Out of Scope
@@ -127,22 +127,22 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>4 - As a project owner, I want to view the participants and invitation status so that I can track who has access</strong></summary>
+    <summary><strong>4 - As a project owner, I want to view the participants and invite status so that I can track who has access</strong></summary>
 
   Acceptance Criteria:  
   1 - Project owner can access a list of participants  
-  2 - Project owner can view invitation status (pending, accepted, rejected, revoked)  
+  2 - Project owner can view invite status (pending, accepted, rejected, revoked)  
 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>5 - As a project owner, I want to manage contributor invitations so that I can invite collaborators to work with</strong></summary>
+    <summary><strong>5 - As a project owner, I want to manage contributor invites so that I can invite collaborators to work with</strong></summary>
 
   Acceptance Criteria:  
   1 - Project owner can invite other users to be project contributors  
-  2 - Contributor invitations require a valid email address or username format matching another user  
-  3 - Upon successful or failing invitation, success/failure message/error is displayed to project owner  
-  4 - Project owner can revoke contributor invitations  
+  2 - Contributor invites require a valid email address or username format matching another user  
+  3 - Upon successful or failing invite, success/failure message/error is displayed to project owner  
+  4 - Project owner can revoke contributor invites  
 
   </details>
 
@@ -160,10 +160,10 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
     <summary><strong>7 - As a user, I want to join another user's project as a contributor so that I can contribute to a project with a team</strong></summary>
 
   Acceptance Criteria:  
-  1 - User can access a list of project invitations  
-  2 - User can accept or reject project invitations  
-  3 - Upon accepting a project invitation, user is granted access as a contributor  
-  4 - Upon rejecting an invitation, the invitation is no longer interactable  
+  1 - User can access a list of project invites  
+  2 - User can accept or reject project invites  
+  3 - Upon accepting a project invite, user is granted access as a contributor  
+  4 - Upon rejecting an invite, the invite is no longer interactable  
 
   </details>
 
@@ -323,13 +323,13 @@ To create a lightweight issue-tracking tool for sharing, managing, and tracking 
   </details>
 
   <details style="margin-left: 20px;">
-    <summary><strong>4 - As a user, I want to view and respond to any pending contributor invitations so that I can join projects with a team</strong></summary>
+    <summary><strong>4 - As a user, I want to view and respond to any pending contributor invites so that I can join projects with a team</strong></summary>
 
   Acceptance Criteria:  
-  1 - Notification section includes project invitations which include the project name and project owner name  
-  2 - Project invitation notifications have interactable options to accept or reject an invitation  
-  3 - Upon accepting an invitation, the user is added to the project as a contributor  
-  4 - Upon accepting or rejecting an invitation, the project owner is notified and notification is no longer interactable  
+  1 - Notification section includes project invites which include the project name and project owner name  
+  2 - Project invite notifications have interactable options to accept or reject an invite  
+  3 - Upon accepting an invite, the user is added to the project as a contributor  
+  4 - Upon accepting or rejecting an invite, the project owner is notified and notification is no longer interactable  
 
   </details>
 

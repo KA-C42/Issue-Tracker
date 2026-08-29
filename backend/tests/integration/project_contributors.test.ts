@@ -41,7 +41,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     }
 
     const response = await request(app)
-      .get(`/profiles/${contributor.id}/contributors`)
+      .get(`/profiles/me/contributors`)
       .set('Authorization', `Bearer ${contributorToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
@@ -89,7 +89,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     const token = await createAuthToken(user.id)
 
     const response = await request(app)
-      .get(`/profiles/${user.id}/contributors`)
+      .get(`/profiles/me/contributors`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
@@ -117,7 +117,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     const fakeIdToken = await createAuthToken(fakeId)
 
     const response = await request(app)
-      .get(`/profiles/${fakeId}/contributors`)
+      .get(`/profiles/me/contributors`)
       .set('Authorization', `Bearer ${fakeIdToken}`)
       .expect(404)
       .expect('Content-Type', /json/)
@@ -191,12 +191,12 @@ describe('DELETE project-contributors', () => {
 
   it('contributor successfully deletes a project contributor row, returning status 204', async () => {
     await request(app)
-      .delete(`/profiles/${contributor.id}/contributors/${project.id}`)
+      .delete(`/profiles/me/contributors/${project.id}`)
       .set('Authorization', `Bearer ${contributorToken}`)
       .expect(204)
 
     const response = await request(app)
-      .get(`/profiles/${contributor.id}/contributors/`)
+      .get(`/profiles/me/contributors/`)
       .set('Authorization', `Bearer ${contributorToken}`)
       .expect(200)
 
@@ -209,7 +209,7 @@ describe('DELETE project-contributors', () => {
     const fakeIdToken = await createAuthToken(fakeId)
 
     const response = await request(app)
-      .delete(`/profiles/${fakeId}/contributors/${project.id}`)
+      .delete(`/profiles/me/contributors/${project.id}`)
       .set('Authorization', `Bearer ${fakeIdToken}`)
       .expect(404)
       .expect('Content-Type', /json/)
@@ -221,15 +221,6 @@ describe('DELETE project-contributors', () => {
     const response = await request(app)
       .delete(`/projects/${project.id}/contributors/${contributor.id}`)
       .set('Authorization', `Bearer ${contributorToken}`)
-      .expect(403)
-
-    expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
-  })
-
-  it('rejects request through /profiles by non-profile-owner with 403', async () => {
-    const response = await request(app)
-      .delete(`/profiles/${contributor.id}/contributors/${project.id}`)
-      .set('Authorization', `Bearer ${ownerToken}`)
       .expect(403)
 
     expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')

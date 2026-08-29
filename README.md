@@ -11,7 +11,7 @@ A lightweight issue tracker for managing shared projects and issues among indivi
  - User Dashboard: Displays account info and project lists.
  - Project Dashboard: Displays member lists and the issue board with expandable issue modals.
  - Issue Comments: A comment system with create, edit, and delete support.
- - Invitations: An invite system which allows project owners and contributors to invite other contributors.
+ - Invites: An invite system which allows project owners and contributors to invite other contributors.
 
 
 ## Documentation
@@ -41,7 +41,7 @@ Full-stack web application built with React, Node.js/TypeScript, and Supabase (A
 **CI:** GitHub Actions
 
 ## API
-REST API with endpoints for profiles, projects, project_contributors, issues, comments, and invitations. 
+REST API with endpoints for profiles, projects, project_contributors, issues, comments, and invites. 
 Authentication via Supabase JWT — include a Bearer token in the Authorization header.
 
 Base URL: `http://localhost:3000` (local) / TBD (deployed)

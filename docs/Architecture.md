@@ -97,8 +97,8 @@ Relationships:
  - comments: one-to-many
  - Future consideration: notifications (actor): one-to-many
  - Future consideration: sent_notifications (recipient): one-to-many
- - invitations (sender): one-to-many
- - invitations (recipient): one-to-many
+ - invites (sender): one-to-many
+ - invites (recipient): one-to-many
 
 **project_contributors**
 Stores: junction table tracking to match contributing users with projects
@@ -134,7 +134,7 @@ Relationships:
 Stores: In-app notification data
 Relationships:
  - profiles (actor): many-to-one
- - invitations | projects | issues | comments: many-to-one (optional polymorphic relationship, enforced in code)
+ - invites | projects | issues | comments: many-to-one (optional polymorphic relationship, enforced in code)
 
 **Future consideration: notification_templates**
 Stores: Templates for defining notification messages
@@ -145,8 +145,8 @@ Relationships:
  - profiles (recipient): many-to-one
  - notifications: many-to-one
 
-**invitations**
-Stores: Project invitations sent from a project owner to another user
+**invites**
+Stores: Project invites sent from a project owner to another user
 Relationships:
  - profiles (sender/project owner): many-to-one
  - profiles (recipient): many-to-one

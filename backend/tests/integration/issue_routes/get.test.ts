@@ -69,46 +69,6 @@ describe('GET /issues collection', () => {
     expect(result.body.error.code).toBe('PROJECT_NOT_FOUND')
   })
 
-  it('GET issues by assignee_id returns only that users assigned issues, ordered by status', async () => {
-    const contributorToken = await createAuthToken(seed.projectContributor.id)
-    const result = await request(app)
-      .get(`/issues`)
-      .set('Authorization', `Bearer ${contributorToken}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    const body = result.body as Issue[]
-
-    const expected = seed.issues.filter(
-      (issue) => issue.assignee_id === seed.projectContributor.id,
-    )
-
-    expect(body.length).toBe(expected.length)
-
-    const statusOrder = { BACKLOG: 1, IN_PROGRESS: 2, DONE: 3 }
-    let prevOrder = 0
-    for (const issue of body) {
-      expect(issue.assignee_id).toBe(seed.projectContributor.id)
-
-      const order = statusOrder[issue.status]
-      expect(order).toBeGreaterThanOrEqual(prevOrder)
-      prevOrder = order
-    }
-  })
-
-  it('GETs an empty array when assignee_id exists but has no issues, status 200', async () => {
-    const newUser = await createTestUser('u@jkjk.afs')
-    const newToken = await createAuthToken(newUser.id)
-
-    const result = await request(app)
-      .get(`/issues`)
-      .set('Authorization', `Bearer ${newToken}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(result.body).toHaveLength(0)
-  })
-
   it('GETs by project_id and assignee_id when both are provided, ordered by status', async () => {
     const result = await request(app)
       .get(
@@ -143,7 +103,7 @@ describe('GET /issues collection', () => {
     const status = 'IN_PROGRESS'
 
     const result = await request(app)
-      .get(`/issues?status=${status}`)
+      .get(`/projects/${seed.mainProject.id}/issues?status=${status}`)
       .set('Authorization', `Bearer ${contributorToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
@@ -152,14 +112,13 @@ describe('GET /issues collection', () => {
 
     const expected = seed.issues.filter(
       (issue) =>
-        issue.assignee_id === seed.projectContributor.id &&
-        issue.status === status,
+        issue.project_id === seed.mainProject.id && issue.status === status,
     )
 
     expect(body.length).toBe(expected.length)
 
     for (const issue of body) {
-      expect(issue.assignee_id).toBe(seed.projectContributor.id)
+      expect(issue.project_id).toBe(seed.mainProject.id)
       expect(issue.status).toBe(status)
     }
   })
@@ -177,17 +136,17 @@ describe('GET /issues collection', () => {
     expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 
-  it('returns 403 by assignee id (specifically no project id) if not assignee', async () => {
+  it('returns 400 by assignee id without project_id', async () => {
     const newUser = await createTestUser('snoopy@no.privacy')
-    const newToken = await createAuthToken(newUser.id)
+    const newToken = await createAuthToken(seed.projectContributor.id) //(newUser.id)
 
     const result = await request(app)
       .get(`/issues?assignee_id=${seed.projectContributor.id}`)
       .set('Authorization', `Bearer ${newToken}`)
-      .expect(403)
+      .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
   })
 })
 

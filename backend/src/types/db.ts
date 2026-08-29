@@ -17,7 +17,7 @@ type Project = {
   name: string
   description: string
   code: string
-  owner_id: string
+  creator_id: string
   modified_at: string
   created_at: string
 }
@@ -44,17 +44,17 @@ type Issue = {
 
 type Comment = {
   id: string
-  author_id: string
+  creator_id: string
   issue_id: string
   comment: string
   modified_at: string
   created_at: string
 }
 
-type Invitation = {
+type Invite = {
   id: string
   sender_id: string
-  receiver_id: string
+  recipient_id: string
   project_id: string
   status: InviteStatus
   sent_at: string
@@ -68,5 +68,5 @@ export type {
   ProjectContributor,
   Issue,
   Comment,
-  Invitation,
+  Invite,
 }

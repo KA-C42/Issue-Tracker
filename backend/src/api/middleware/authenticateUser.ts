@@ -1,9 +1,6 @@
 import 'dotenv/config'
 import type { RequestHandler } from 'express'
-import type {
-  AuthenticatedRequest,
-  JwtUser,
-} from '../../types/authenticatedRequest.js'
+import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { AppError } from '../errors/AppError.js'
 import * as jose from 'jose'
 
@@ -21,7 +18,7 @@ const authenticateUser: RequestHandler = async (req, res, next) => {
 
   try {
     const { payload } = await jose.jwtVerify(token, PROJECT_JWKS)
-    ;(req as AuthenticatedRequest).user = payload as JwtUser
+    req.user = payload as JwtUser
     next()
   } catch {
     return next(new AppError('INVALID_TOKEN'))

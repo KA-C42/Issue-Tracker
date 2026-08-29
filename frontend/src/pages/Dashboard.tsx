@@ -35,10 +35,10 @@ export default function Dashboard() {
   const projectQuery = useQuery(projectsQueryOptions)
   const projects = projectQuery?.data
   const ownedProjects = projects?.filter(
-    (project: Project) => project.owner_id === user.id,
+    (project: Project) => project.creator_id === user.id,
   )
   const contributingProjects = projects?.filter(
-    (project: Project) => project.owner_id !== user.id,
+    (project: Project) => project.creator_id !== user.id,
   )
 
   return (

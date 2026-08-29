@@ -6,9 +6,9 @@ import {
   ProjectContributor,
   Issue,
   Comment,
-  Invitation,
+  Invite,
   User,
-} from '../../../src/types/db'
+} from '@issue-tracker/shared'
 import { IssueStatus } from '../../../src/types/enums'
 import { pool } from '../../../src/db/pool'
 
@@ -44,7 +44,7 @@ const setUsername = async (
   token: string,
 ): Promise<Profile> => {
   const response = await request(app)
-    .patch(`/profiles/${id}`)
+    .patch(`/profiles/me`)
     .set('Authorization', `Bearer ${token}`)
     .send({
       username: username,
@@ -129,21 +129,21 @@ const createTestComment = async (
   return response.body as Comment
 }
 
-const createInvitation = async (
+const createInvite = async (
   app: Application,
   token: string,
-  receiver_id: string,
+  recipient_id: string,
   project_id: string,
-): Promise<Invitation> => {
+): Promise<Invite> => {
   const response = await request(app)
-    .post(`/projects/${project_id}/invitations`)
+    .post(`/projects/${project_id}/invites`)
     .set('Authorization', `Bearer ${token}`)
     .send({
-      receiver_id: receiver_id,
+      recipient_id: recipient_id,
     })
     .expect(201)
 
-  return response.body as Invitation
+  return response.body as Invite
 }
 
 export {
@@ -154,5 +154,5 @@ export {
   makeContributor,
   createTestIssue,
   createTestComment,
-  createInvitation,
+  createInvite,
 }

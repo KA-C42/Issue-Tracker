@@ -5,7 +5,7 @@ import {
   createTestUser,
   makeContributor,
 } from './createTestRows'
-import { Issue, User, Project } from '../../../src/types/db'
+import { Issue, User, Project } from '@issue-tracker/shared'
 import { createAuthToken } from './createAuthToken'
 
 type seedVariedIssuesReturn = {

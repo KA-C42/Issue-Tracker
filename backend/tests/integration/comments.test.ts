@@ -13,6 +13,7 @@ import { Application } from 'express'
 import { Comment, Issue, Project, User } from '../../src/types/db.js'
 import { createAuthToken } from './helpers/createAuthToken.js'
 import { getComment } from '../../src/db/services/commentServices.js'
+import expectValidationError from './helpers/expectedErrors.js'
 
 describe('POST comments', () => {
   let app: Application
@@ -60,7 +61,10 @@ describe('POST comments', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('MISSING_COMMENT_TEXT')
+    expectValidationError(result, {
+      path: ['comment'],
+      code: 'invalid_type',
+    })
   })
 
   it('returns 404 when issue_id not found', async () => {
@@ -218,7 +222,7 @@ describe('PATCH comments', () => {
     expect(String(updatedComment.modified_at)).not.toMatch(comment.modified_at)
   })
 
-  it('returns 403 when token id not author_id', async () => {
+  it('returns 403 when token id not creator_id', async () => {
     const newUser = await createTestUser('zzz@zzz.zzz')
     const newToken = await createAuthToken(newUser.id)
     await makeContributor(newUser.id, project.id)
@@ -239,7 +243,7 @@ describe('PATCH comments', () => {
 
   it('returns 404 when comment id not found', async () => {
     const payload = {
-      author_id: token,
+      creator_id: token,
       comment: 'boo',
     }
 
@@ -265,7 +269,7 @@ describe('PATCH comments', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('MISSING_COMMENT_TEXT')
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
   })
 })
 
@@ -307,7 +311,7 @@ describe('DELETE comments', () => {
     expect(response.body.error.code).toBe('COMMENT_NOT_FOUND')
   })
 
-  it('returns 403 when token id is not author_id', async () => {
+  it('returns 403 when token id is not creator_id', async () => {
     const newUser = await createTestUser('m@m.m')
     const newToken = await createAuthToken(newUser.id)
     await makeContributor(newUser.id, project.id)

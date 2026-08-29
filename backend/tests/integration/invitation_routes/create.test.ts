@@ -11,28 +11,28 @@ import { Application } from 'express'
 import { Project, User } from '../../../src/types/db.js'
 import { createAuthToken } from '../helpers/createAuthToken.js'
 
-describe('POST invitations', () => {
+describe('POST invites', () => {
   let app: Application
   let owner: User
   let token: string
   let project: Project
-  let invitee: User
+  let recipient: User
 
   beforeEach(async () => {
     app = createApp()
     owner = await createTestUser()
     token = await createAuthToken(owner.id)
     project = await createTestProject(app, token)
-    invitee = await createTestUser('invite@me.please')
+    recipient = await createTestUser('invite@me.please')
   })
 
-  it('creates a new invitation, returning 201', async () => {
+  it('creates a new invite, returning 201', async () => {
     const payload = {
-      receiver_id: invitee.id,
+      recipient_id: recipient.id,
     }
 
     const result = await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(201)
@@ -48,28 +48,28 @@ describe('POST invitations', () => {
     })
   })
 
-  it('returns 404 when receiver_id not found', async () => {
+  it('returns 404 when recipient_id not found', async () => {
     const payload = {
-      receiver_id: crypto.randomUUID(),
+      recipient_id: crypto.randomUUID(),
     }
 
     const result = await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(404)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('RECEIVER_NOT_FOUND')
+    expect(result.body.error.code).toBe('PROFILE_NOT_FOUND')
   })
 
   it('returns 404 when project_id not found', async () => {
     const payload = {
-      receiver_id: invitee.id,
+      recipient_id: recipient.id,
     }
 
     const result = await request(app)
-      .post(`/projects/${crypto.randomUUID()}/invitations`)
+      .post(`/projects/${crypto.randomUUID()}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(404)
@@ -78,33 +78,33 @@ describe('POST invitations', () => {
     expect(result.body.error.code).toBe('PROJECT_NOT_FOUND')
   })
 
-  it('returns 400 when receiver_id not provided', async () => {
+  it('returns 400 when recipient_id not provided', async () => {
     const payload = {}
 
     const result = await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('MISSING_RECEIVER_ID')
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('returns 409 when a duplicate pending invite already exists', async () => {
     const payload = {
-      receiver_id: invitee.id,
+      recipient_id: recipient.id,
     }
 
     await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(201)
       .expect('Content-Type', /json/)
 
     const result = await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(409)
@@ -115,11 +115,11 @@ describe('POST invitations', () => {
 
   it('allows invite when a duplicate exists but is not pending', async () => {
     const payload = {
-      receiver_id: invitee.id,
+      recipient_id: recipient.id,
     }
 
     const response = await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(201)
@@ -128,13 +128,13 @@ describe('POST invitations', () => {
     const invite = response.body
 
     await request(app)
-      .patch(`/invitations/${invite.id}`)
+      .patch(`/invites/${invite.id}`)
       .set('Authorization', `Bearer ${token}`)
       .send({ status: 'REVOKED' })
       .expect(200)
 
     await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(201)
@@ -142,14 +142,14 @@ describe('POST invitations', () => {
   })
 
   it('returns 409 when user is already a contributor to the project', async () => {
-    const contributor = await makeContributor(invitee.id, project.id)
+    const contributor = await makeContributor(recipient.id, project.id)
 
     const payload = {
-      receiver_id: contributor.user_id,
+      recipient_id: contributor.user_id,
     }
 
     const result = await request(app)
-      .post(`/projects/${contributor.project_id}/invitations`)
+      .post(`/projects/${contributor.project_id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(409)
@@ -159,14 +159,14 @@ describe('POST invitations', () => {
   })
 
   it('returns 409 when user is the project owner', async () => {
-    await makeContributor(invitee.id, project.id)
+    await makeContributor(recipient.id, project.id)
 
     const payload = {
-      receiver_id: owner.id,
+      recipient_id: owner.id,
     }
 
     const result = await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .send(payload)
       .expect(409)
@@ -180,11 +180,11 @@ describe('POST invitations', () => {
     const newToken = await createAuthToken(newUser.id)
 
     const payload = {
-      receiver_id: invitee.id,
+      recipient_id: recipient.id,
     }
 
     const result = await request(app)
-      .post(`/projects/${project.id}/invitations`)
+      .post(`/projects/${project.id}/invites`)
       .set('Authorization', `Bearer ${newToken}`)
       .send(payload)
       .expect(403)

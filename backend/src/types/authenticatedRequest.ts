@@ -8,6 +8,10 @@ export interface JwtUser extends JwtPayload {
   iss: string
 }
 
-export interface AuthenticatedRequest extends Request {
-  user?: JwtUser
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JwtUser
+    }
+  }
 }

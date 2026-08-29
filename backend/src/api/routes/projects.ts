@@ -3,66 +3,70 @@ import { pool } from '../../db/pool.js'
 import { AppError } from '../errors/AppError.js'
 import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
+import { buildProjectPatchQuery } from '../queries/projectPatchQuery.js'
+import type { JwtUser } from '../../types/authenticatedRequest.js'
+import { validateRequest } from '../middleware/validateRequest.js'
 import {
-  validateProjectDelete,
-  validateProjectGet,
-  validateProjectPatch,
-  validateProjectPost,
-} from '../validators/projects_validation.js'
+  createProjectSchema,
+  deleteProjectContributorSchema,
+  getByIdSchema,
+  updateProjectSchema,
+  type UpdateProjectInput,
+} from '@issue-tracker/shared'
 import {
-  buildProjectPatchQuery,
-  type projectPatchReqBody,
-} from '../queries/projectPatchQuery.js'
-import type {
-  AuthenticatedRequest,
-  JwtUser,
-} from '../../types/authenticatedRequest.js'
-import {
-  validateContributorsDelete,
-  validateContributorsGet,
-} from '../validators/project_contributors_validation.js'
+  isProjectCreator,
+  isProjectMember,
+  requireRule,
+} from '../middleware/authorize.js'
+import { loadContributor, loadProject } from '../middleware/loadRequest.js'
 
 const projectRouter = Router()
 
 // Create new project
-projectRouter.post('/', async (req: AuthenticatedRequest, res) => {
-  const user = req.user as JwtUser
-  validateProjectPost(req.body)
+projectRouter.post(
+  '/',
+  validateRequest(createProjectSchema, (req) => ({
+    name: req.body.name,
+    code: req.body.code,
+    description: req.body.description,
+    creator_id: req.user?.sub as string,
+  })),
+  async (req, res) => {
+    const text =
+      'INSERT INTO projects (creator_id, name, description, code) VALUES ($1, $2, $3, $4) RETURNING *'
+    const values = [
+      res.locals.validated.creator_id,
+      res.locals.validated.name,
+      res.locals.validated.description,
+      res.locals.validated.code,
+    ]
 
-  const text =
-    'INSERT INTO projects (owner_id, name, description, code) VALUES ($1, $2, $3, $4) RETURNING *'
-  const values = [
-    user.sub,
-    req.body.name,
-    req.body.description ?? null,
-    req.body.code,
-  ]
+    try {
+      const result = await pool.query(text, values)
+      return res.status(201).json(result.rows[0])
+    } catch (err) {
+      dbErrorMapper(err as DbError)
+    }
+  },
+)
 
-  try {
-    const result = await pool.query(text, values)
-    return res.status(201).json(result.rows[0])
-  } catch (err) {
-    dbErrorMapper(err as DbError)
-  }
-})
+projectRouter.get(
+  '/:id',
+  validateRequest(getByIdSchema, (req) => ({ id: req.params.id as string })),
+  loadProject((req, res) => res.locals.validated.id),
+  loadContributor((req, res) => ({
+    project_id: res.locals.validated.id,
+    user_id: req.user?.sub as string,
+  })),
+  requireRule(isProjectMember),
+  async (req, res) => {
+    res.status(200).json(res.locals.project)
+  },
+)
 
-projectRouter.get('/:id', async (req: AuthenticatedRequest, res) => {
-  const user = req.user as JwtUser
-  await validateProjectGet(user, req.params.id)
-
-  const text = `SELECT * FROM projects WHERE id = $1`
-  const values = [req.params.id]
-
-  try {
-    const result = await pool.query(text, values)
-    return res.status(200).json(result.rows[0])
-  } catch (err) {
-    dbErrorMapper(err as DbError)
-  }
-})
-
-// Get all projects the seesion user owns or contributes to
-projectRouter.get('/', async (req: AuthenticatedRequest, res) => {
+// Get all projects the session user owns or contributes to
+// TODO: consider moving to /me
+projectRouter.get('/', async (req, res) => {
   const user = req.user as JwtUser
 
   const text = `
@@ -70,11 +74,11 @@ projectRouter.get('/', async (req: AuthenticatedRequest, res) => {
     FROM projects p 
     LEFT JOIN project_contributors pc
     ON pc.project_id = p.id
-    WHERE p.owner_id = $1
+    WHERE p.creator_id = $1
     OR pc.user_id = $1
     ORDER BY 
-      CASE WHEN p.owner_id = $1 THEN 0 ELSE 1 END,
-      CASE WHEN p.owner_id = $1 THEN p.created_at ELSE pc.joined_at END ASC
+      CASE WHEN p.creator_id = $1 THEN 0 ELSE 1 END,
+      CASE WHEN p.creator_id = $1 THEN p.created_at ELSE pc.joined_at END ASC
     `
   const values = [user.sub]
 
@@ -86,56 +90,68 @@ projectRouter.get('/', async (req: AuthenticatedRequest, res) => {
   }
 })
 
-projectRouter.patch('/:id', async (req: AuthenticatedRequest, res) => {
-  const user = req.user as JwtUser
-  await validateProjectPatch(user, req.params.id, req.body)
+projectRouter.patch(
+  '/:id',
+  validateRequest(updateProjectSchema, (req) => ({
+    id: req.params.id as string,
+    body: req.body,
+  })),
+  loadProject((req, res) => res.locals.validated.id),
+  requireRule(isProjectCreator),
+  async (req, res) => {
+    const { text, values } = buildProjectPatchQuery(
+      res.locals.validated as UpdateProjectInput,
+    )
 
-  const { text, values } = buildProjectPatchQuery(
-    req.body as projectPatchReqBody,
-    req.params.id as string,
-  )
-
-  try {
-    const result = await pool.query(text, values)
-    if (result.rowCount === 0) {
-      throw new AppError('PROJECT_NOT_FOUND')
+    try {
+      const result = await pool.query(text, values)
+      if (result.rowCount === 0) {
+        throw new AppError('PROJECT_NOT_FOUND')
+      }
+      return res.status(200).json(result.rows[0])
+    } catch (err) {
+      dbErrorMapper(err as DbError)
     }
-    return res.status(200).json(result.rows[0])
-  } catch (err) {
-    dbErrorMapper(err as DbError)
-  }
-})
+  },
+)
 
-projectRouter.delete('/:id', async (req: AuthenticatedRequest, res) => {
-  const user = req.user as JwtUser
-  await validateProjectDelete(user, req.params.id)
-
-  const text = `
+projectRouter.delete(
+  '/:id',
+  validateRequest(getByIdSchema, (req) => ({ id: req.params.id as string })),
+  loadProject((req, res) => res.locals.validated.id),
+  requireRule(isProjectCreator),
+  async (req, res) => {
+    const text = `
     DELETE FROM projects
     WHERE id = $1
     RETURNING *
     `
 
-  const values = [req.params.id]
+    const values = [res.locals.validated.id]
 
-  try {
-    const result = await pool.query(text, values)
-    if (result.rowCount === 0) {
-      throw new AppError('PROJECT_NOT_FOUND')
+    try {
+      const result = await pool.query(text, values)
+      if (result.rowCount === 0) {
+        throw new AppError('PROJECT_NOT_FOUND')
+      }
+      return res.status(204).send()
+    } catch (err) {
+      dbErrorMapper(err as DbError)
     }
-    return res.status(204).send()
-  } catch (err) {
-    dbErrorMapper(err as DbError)
-  }
-})
+  },
+)
 
-// get contributors by project, not project
+// get CONTRIBUTORS by project
 projectRouter.get(
   '/:id/contributors',
-  async (req: AuthenticatedRequest, res) => {
-    const user = req.user as JwtUser
-    await validateContributorsGet(user, req.params.id, 'project')
-
+  validateRequest(getByIdSchema, (req) => ({ id: req.params.id as string })),
+  loadProject((req, res) => res.locals.validated.id),
+  loadContributor((req, res) => ({
+    project_id: res.locals.validated.id,
+    user_id: req.user?.sub as string,
+  })),
+  requireRule(isProjectMember),
+  async (req, res) => {
     const text = `
         SELECT 
           p.name,
@@ -146,7 +162,7 @@ projectRouter.get(
         WHERE p.id = $1
         ORDER BY pc.joined_at
     `
-    const values = [req.params.id]
+    const values = [res.locals.validated.id]
 
     try {
       const result = await pool.query(text, values)
@@ -167,23 +183,25 @@ projectRouter.get(
   },
 )
 
-projectRouter.delete<{ id: string; user_id: string }>(
+projectRouter.delete(
   '/:project_id/contributors/:user_id',
-  async (req: AuthenticatedRequest, res) => {
-    const user = req.user as JwtUser
-    const { project_id, user_id } = req.params as {
-      project_id?: string
-      user_id?: string
-    }
-    await validateContributorsDelete(user, project_id, user_id, 'project')
-
+  validateRequest(deleteProjectContributorSchema, (req) => ({
+    user_id: req.params.user_id as string,
+    project_id: req.params.project_id as string,
+  })),
+  loadProject((req, res) => res.locals.validated.project_id),
+  requireRule(isProjectCreator),
+  async (req, res) => {
     const text = `
     DELETE FROM project_contributors
     WHERE project_id = $1
     AND user_id = $2
     `
 
-    const values = [project_id, user_id]
+    const values = [
+      res.locals.validated.project_id,
+      res.locals.validated.user_id,
+    ]
 
     try {
       const result = await pool.query(text, values)

@@ -1,5 +1,4 @@
-import { AppError } from '../../api/errors/AppError.js'
-import type { Project } from '../../types/db.js'
+import type { Project, ProjectContributor } from '../../types/db.js'
 import { pool } from '../pool.js'
 
 export async function getProject(projectId: string): Promise<Project | null> {
@@ -10,41 +9,24 @@ export async function getProject(projectId: string): Promise<Project | null> {
   return (result.rows[0] as Project) ?? null
 }
 
-export async function isProjectMember(
-  projectId: string,
-  userId: string,
-): Promise<boolean> {
-  const text = `SELECT * FROM projects
-      WHERE id = $1
-      AND (
-        owner_id = $2
-        OR EXISTS ( 
-          SELECT 1 FROM project_contributors
-          WHERE project_id = $1 AND user_id = $2
-        )
-      )`
-  const values = [projectId, userId]
+export async function getContributor(
+  project_id: string,
+  user_id: string,
+): Promise<ProjectContributor | null> {
+  const text = `
+    SELECT 1 FROM project_contributors
+    WHERE project_id = $1 AND user_id = $2
+  `
+  const values = [project_id, user_id]
 
   const result = await pool.query(text, values)
-  if (result.rowCount === 0) {
-    if (!(await getProject(projectId))) {
-      throw new AppError('PROJECT_NOT_FOUND')
-    }
-    return false
-  }
-  return true
+  return (result.rows[0] as ProjectContributor) ?? null
 }
 
-export async function isProjectOwner(projectId: string, userId: string) {
-  const text = 'SELECT * FROM projects WHERE id = $1 and owner_id = $2'
-  const values = [projectId, userId]
-
-  const result = await pool.query(text, values)
-  if (result.rowCount === 0) {
-    if (!(await getProject(projectId))) {
-      throw new AppError('PROJECT_NOT_FOUND')
-    }
-    return false
-  }
-  return true
+export async function checkMembership(
+  user_id: string,
+  project: Project,
+): Promise<boolean> {
+  if (user_id === project.creator_id) return true
+  return (await getContributor(project.id, user_id)) !== null
 }

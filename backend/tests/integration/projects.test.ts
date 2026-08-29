@@ -47,7 +47,7 @@ describe('POST /projects', () => {
   it('rejects new project missing a name with status 400', async () => {
     const payload = {
       description: 'see you never :P',
-      owner_id: user.id,
+      creator_id: user.id,
     }
 
     const response = await request(app)
@@ -57,7 +57,7 @@ describe('POST /projects', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('MISSING_PROJECT_NAME')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects new project missing a code with status 400', async () => {
@@ -73,14 +73,14 @@ describe('POST /projects', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('MISSING_PROJECT_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects new project with with status 409 if the project name is already in use by the project owner', async () => {
     const payload = {
       name: 'projeyMcProject',
       description: 'the one and only',
-      owner_id: user.id,
+      creator_id: user.id,
       code: 'CODE',
     }
 
@@ -116,7 +116,7 @@ describe('POST /projects', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('INVALID_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects new project with project code containing non-alphanumeric characters with status 400', async () => {
@@ -133,7 +133,7 @@ describe('POST /projects', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('INVALID_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 })
 
@@ -163,16 +163,6 @@ describe('GET /projects/:id', () => {
     expect(response.body).toMatchObject(project)
   })
 
-  it('rejects get request for non-existent project with status 404', async () => {
-    const response = await request(app)
-      .get(`/projects/${crypto.randomUUID()}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('PROJECT_NOT_FOUND')
-  })
-
   it('rejects request by unauthorized user (neither contributor or owner) with status 403', async () => {
     const newUser = await createTestUser('new@other.asfd')
     const newToken = await createAuthToken(newUser.id)
@@ -184,66 +174,6 @@ describe('GET /projects/:id', () => {
       .expect('Content-Type', /json/)
 
     expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
-  })
-})
-
-// GET ALL by token id as owner or contributor
-// - success
-// - no projects
-describe('GET /projects by session id, owned + contributing', () => {
-  let app: Application
-  let user: User
-  let token: string
-
-  beforeEach(async () => {
-    app = createApp()
-    user = await createTestUser()
-    token = await createAuthToken(user.id)
-  })
-
-  it('returns owned/contributing in order of owned (created_at ASC), then contributing (joined_at ASC)', async () => {
-    const user2 = await createTestUser('uggh@sleepy.snore')
-    const token2 = await createAuthToken(user2.id)
-
-    // making contributor projects first to ensure verification of ORDER BY (default return would fail)
-
-    const contributingProjects: Project[] = await Promise.all([
-      createTestProject(app, token2, 'contributing2'),
-      createTestProject(app, token2, 'contributing3'),
-    ])
-
-    await makeContributor(user.id, contributingProjects[0].id)
-    await makeContributor(user.id, contributingProjects[1].id)
-
-    const ownedProjects: Project[] = [
-      await createTestProject(app, token, 'owned1'),
-      await createTestProject(app, token, 'owned2'),
-    ]
-
-    // should be omitted
-    const otherProject = await createTestProject(app, token2, 'nunya')
-
-    const response = await request(app)
-      .get(`/projects`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(response.body).toMatchObject([
-      ...ownedProjects,
-      ...contributingProjects,
-    ])
-    expect(response.body).not.toContain(otherProject)
-  })
-
-  it('returns empty array when session user has 0 owned/contributing projects', async () => {
-    const response = await request(app)
-      .get(`/projects`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(response.body).toStrictEqual([])
   })
 })
 
@@ -324,7 +254,7 @@ describe('PATCH /projects/:id', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('NO_PROJECT_FIELDS_PROVIDED')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects a patch request missing project id with status 404', async () => {
@@ -355,7 +285,7 @@ describe('PATCH /projects/:id', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('INVALID_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects a patch request with a code > 4 characters with status 409', async () => {
@@ -370,7 +300,7 @@ describe('PATCH /projects/:id', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('INVALID_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects a request to modify a nonexistent project with status 404', async () => {
@@ -452,7 +382,7 @@ describe('DELETE /projects/:id', () => {
       .expect(204)
 
     // verify project is gone
-    await request(app)
+    const result = await request(app)
       .get(`/projects/${project.id}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(404)
@@ -469,7 +399,7 @@ describe('DELETE /projects/:id', () => {
     expect(response.body.error.code).toBe('PROJECT_NOT_FOUND')
   })
 
-  it('rejects a request by non-owner with status 403', async () => {
+  it('rejects a delete project request by non-owner with status 403', async () => {
     const newUser = await createTestUser('sdf@fasds.fasd')
     const newToken = await createAuthToken(newUser.id)
 

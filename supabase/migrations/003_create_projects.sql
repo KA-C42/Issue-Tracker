@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS projects (
 
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
-  owner_id uuid REFERENCES profiles (id) ON DELETE CASCADE NOT NULL, 
+  creator_id uuid REFERENCES profiles (id) ON DELETE CASCADE NOT NULL, 
 
   name text NOT NULL CHECK (char_length(name) BETWEEN 1 and 64),
 
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS projects (
 
   created_at timestamptz NOT NULL DEFAULT now(),
 
-  UNIQUE (owner_id, name)
+  UNIQUE (creator_id, name)
 
 );
 

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { getByIdSchema } from '../commonSchemas'
 
 // enum enforced in db, any change in these requires a schema update
 export const issueStatusSchema = z.enum(['BACKLOG', 'IN_PROGRESS', 'DONE'])
@@ -13,18 +14,41 @@ export const createIssueSchema = z.object({
 })
 export type CreateIssueInput = z.infer<typeof createIssueSchema>
 
-export const updateIssueSchema = createIssueSchema
+export const getProjectIssuesSchema = createIssueSchema.omit({
+  title: true,
+  details: true,
+})
+export type GetProjectIssuesInput = z.infer<typeof getProjectIssuesSchema>
+
+const updateIssueBaseSchema = createIssueSchema
   .omit({ project_id: true })
   .partial()
-  .extend({
-    id: z.uuid(),
-  })
+  .extend({ id: z.uuid() })
+
+export const updateIssueSchema = updateIssueBaseSchema.refine(
+  (data) => Object.keys(data).length > 1,
+  {
+    error: 'At least one field must be provided',
+    path: [],
+  },
+)
 export type UpdateIssueInput = z.infer<typeof updateIssueSchema>
 
-export const deleteIssueSchema = z.object({ id: z.uuid() })
+export const updateIssueStatusSchema = updateIssueBaseSchema
+  .omit({
+    title: true,
+    details: true,
+    assignee_id: true,
+    status: true,
+  })
+  .extend({ status: issueStatusSchema })
+
+export const deleteIssueSchema = getByIdSchema
 export type DeleteIssueInput = z.infer<typeof deleteIssueSchema>
 
-export type Issue = UpdateIssueInput & {
+export type Issue = CreateIssueInput & {
+  status: IssueStatus
+  id: string
   creator_id: string
   code: number
   status_changed_at: string

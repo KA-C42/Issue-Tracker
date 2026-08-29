@@ -27,7 +27,7 @@ import { createAuthToken } from '../helpers/createAuthToken'
 // - success non-creator/owner assignee changes status
 // - 403 non-creator/owner assignee changes non-status field
 // - 403 non-creator/owner/assignee
-describe('PATCH /issues', () => {
+describe('PATCH /issues/:id', () => {
   let app: Application
   let user: User
   let token: string
@@ -98,17 +98,9 @@ describe('PATCH /issues', () => {
     const modifiedIssue = result.body
 
     expect(modifiedIssue).toMatchObject({
+      ...issue,
       status: payload.status,
       status_changed_at: expect.any(String),
-      id: issue.id,
-      creator_id: issue.creator_id,
-      project_id: issue.project_id,
-      title: issue.title,
-      details: issue.details,
-      assignee_id: issue.assignee_id,
-      code: issue.code,
-      modified_at: issue.modified_at,
-      created_at: issue.created_at,
     })
     expect(modifiedIssue.status_changed_at).not.toBe(issue.status_changed_at)
   })
@@ -215,7 +207,7 @@ describe('PATCH /issues', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('MISSING_ISSUE_PATCH_FIELDS')
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('returns 400 when provided with an empty body', async () => {
@@ -253,20 +245,6 @@ describe('PATCH /issues', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('ISSUE_NOT_FOUND')
-  })
-
-  it('returns 404 when assignee_id not found', async () => {
-    const payload = {
-      assignee_id: crypto.randomUUID(),
-    }
-    const result = await request(app)
-      .patch(`/issues/${issue.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('ASSIGNEE_NOT_FOUND')
   })
 
   it('returns 422 when assignee is not project owner or conributor', async () => {
@@ -326,31 +304,7 @@ describe('PATCH /issues', () => {
       .expect('Content-Type', /json/)
   })
 
-  it('allows the assignee (who is neither owner nor creator) to patch status', async () => {
-    const newUser = await createTestUser('lemme@at.it')
-    await makeContributor(newUser.id, project.id)
-    const newToken = await createAuthToken(newUser.id)
-    const newIssue = await createTestIssue(
-      app,
-      token,
-      project.id,
-      'titleytitle',
-      newUser.id,
-    )
-
-    const payload = {
-      status: 'DONE',
-    }
-
-    await request(app)
-      .patch(`/issues/${newIssue.id}`)
-      .set('Authorization', `Bearer ${newToken}`)
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/)
-  })
-
-  it('returns 403 when assignee (not owner/creator) attempts patching a non-status field', async () => {
+  it('returns 403 when assignee (not owner/creator) attempts patching', async () => {
     const newUser = await createTestUser('lemme@it.now')
     await makeContributor(newUser.id, project.id)
     const newToken = await createAuthToken(newUser.id)
@@ -403,5 +357,147 @@ describe('PATCH /issues', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+})
+
+describe('PATCH /issues/:id/status', () => {
+  let app: Application
+  let user: User
+  let token: string
+  let project: Project
+  let issue: Issue
+
+  beforeEach(async () => {
+    app = createApp()
+    user = await createTestUser()
+    token = await createAuthToken(user.id)
+    project = await createTestProject(app, token)
+    issue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'old title',
+      user.id,
+      'BACKLOG',
+    )
+  })
+
+  it('patches status, updating the status changed_at', async () => {
+    const payload = {
+      status: 'DONE',
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/status`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    const modifiedIssue = result.body
+
+    expect(modifiedIssue).toMatchObject({
+      ...issue,
+      status: payload.status,
+      status_changed_at: expect.any(String),
+    })
+    expect(modifiedIssue.status_changed_at).not.toBe(issue.status_changed_at)
+  })
+
+  it('allows the assignee (who is neither owner nor creator) to patch status', async () => {
+    const newUser = await createTestUser('lemme@at.it')
+    await makeContributor(newUser.id, project.id)
+    const newToken = await createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'titleytitle',
+      newUser.id,
+    )
+
+    const payload = {
+      status: 'DONE',
+    }
+
+    await request(app)
+      .patch(`/issues/${newIssue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+  })
+
+  it('returns 403 when called by a project member that is none of: assignee, issue creator, project creator', async () => {
+    const newUser = await createTestUser('m@m.m')
+    const newToken = await createAuthToken(newUser.id)
+    await makeContributor(newUser.id, project.id)
+
+    const payload = {
+      status: 'DONE',
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 403 when called by a user that is not a project member', async () => {
+    const newUser = await createTestUser('m@m.m')
+    const newToken = await createAuthToken(newUser.id)
+
+    const payload = {
+      status: 'DONE',
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 400 when called with an invalid status', async () => {
+    const newUser = await createTestUser('m@m.m')
+    const newToken = await createAuthToken(newUser.id)
+
+    const payload = {
+      status: 'flarb-n-garbl',
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('returns 400 when called with a null status', async () => {
+    const newUser = await createTestUser('m@m.m')
+    const newToken = await createAuthToken(newUser.id)
+
+    const payload = {
+      status: null,
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
   })
 })

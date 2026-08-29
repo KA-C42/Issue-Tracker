@@ -1,3 +1,4 @@
+import type { UpdateIssueInput } from '@issue-tracker/shared'
 import type { IssueStatus } from '../../types/enums.js'
 import { AppError } from '../errors/AppError.js'
 
@@ -101,33 +102,16 @@ function buildIssueGetQuery(
   return { text, values }
 }
 
-function buildIssuePatchQuery(id: string | undefined, body: issuePatchFields) {
+function buildIssuePatchQuery(data: UpdateIssueInput) {
+  const { id, ...body } = data
+
   const fields = []
   const values = []
   let i = 1
 
-  if (body.title !== undefined) {
-    fields.push(`title = $${i++}`)
-    values.push(body.title)
-  }
-
-  if (body.details !== undefined) {
-    fields.push(`details = $${i++}`)
-    values.push(body.details)
-  }
-
-  if (body.status !== undefined) {
-    fields.push(`status = $${i++}`)
-    values.push(body.status)
-  }
-
-  if (body.assignee_id !== undefined) {
-    fields.push(`assignee_id = $${i++}`)
-    values.push(body.assignee_id)
-  }
-
-  if (fields.length === 0) {
-    throw new AppError('NO_ISSUE_FIELDS_PROVIDED')
+  for (const [field, value] of Object.entries(body)) {
+    fields.push(`${field} = $${i++}`)
+    values.push(value)
   }
 
   values.push(id)

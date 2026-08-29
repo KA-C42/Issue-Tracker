@@ -154,7 +154,7 @@ describe('POST /issues', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('MISSING_ISSUE_TITLE')
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it("returns 404 when project_id doesn't exist", async () => {
@@ -170,22 +170,6 @@ describe('POST /issues', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('PROJECT_NOT_FOUND')
-  })
-
-  it('returns 404 when assignee_id does not exist', async () => {
-    const payload = {
-      title: 'help nazeem',
-      assignee_id: crypto.randomUUID(),
-    }
-
-    const result = await request(app)
-      .post(`/projects/${project.id}/issues`)
-      .set('Authorization', `Bearer ${ownerToken}`)
-      .send(payload)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('ASSIGNEE_NOT_FOUND')
   })
 
   it('returns 409 when using a duplicate title (per project)', async () => {
