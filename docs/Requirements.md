@@ -1,4 +1,9 @@
 # Requirements
+
+> Written early in planning, before implementation. Some scoping decisions
+> here have been revised. Kept as-is as a record of initial planning;
+> current behavior is documented in Architecture.md and API.md.
+
 This project is a simplified issue tracker supporting shared projects and issues between users. It is intended for individuals and small teams requiring project management and issue tracking. This document details the functional and non-functional requirements, along with certain assumptions and what is and isn't in scope.
 
 

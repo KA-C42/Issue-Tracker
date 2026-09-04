@@ -8,18 +8,17 @@
  - profiles -> issues (creator): one-to-many
  - profiles -> issues (assignee): one-to-many (optional)
  - profiles -> comments: one-to-many
- - profiles -> notifications (actor): one-to-many
- - profiles -> sent_notifications (recipient): one-to-many
  - profiles -> invites (sender): one-to-many
  - profiles -> invites (recipient): one-to-many
  - projects -> issues: one-to-many
  - issues -> comments: one-to-many
+
+ ### Future consideration: notification relationships (not implemented)
+
+ - profiles -> notifications (actor): one-to-many
+ - profiles -> sent_notifications (recipient): one-to-many
  - notifications -> sent_notifications: one-to-many
-
- ### Non-foreign key relationships
-
  - notifications -> ( projects | issues | comments | invites ): many-to-one (optional polymorphic relationship, via notifications.entity_type and notifications.entity_id)
-
 
 
 ## Schema Tables
@@ -40,7 +39,7 @@ PK = Primary Key, CPK = Composite Primary Key, FK = Foreign Key, UK = Unique Con
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | user_id      | UUID        | CPK, FK -> profiles.id                       |       |
-| project_id   | UUID        | CPK, FK -> projects.project_id               |       |
+| project_id   | UUID        | CPK, FK -> projects.id                       |       |
 | joined_at    | TIMESTAMP   | NN, DEFAULT now()                            |       |
 
 Additional Constraints and Indexes:
@@ -52,15 +51,15 @@ Additional Constraints and Indexes:
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
-| creator_id     | UUID        | NN, FK -> profiles.id                        | creator, ownership transferable post-MVP |
-| name         | TEXT        | NN                                           |       |
+| creator_id   | UUID        | NN, FK -> profiles.id                        | creator, ownership transferable post-MVP |
+| title        | TEXT        | NN                                           |       |
 | description  | TEXT        |                                              |       |
 | modified_at  | TIMESTAMP   |                                              | set on update |
 | created_at   | TIMESTAMP   | NN, DEFAULT now()                            |       |
 
 Additional Constraints and Indexes:
- - UK (creator_id, project_name)
-    - enforces unique name per owner
+ - UK (creator_id, title)
+    - enforces unique title per creator
     - can support "owned projects" display on user dashboard
 
 ### issues
@@ -69,7 +68,7 @@ Additional Constraints and Indexes:
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
 | creator_id   | UUID        | NN, FK -> profiles.id                        | creator |
-| project_id   | UUID        | NN, FK -> projects.project_id (ON DELETE CASCADE) |  |
+| project_id   | UUID        | NN, FK -> projects.id (ON DELETE CASCADE)    |  |
 | title        | TEXT        | NN                                           |       |
 | code         | TEXT        | NN                                           |       |
 | details      | TEXT        |                                              |       |
@@ -95,11 +94,10 @@ Additional Constraints and Indexes:
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
 | creator_id    | UUID        | NN, FK -> profiles.id                        |       |
-| issue_id     | UUID        | NN, FK -> issues.issue_id (ON DELETE CASCADE) |      |
+| issue_id     | UUID        | NN, FK -> issues.id (ON DELETE CASCADE)      |      |
 | comment      | TEXT        | NN                                           |       |
 | modified_at  | TIMESTAMP   |                                              | set on update |
 | created_at   | TIMESTAMP   | NN, DEFAULT now()                            |       |
-| deleted_at   | TIMESTAMP   | DEFAULT NULL                                 | soft delete |
 
 Additional Constraints and Indexes:
  - INDEX (issue_id, created_at)
@@ -182,7 +180,7 @@ For MVP, deletion behavior is kept intentionally simple and restrictive. Develop
     - Delete corresponding notifications (except notifications indicating its deletion)
  - Comments
     - Hard delete
-    - Future consideration: Soft delete, Comment row remains for ordering; content removed from UI; UI shows “Comment deleted.”
+    - Future consideration: Soft delete for record-keeping — comment row remains for ordering and audit trail; content removed from UI; UI shows "Comment deleted."
     - Future consideration: Delete corresponding notifications (except notifications indicating its deletion)
  - Invites
     - No direct delete option, only revoke

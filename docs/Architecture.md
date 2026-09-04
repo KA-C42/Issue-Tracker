@@ -10,28 +10,34 @@ Issue-Tracker/
 |   |   |   ├── errors
 |   |   |   ├── middleware
 |   |   |   ├── queries
-|   |   |   ├── routes
-|   |   |   └── validators 
-│   │   ├── services/     # Business logic and service implementations
-│   │   └── db/           # Database types and services
-|   |       ├── types/    # DB types and enums
-|   |       └── services/ # DB services
+|   |   |   └── routes
+│   │   ├── db/           # Database types and services
+|   |   |   └── services/ # DB services
+|   |   └── types/        # DB types and enums
 │   │    
-│   ├── config/           # Backend configuration files
 │   └── tests/            # Backend unit and integration tests
-│       ├── unit/         
+│       ├── middleware/         
 │       └── integration/
 ├── frontend/             # Contains all client-side code for user interfaces
 │   ├── src/              # Main source code for frontend applications
 │   │   ├── api/          # Access backend API
+│   │   ├── auth/         # 
 │   │   ├── components/   # Reusable UI components
+│   │   ├── lib/          # 
 │   │   └── pages/        # Application pages/views
-│   ├── public/           # Publicly accessible assets (e.g., index.html)
 │   └── tests/            # Frontend unit and E2E tests
 │       ├── ui/         
+│       ├── unit/         
 │       └── e2e/
 ├── supabase/             # Supabase / DB setup
+│   ├── test_setup/       # auth.users table setup for tests against bare postgres
 │   └── migrations/       # DB migrations
+├── shared/               # Shared Zod schemas and types, published as @issue-tracker/shared
+│   ├── src/
+│   │   ├── tables/       # Per-resource schemas and inferred types
+│   │   ├── commonSchemas.ts   # Shared primitives (id, getById, etc.)
+│   │   └── index.ts           # Package entry point — re-exports all schemas/types
+│   └── dist/             # Compiled output (ESM), consumed by backend and frontend
 ├── docs/                 # Architecture, requirements, and test plan
 │   └── diagrams/         # Diagrams used in documentation
 ├── .github/workflows/    # Github Actions .yml
@@ -77,11 +83,17 @@ API handling data transactions between the frontend and the database.
 
 ## 5. Authentication
 
-**Provider:** Supabase Auth (further details TBD)
+**Provider:** Supabase Auth (frontend login/session via Supabase JS client)
 
-Supabase Auth will handle user registration, login, session management, and token generation.
+**Backend verification:** JWT signature verified locally on each request via the shared Supabase JWT secret — no network call to Supabase per request. `authenticateUser` middleware attaches the decoded payload to `req.user`; `req.user.sub` matches `profiles.id` (auto-created via trigger on signup).
 
-## 6. Data Model
+## 6. Authorization
+
+**Model:** Relationship-based, not role-based — no static user roles. Each rule checks the requester's relationship to the specific resource: project creator, contributor, issue creator, assignee, invite sender/recipient.
+
+**Implementation:** Composable rule predicates (`isProjectCreator`, `isProjectMember`, `isAssignee`, etc.), combined via `anyOf`/`allOf`, enforced per-route through a `requireRule` middleware. Resource loaders (`loadProject`, `loadIssue`, etc.) run first and populate `res.locals` for the rules to check.
+
+## 7. Data Model
 
 Will use a relational model with PostreSQL through Supabase
 
@@ -153,21 +165,21 @@ Relationships:
  - projects: many-to-one
  - Future consideration: notifications: one-to-many (optional, polymorphic in code)
 
-## 7. CI/CD
+## 8. CI/CD
 
 **CI:** GitHub Actions will run tests on every PR, formatting checks on PR and push
 
 **CD:** On merge to main, frontend and backend automatically deployed to production
 
-## 8. Testing Strategy
+## 9. Testing Strategy
 
 Detailed testing strategy found in `Test_Strategy.md`
 
-### 8.1 Testing Frameworks
+### 9.1 Testing Frameworks
 
 **Unit and Integration:** Vitest
 **E2E:** Playwright
-**API:** Vitest + Supertest + Postman/Newman
+**API:** Vitest + Supertest
 **UI:** React testing library
 
 ## 9. Future Considerations

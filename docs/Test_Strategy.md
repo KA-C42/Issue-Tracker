@@ -18,12 +18,11 @@ Primary quality risks:
  - Contributor invites/access changes
  - Core user workflows (happy path and common failures)
  - Error handling with user-visible feedback for bad requests
- - Basic accessibility checks (keyboard navigation, visible focus, and perceivable error states)
 
-**Out of scope:**
+**Out of scope (MVP):**
  - Stress testing
  - Penetration testing
- - Advanced accessibility
+ - Accessibility testing (planned post-MVP — keyboard navigation, visible focus, perceivable error states)
 
 ## 3. Test Levels & Responsibilities
 Testing is focused on high-risk areas rather than achieving a specific code coverage goal

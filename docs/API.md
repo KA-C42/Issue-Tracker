@@ -2,17 +2,14 @@
 > - `401` — missing or invalid token
 > - `403` — authenticated but not authorized (e.g. acting on a resource you don't own or contribute to)
 
-> **Note:** This API differentiates between `403` and `404` responses when relevant.
-> Unauthorized resource access would normally return '404' for security, but this project is more to 
-> showcase and practice programming ability than to be a legitimate resource.
-
 ------------------------------------------------------------------------------------------
 
-#### profiles
+#### me
+
+> All `/me` routes resolve to the authenticated user via the JWT — no id parameter or query filter required, and they always act on the caller's own data.
 
 <details>
- <summary><code>GET</code> <code><b>/profiles/me</b></code> <code>Finds user profile by session id</code></summary>
-
+ <summary><code>GET</code> <code><b>/me/profile</b></code> <code>Finds profile of authenticated user</code></summary>
 
 ##### Auth
 
@@ -27,6 +24,173 @@
 > | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`                            |
 
 </details>
+
+<details>
+ <summary><code>PATCH</code> <code><b>/me/profile</b></code> <code>Modifies profile row (username only)</code></summary>
+
+##### Auth
+- Required 
+- Accessible to any authenticated user
+
+##### Request Body
+> | name | required | data type | description |
+> |------|----------|-----------|-------------|
+> | `username` | required | string | New username |
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Updated profile record                                |
+> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`           |
+> | `409`         | `application/json`                | `{"code":"USERNAME_CONFLICT"}`           |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`           |
+
+</details>
+
+<details>
+ <summary><code>DELETE</code> <code><b>/me/profile</b></code> <code>Soft deletes profile row, setting profiles.deactivated_at</code></summary>
+
+##### Auth
+
+- Required 
+- Accessible to any authenticated user
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`                | Updated profile record                        |
+> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`           |
+
+</details>
+
+<details>
+ <summary><code>GET</code> <code><b>/me/projects</b></code> <code>Find all projects the authenticated user either owns or contributes to</code></summary>
+
+##### Auth
+
+- Required 
+- Accessible to any authenticated user
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Array of project records             |
+
+- Owned projects appear first (sorted by `created_at`), followed by contributed projects (sorted by date joined).
+
+</details>
+
+<details>
+ <summary><code>GET</code> <code><b>/me/issues</b></code> <code>Find issues assigned to authenticated user</code></summary>
+
+##### Auth
+
+- Required 
+- Accessible to any authenticated user
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Array of issue records             |
+
+- response is sorted by status in order of `BACKLOG` \| `IN_PROGRESS` \| `DONE`, then by `modified_at`
+
+</details>
+
+<details>
+ <summary><code>GET</code> <code><b>/me/invites</b></code> <code>Find invites where authenticated user is recipient</code></summary>
+
+##### Auth
+
+- Required 
+- Accessible to any authenticated user
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Array of invite records             |
+
+</details>
+
+<details>
+ <summary><code>PATCH</code> <code><b>/me/invites/:id</b></code> <code>Respond to an invite as recipient</code></summary>
+
+##### Auth
+
+- Required 
+- Accessible to the invite's recipient
+
+##### Parameters
+
+> | name      |  type     | data type               | description                                                           |
+> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
+> | 'id'  |  path     | uuid   | The target invite's id  |
+
+##### Request Body
+> | name | required | data type | description |
+> |------|----------|-----------|-------------|
+> | `status` | required | enum | invite status: `ACCEPTED` \| `REJECTED` |
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Updated invite record             |
+> | `404`         | `application/json`        | `{"code":"INVITE_NOT_FOUND"}`          |
+> | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`            |
+
+</details>
+
+<details>
+ <summary><code>GET</code> <code><b>/me/contributors</b></code> <code>Finds project_contributor records for authenticated user</code></summary>
+
+##### Auth
+
+- Required
+- Accessible to any authenticated user
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`                | Array of project_contributor records                  |
+> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`                            |
+
+</details>
+
+<details>
+ <summary><code>DELETE</code> <code><b>/me/contributors/:project_id</b></code> <code>Removes authenticated user as a contributor from a project</code></summary>
+
+##### Auth
+
+- Required
+- Accessible to any authenticated user
+
+##### Parameters
+
+> | name      |  type     | data type               | description                                                           |
+> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
+> | 'project_id'      |  path     | uuid   | The target project's id  |
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `204`         | no content        | no content             |
+> | `404`         | `application/json`                | `{"code":"CONTRIBUTOR_NOT_FOUND"}`                            |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`                            |
+
+</details>
+
+
+------------------------------------------------------------------------------------------
+
+#### profiles
 
 <details>
  <summary><code>GET</code> <code><b>/profiles/:id</b></code> <code>Finds user profile by id</code></summary>
@@ -51,12 +215,13 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Profile record                                |
 > | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`                            |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`                            |
 
 </details>
 
 
 <details>
- <summary><code>GET</code> <code><b>/profiles</b></code> <code>Finds user profile by username or email</code></summary>
+ <summary><code>GET</code> <code><b>/profiles</b></code> <code>Finds user profile by username</code></summary>
 
 
 ##### Auth
@@ -69,7 +234,7 @@
 
 > | name      |  type     | data type               | description                                                           |
 > |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'user'    |  query    | string    | The target user's username or email  |
+> | 'user'    |  query    | string    | The target user's username  |
 
 
 ##### Responses
@@ -78,52 +243,10 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`                | Profile record                                |
 > | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`                            |
-> | `400`         | `application/json`                | `{"code":"MISSING_USER_QUERY"}`                            |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`                            |
 
 </details>
 
-
-<details>
- <summary><code>PATCH</code> <code><b>/profiles/me</b></code> <code>Modifies profile row (username only)</code></summary>
-
-
-##### Auth
-- Required 
-- Accessible to any authenticated user
-
-##### Request Body
-> | name | required | data type | description |
-> |------|----------|-----------|-------------|
-> | `username` | required | string | New username |
-
-##### Responses
-
-> | http code     | content-type                      | response                                                            |
-> |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | Updated profile record                                |
-> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`           |
-> | `409`         | `application/json`                | `{"code":"USERNAME_CONFLICT"}`           |
-
-</details>
-
-<details>
- <summary><code>DELETE</code> <code><b>/profiles/me</b></code> <code>Soft deletes profile row, setting profiles.deactivated_at</code></summary>
-
-
-##### Auth
-
-- Required 
-- Accessible to any authenticated user
-
-
-##### Responses
-
-> | http code     | content-type                      | response                                                            |
-> |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`                | Updated profile record                        |
-> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`           |
-
-</details>
 
 ------------------------------------------------------------------------------------------
 
@@ -142,12 +265,12 @@
 ##### Request Body
 > | name | required | data type | description |
 > |------|----------|-----------|-------------|
-> | `name` | required | string | project name |
+> | `title` | required | string | project title |
 > | `description` | not required | string | project description |
 > | `code` | required | string | Code used to prefix/identify issues in the project |
 
-- 'name' must be unique per owner. The same name may be used across different owners.
-- 'code' must be <= 4 alphanumeric characters
+- 'title' must be unique per creator. The same title may be used across different creators.
+- 'code' must be exactly 4 characters
 
 
 ##### Responses
@@ -155,10 +278,8 @@
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `201`         | `application/json`        | Newly created project record                       |
-> | `400`         | `application/json`                | `{"code":"MISSING_PROJECT_NAME"}`          |
-> | `400`         | `application/json`                | `{"code":"MISSING_PROJECT_CODE"}`           |
-> | `400`         | `application/json`                | `{"code":"INVALID_CODE"}`           |
-> | `409`         | `application/json`                | `{"code":"PROJECT_NAME_CONFLICT"}`          |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`          |
+> | `409`         | `application/json`                | `{"code":"PROJECT_TITLE_CONFLICT"}`          |
 
 </details>
 
@@ -185,26 +306,7 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Project record                       |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`           |
-
-</details>
-
-<details>
- <summary><code>GET</code> <code><b>/projects</b></code> <code>Find projects by authenticated user id</code></summary>
-
-
-##### Auth
-
-- Required 
-- Accessible to any authenticated user
-
-
-##### Responses
-
-> | http code     | content-type                      | response                                                            |
-> |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | Array of project records             |
-
-- Owned projects appear first (sorted by `created_at`), followed by contributed projects (sorted by date joined).
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`           |
 
 </details>
 
@@ -215,7 +317,7 @@
 ##### Auth
 
 - Required 
-- Accessible to the project owner
+- Accessible to the project creator
 
 
 ##### Parameters
@@ -228,12 +330,12 @@
 ##### Request Body
 > | name | required | data type | description |
 > |------|----------|-----------|-------------|
-> | `name` | not required | string | project name |
+> | `title` | not required | string | project title |
 > | `description` | not required | string | project description |
 > | `code` | not required | string | Code used to prefix/identify issues in the project |
 
-- 'name' must be unique per owner. The same name may be used across different owners.
-- 'code' must be <= 4 alphanumeric characters
+- 'title' must be unique per creator. The same title may be used across different creators.
+- 'code' must be exactly 4 characters
 
 
 ##### Responses
@@ -242,9 +344,8 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Updated project record             |
 > | `404`         | `application/json`        | `{"code":"PROJECT_NOT_FOUND"}`           |
-> | `400`         | `application/json`        | `{"code":"NO_PROJECT_FIELDS_PROVIDED"}`             |
-> | `400`         | `application/json`                | `{"code":"INVALID_CODE"}`           |
-> | `409`         | `application/json`                | `{"code":"PROJECT_NAME_CONFLICT"}`          |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`           |
+> | `409`         | `application/json`                | `{"code":"PROJECT_TITLE_CONFLICT"}`          |
 
 
 </details>
@@ -256,7 +357,7 @@
 ##### Auth
 
 - Required 
-- Accessible to the project owner
+- Accessible to the project creator
 
 
 ##### Parameters
@@ -272,15 +373,17 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `204`         | no content        | no content             |
 > | `404`         | `application/json`        | `{"code":"PROJECT_NOT_FOUND"}`           |
+> | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`           |
 
 </details>
+
 
 ------------------------------------------------------------------------------------------
 
 #### project_contributors
 
 <details>
- <summary><code>GET</code> <code><b>/projects/:id/contributors</b></code> <code>Find project_contributor records by project_id</code></summary>
+ <summary><code>GET</code> <code><b>/projects/:id/contributors</b></code> <code>Find project_contributor records by project id</code></summary>
 
 ##### Auth
 
@@ -301,42 +404,18 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Array of project_contributor records                  |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`           |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`           |
 
 </details>
 
 <details>
- <summary><code>GET</code> <code><b>/profiles/:id/contributors</b></code> <code>Find project_contributor records by profile_id</code></summary>
-
-##### Auth
-
-- Required
-- Accessible to the authenticated user with the given user id
-
-
-##### Parameters
-
-> | name      |  type     | data type               | description                                                           |
-> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'id'      |  path     | uuid   | The target user's id  |
-
-
-##### Responses
-
-> | http code     | content-type                      | response                                                            |
-> |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | Array of project_contributor records                  |
-> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`           |
-
-</details>
-
-<details>
- <summary><code>DELETE</code> <code><b>/projects/:project_id/contributors/:user_id</b></code> <code>Delete project_contributor record by (project_id, user_id) </code></summary>
+ <summary><code>DELETE</code> <code><b>/projects/:project_id/contributors/:user_id</b></code> <code>Delete project_contributor record by (project_id, user_id)</code></summary>
 
 
 ##### Auth
 
 - Required 
-- Accessible to the project owner
+- Accessible to the project creator
 
 
 ##### Parameters
@@ -353,37 +432,12 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `204`         | no content        | no content             |
 > | `404`         | `application/json`        | `{"code":"CONTRIBUTOR_NOT_FOUND"}`           |
-
-</details>
-
-<details>
- <summary><code>DELETE</code> <code><b>/profiles/:user_id/contributors/:project_id</b></code> <code>Delete project_contributor record by (project_id, user_id) </code></summary>
-
-
-##### Auth
-
-- Required 
-- Accessible to the authenticated user with the given user id
-
-
-##### Parameters
-
-> | name      |  type     | data type               | description                                                           |
-> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'user_id'      |  path     | uuid   | The target user's id  |
-> | 'project_id'      |  path     | uuid   | The target project's id  |
-
-
-##### Responses
-
-> | http code     | content-type                      | response                                                            |
-> |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `204`         | no content        | no content             |
-> | `404`         | `application/json`        | `{"code":"CONTRIBUTOR_NOT_FOUND"}`           |
+> | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`           |
 
 </details>
 
 ------------------------------------------------------------------------------------------
+
 
 #### issues
 
@@ -414,7 +468,7 @@
 
 - 'title' must be unique per project. The same title may be used across different projects.
 - 'status' has a default value of 'BACKLOG'
-- 'assignee_id' must be a valid project member (owner or contributor)
+- 'assignee_id' must be a valid project member (creator or contributor)
 
 
 ##### Responses
@@ -422,9 +476,8 @@
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `201`         | `application/json`        | Newly created issue record                       |
-> | `400`         | `application/json`                | `{"code":"MISSING_ISSUE_TITLE"}`           |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`           |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`           |
-> | `404`         | `application/json`                | `{"code":"ASSIGNEE_NOT_FOUND"}`           |
 > | `409`         | `application/json`                | `{"code":"ISSUE_TITLE_CONFLICT"}`         |
 > | `422`         | `application/json`                | `{"code":"INVALID_ASSIGNEE"}`         |
 
@@ -444,7 +497,7 @@
 
 > | name      |  type     | data type               | description                                                           |
 > |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'project_id'  |  path     | uuid   | The target project's id  |
+> | `project_id`  |  path     | uuid   | The target project's id  |
 > | `assignee_id` | query | uuid | Optional. Filter issues by assignee |
 > | `status` | query | enum | Optional. Filter by status: `BACKLOG` \| `IN_PROGRESS` \| `DONE` |
 
@@ -455,35 +508,7 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | array of issue records                     |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`          |
-> | `404`         | `application/json`                | `{"code":"ASSIGNEE_NOT_FOUND"}`          |
-
-- response is sorted by status in order of `BACKLOG` \| `IN_PROGRESS` \| `DONE` 
-
-</details>
-
-<details>
- <summary><code>GET</code> <code><b>/issues</b></code> <code>Find issues by assignee_id (provided by auth jwt)</code></summary>
-
-
-##### Auth
-
-- Required 
-- Accessible to the authenticated user with the given user id
-
-
-##### Parameters
-
-> | name      |  type     | data type               | description                                                           |
-> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | `status` | query | enum | Optional. Filter by status: `BACKLOG` \| `IN_PROGRESS` \| `DONE` |
-
-
-##### Responses
-
-> | http code     | content-type                      | response                                                            |
-> |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | Array of issue records             |
-> | `404`         | `application/json`                | `{"code":"ASSIGNEE_NOT_FOUND"}`          |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`          |
 
 - response is sorted by status in order of `BACKLOG` \| `IN_PROGRESS` \| `DONE` 
 
@@ -512,6 +537,7 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | issue record             |
 > | `404`         | `application/json`                | `{"code":"ISSUE_NOT_FOUND"}`          |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`          |
 
 </details>
 
@@ -522,8 +548,7 @@
 ##### Auth
 
 - Required 
-- Fully accessible to the issue creator and owner of the project issue belongs to
-- Status change alone is accessible to the assignee
+- Accessible to the issue creator and creator of the project the issue belongs to
 
 
 ##### Parameters
@@ -551,11 +576,81 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Updated issue record             |
 > | `404`         | `application/json`        | `{"code":"ISSUE_NOT_FOUND"}`          |
-> | `404`         | `application/json`        | `{"code":"ASSIGNEE_NOT_FOUND"}`          |
-> | `422`         | `application/json`        | `{"code":"INVALID_ASSIGNEE"}`          |
-> | `400`         | `application/json`        | `{"code":"MISSING_ISSUE_PATCH_FIELDS"}`            |
+> | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`            |
 > | `409`         | `application/json`        | `{"code":"ISSUE_TITLE_CONFLICT"}`         |
+> | `422`         | `application/json`        | `{"code":"INVALID_ASSIGNEE"}`          |
 
+
+</details>
+
+<details>
+ <summary><code>PATCH</code> <code><b>/issues/:id/status</b></code> <code>Update issue status by id</code></summary>
+
+
+##### Auth
+
+- Required 
+- Accessible to the issue creator, project creator, and current assignee
+
+
+##### Parameters
+
+> | name      |  type     | data type               | description                                                           |
+> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
+> | 'id'      |  path     | uuid   | The target issue's id  |
+
+
+##### Request Body
+> | name | required | data type | description |
+> |------|----------|-----------|-------------|
+> | `status` | required | enum | current progress/status of issue `BACKLOG` \| `IN_PROGRESS` \| `DONE` |
+
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Updated issue record             |
+> | `404`         | `application/json`        | `{"code":"ISSUE_NOT_FOUND"}`          |
+> | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`            |
+
+</details>
+
+<details>
+ <summary><code>PATCH</code> <code><b>/issues/:id/assignee</b></code> <code>Update issue assignee by id</code></summary>
+
+
+##### Auth
+
+- Required
+- Accessible to the issue creator and project creator
+- Accessible to any project member, to claim the issue for themselves, if currently unassigned
+- Accessible to the current assignee, to remove themselves (setting assignee_id to null)
+
+
+##### Parameters
+
+> | name      |  type     | data type               | description                                                           |
+> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
+> | 'id'      |  path     | uuid   | The target issue's id  |
+
+
+##### Request Body
+> | name | required | data type | description |
+> |------|----------|-----------|-------------|
+> | `assignee_id` | required | uuid \| null | project member to assign, or null to remove the current assignee |
+
+- 'assignee_id' must be a valid project member (creator or contributor) or null
+
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Updated issue record             |
+> | `404`         | `application/json`        | `{"code":"ISSUE_NOT_FOUND"}`          |
+> | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`            |
+> | `422`         | `application/json`        | `{"code":"INVALID_ASSIGNEE"}`          |
 
 </details>
 
@@ -566,7 +661,7 @@
 ##### Auth
 
 - Required 
-- Accessible to the issue creator or owner of the project the issue belongs to
+- Accessible to the issue creator or creator of the project the issue belongs to
 
 
 ##### Parameters
@@ -582,8 +677,10 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `204`         | no content        | no content             |
 > | `404`         | `application/json`        | `{"code":"ISSUE_NOT_FOUND"}`          |
+> | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`          |
 
 </details>
+
 
 ------------------------------------------------------------------------------------------
 
@@ -617,7 +714,7 @@
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `201`         | `application/json`        | Newly created comment record                       |
-> | `400`         | `application/json`                | `{"code":"MISSING_COMMENT_TEXT"}`          |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`          |
 > | `404`         | `application/json`                | `{"code":"ISSUE_NOT_FOUND"}`          |
 
 
@@ -646,6 +743,7 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | array of comment records                     |
 > | `404`         | `application/json`                | `{"code":"ISSUE_NOT_FOUND"}`          |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`          |
 
 - response is ordered ascending by created_at
 
@@ -680,7 +778,7 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Updated comment record             |
 > | `404`         | `application/json`                | `{"code":"COMMENT_NOT_FOUND"}`          |
-> | `400`         | `application/json`                | `{"code":"MISSING_COMMENT_TEXT"}`     |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`     |
 
 
 </details>
@@ -692,7 +790,7 @@
 ##### Auth
 
 - Required 
-- Accessible to the comment author and/or the owner of the project the comment belongs to
+- Accessible to the comment author and/or the creator of the project the comment belongs to
 
 
 ##### Parameters
@@ -708,6 +806,7 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `204`         | no content        | no content             |
 > | `404`         | `application/json`                | `{"code":"COMMENT_NOT_FOUND"}`          |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`          |
 
 
 </details>
@@ -744,8 +843,9 @@
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `201`         | `application/json`        | Newly created invite record                       |
-> | `400`         | `application/json`                | `{"code":"MISSING_RECIPIENT_ID"}`          |
-> | `404`         | `application/json`                | `{"code":"RECIPIENT_NOT_FOUND"}`          |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`          |
+> | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`          |
+> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`          |
 > | `409`         | `application/json`                | `{"code":"INVITE_ALREADY_PENDING"}`          |
 > | `409`         | `application/json`                | `{"code":"RECIPIENT_ALREADY_CONTRIBUTOR"}`   |
 > | `409`         | `application/json`                | `{"code":"RECIPIENT_OWNS_PROJECT"}`   |
@@ -754,24 +854,20 @@
 </details>
 
 <details>
- <summary><code>GET</code> <code><b>/invites</b></code> <code>Find invites by project id or recipient id</code></summary>
+ <summary><code>GET</code> <code><b>/projects/:project_id/invites</b></code> <code>Find invites by project id</code></summary>
 
 
 ##### Auth
 
 - Required
-- If searching by project id, accessible to members of the given project
-- If searching by recipient id, accessible to only that user
+- Accessible to authenticated users that own or contribute to the given project
 
 
 ##### Parameters
 
-> Exactly one of the following query parameters are required
->
 > | name      |  type     | data type               | description                                                           |
 > |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'recipient_id'  |  query     | uuid   | The target user's id  |
-> | 'project_id'  |  query     | uuid   | The target project's id  |
+> | 'project_id'  |  path     | uuid   | The target project's id  |
 
 
 ##### Responses
@@ -780,22 +876,19 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | array of invite records                     |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`          |
-> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`          |
-> | `400`         | `application/json`                | `{"code":"MISSING_SEARCH_PARAMETER"}`   |
-> | `400`         | `application/json`                | `{"code":"TOO_MANY_PARAMETERS"}`   |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`   |
 
 
 </details>
 
 <details>
- <summary><code>PATCH</code> <code><b>/invites/:id</b></code> <code>Update invite record by id</code></summary>
+ <summary><code>PATCH</code> <code><b>/invites/:id</b></code> <code>Revoke a pending invite as sender or project creator</code></summary>
 
 
 ##### Auth
 
 - Required 
-- Sender can update invite.status from 'PENDING' to 'REVOKED'
-- Recipient can update invite.status from 'PENDING' to 'REJECTED' or 'ACCEPTED'
+- Accessible to the invite sender or the project creator
 
 
 ##### Parameters
@@ -808,7 +901,7 @@
 ##### Request Body
 > | name | required | data type | description |
 > |------|----------|-----------|-------------|
-> | `status` | required | enum | invite status: `REVOKED` \| `REJECTED` \| `ACCEPTED` |
+> | `status` | required | enum | invite status: `REVOKED` |
 
 
 ##### Responses
@@ -817,11 +910,9 @@
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Updated invite record             |
 > | `404`         | `application/json`                | `{"code":"INVITE_NOT_FOUND"}`          |
-> | `400`         | `application/json`                | `{"code":"INVALID_STATUS_VALUE"}`     |
-> | `400`         | `application/json`                | `{"code":"MISSING_STATUS"}`     |
+> | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`     |
 > | `409`         | `application/json`                | `{"code":"INVITE_NOT_PENDING"}`     |
-
-- On invite.status change to 'ACCEPTED' a new project_contributor row is created, adding the recipient to the project
 
 </details>
 
+------------------------------------------------------------------------------------------
