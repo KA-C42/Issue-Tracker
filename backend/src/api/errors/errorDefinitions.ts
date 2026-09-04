@@ -9,6 +9,11 @@ export const ERROR_DEFS: ErrorDictionary = {
     message: 'Route not found',
   },
 
+  VALIDATION_ERROR: {
+    statusCode: 400,
+    message: 'Validation failed',
+  },
+
   // auth errors
   UNAUTHORIZED_REQUEST: {
     statusCode: 403,
@@ -41,6 +46,10 @@ export const ERROR_DEFS: ErrorDictionary = {
   MISSING_USER_QUERY: {
     statusCode: 400,
     message: 'Please provide a username or email',
+  },
+  PROFILE_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Requested profile not found',
   },
 
   // project route errors
@@ -143,11 +152,11 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
   AUTHOR_NOT_FOUND: {
     statusCode: 404,
-    message: 'Provided author_id does not match any profiles',
+    message: 'Provided creator_id does not match any profiles',
   },
   INVALID_AUTHOR: {
     statusCode: 422,
-    message: 'author_id not permitted to comment within given project',
+    message: 'creator_id not permitted to comment within given project',
   },
   COMMENT_NOT_FOUND: {
     statusCode: 404,
@@ -158,12 +167,12 @@ export const ERROR_DEFS: ErrorDictionary = {
     message: 'Provided id is not the original commenter',
   },
 
-  // INVITATION ERRORS
+  // INVITE ERRORS
   SENDER_NOT_FOUND: {
     statusCode: 404,
     message: 'Provided sender_id does not match any user',
   },
-  RECEIVER_NOT_FOUND: {
+  RECIPIENT_NOT_FOUND: {
     statusCode: 404,
     message: 'Provided receiever_id does not match any user',
   },
@@ -171,9 +180,9 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Please provide a sender_id',
   },
-  MISSING_RECEIVER_ID: {
+  MISSING_RECIPIENT_ID: {
     statusCode: 400,
-    message: 'Please provide a receiver_id',
+    message: 'Please provide a recipient_id',
   },
   RECIPIENT_OWNS_PROJECT: {
     statusCode: 409,
@@ -194,17 +203,17 @@ export const ERROR_DEFS: ErrorDictionary = {
   INVALID_STATUS_VALUE: {
     statusCode: 400,
     message:
-      'Invitation status change can only be one of [ ACCEPTED, REJECTED, REVOKED ]',
+      'Invite status change can only be one of [ ACCEPTED, REJECTED, REVOKED ]',
   },
   MISSING_STATUS: {
     statusCode: 400,
     message: 'Please provide a status field to update',
   },
-  INVITATION_NOT_FOUND: {
+  INVITE_NOT_FOUND: {
     statusCode: 404,
-    message: 'Provided invitation id not found',
+    message: 'Provided invite id not found',
   },
-  INVITATION_NOT_PENDING: {
+  INVITE_NOT_PENDING: {
     statusCode: 409,
     message: 'Invite has already received a response and can not be modified',
   },

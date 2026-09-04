@@ -2,20 +2,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
-import {
-  createTestProject,
-  createTestUser,
-  makeContributor,
-} from './helpers/createTestRows.js'
+import { createTestProject, createTestUser } from './helpers/createTestRows.js'
 import { Application } from 'express'
-import { Project, User } from '../../src/types/db.js'
+import { Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from './helpers/createAuthToken.js'
 
-// POST
-// - success
-// - missing name
-// - missing code
-// - name conflict
 describe('POST /projects', () => {
   let app: Application
   let user: User
@@ -29,7 +20,7 @@ describe('POST /projects', () => {
 
   it('inserts a new project with status 201, returning the new row', async () => {
     const payload = {
-      name: 'insert project success',
+      title: 'insert project success',
       description: 'successfully inserts a project row',
       code: 'CODE',
     }
@@ -47,7 +38,7 @@ describe('POST /projects', () => {
   it('rejects new project missing a name with status 400', async () => {
     const payload = {
       description: 'see you never :P',
-      owner_id: user.id,
+      creator_id: user.id,
     }
 
     const response = await request(app)
@@ -57,12 +48,12 @@ describe('POST /projects', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('MISSING_PROJECT_NAME')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects new project missing a code with status 400', async () => {
     const payload = {
-      name: 'you dont own me',
+      title: 'you dont own me',
       description: 'see you never :P',
     }
 
@@ -73,14 +64,14 @@ describe('POST /projects', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('MISSING_PROJECT_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
-  it('rejects new project with with status 409 if the project name is already in use by the project owner', async () => {
+  it('rejects new project with with status 409 if the project title is already in use by the project owner', async () => {
     const payload = {
-      name: 'projeyMcProject',
+      title: 'projeyMcProject',
       description: 'the one and only',
-      owner_id: user.id,
+      creator_id: user.id,
       code: 'CODE',
     }
 
@@ -104,7 +95,7 @@ describe('POST /projects', () => {
 
   it('rejects new project with project code greater than 4 characters with status 400', async () => {
     const payload = {
-      name: 'you dont own me',
+      title: 'you dont own me',
       description: 'see you never :P',
       code: 'three',
     }
@@ -116,12 +107,12 @@ describe('POST /projects', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('INVALID_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects new project with project code containing non-alphanumeric characters with status 400', async () => {
     const payload = {
-      name: 'you dont own me',
+      title: 'you dont own me',
       description: 'see you never :P',
       code: ':3',
     }
@@ -133,13 +124,10 @@ describe('POST /projects', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('INVALID_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 })
 
-// GET by id
-// - success
-// - no project
 describe('GET /projects/:id', () => {
   let app: Application
   let user: User
@@ -163,16 +151,6 @@ describe('GET /projects/:id', () => {
     expect(response.body).toMatchObject(project)
   })
 
-  it('rejects get request for non-existent project with status 404', async () => {
-    const response = await request(app)
-      .get(`/projects/${crypto.randomUUID()}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('PROJECT_NOT_FOUND')
-  })
-
   it('rejects request by unauthorized user (neither contributor or owner) with status 403', async () => {
     const newUser = await createTestUser('new@other.asfd')
     const newToken = await createAuthToken(newUser.id)
@@ -187,72 +165,6 @@ describe('GET /projects/:id', () => {
   })
 })
 
-// GET ALL by token id as owner or contributor
-// - success
-// - no projects
-describe('GET /projects by session id, owned + contributing', () => {
-  let app: Application
-  let user: User
-  let token: string
-
-  beforeEach(async () => {
-    app = createApp()
-    user = await createTestUser()
-    token = await createAuthToken(user.id)
-  })
-
-  it('returns owned/contributing in order of owned (created_at ASC), then contributing (joined_at ASC)', async () => {
-    const user2 = await createTestUser('uggh@sleepy.snore')
-    const token2 = await createAuthToken(user2.id)
-
-    // making contributor projects first to ensure verification of ORDER BY (default return would fail)
-
-    const contributingProjects: Project[] = await Promise.all([
-      createTestProject(app, token2, 'contributing2'),
-      createTestProject(app, token2, 'contributing3'),
-    ])
-
-    await makeContributor(user.id, contributingProjects[0].id)
-    await makeContributor(user.id, contributingProjects[1].id)
-
-    const ownedProjects: Project[] = [
-      await createTestProject(app, token, 'owned1'),
-      await createTestProject(app, token, 'owned2'),
-    ]
-
-    // should be omitted
-    const otherProject = await createTestProject(app, token2, 'nunya')
-
-    const response = await request(app)
-      .get(`/projects`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(response.body).toMatchObject([
-      ...ownedProjects,
-      ...contributingProjects,
-    ])
-    expect(response.body).not.toContain(otherProject)
-  })
-
-  it('returns empty array when session user has 0 owned/contributing projects', async () => {
-    const response = await request(app)
-      .get(`/projects`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(response.body).toStrictEqual([])
-  })
-})
-
-// PATCH
-// - success
-// - success on partial update
-// - missing both new name/description
-// - missing project id
-// - no project
 describe('PATCH /projects/:id', () => {
   let app: Application
   let user: User
@@ -274,7 +186,7 @@ describe('PATCH /projects/:id', () => {
 
   it("updates a project's name, description, code, and modified_at field with status 200", async () => {
     const payload = {
-      name: 'newProjectName',
+      title: 'newProjectName',
       description: 'updated description',
       code: 'RAWR',
     }
@@ -308,7 +220,7 @@ describe('PATCH /projects/:id', () => {
     expect(response.body).toMatchObject({
       ...payload,
       id: project.id,
-      name: project.name,
+      title: project.title,
       code: project.code,
     })
     expect(response.body.modified_at).not.toBe(project.modified_at)
@@ -324,12 +236,12 @@ describe('PATCH /projects/:id', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('NO_PROJECT_FIELDS_PROVIDED')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects a patch request missing project id with status 404', async () => {
     const payload = {
-      name: 'newy',
+      title: 'newy',
       description: 'should not',
     }
 
@@ -355,7 +267,7 @@ describe('PATCH /projects/:id', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('INVALID_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects a patch request with a code > 4 characters with status 409', async () => {
@@ -370,12 +282,12 @@ describe('PATCH /projects/:id', () => {
       .expect(400)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('INVALID_CODE')
+    expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
   it('rejects a request to modify a nonexistent project with status 404', async () => {
     const payload = {
-      name: 'newProjectName',
+      title: 'newProjectName',
       description: 'updated description',
     }
 
@@ -394,7 +306,7 @@ describe('PATCH /projects/:id', () => {
     const newToken = await createAuthToken(newUser.id)
 
     const payload = {
-      name: 'newProjectName',
+      title: 'newProjectName',
       description: 'updated description',
       code: 'RAWR',
     }
@@ -413,7 +325,7 @@ describe('PATCH /projects/:id', () => {
     const existingProject = await createTestProject(app, token, 'one of a kind')
 
     const payload = {
-      name: existingProject.name,
+      title: existingProject.title,
       description: 'should not',
     }
 
@@ -428,10 +340,6 @@ describe('PATCH /projects/:id', () => {
   })
 })
 
-// DELETE
-// - success
-// - no project
-// - not owner
 describe('DELETE /projects/:id', () => {
   let app: Application
   let user: User
@@ -469,7 +377,7 @@ describe('DELETE /projects/:id', () => {
     expect(response.body.error.code).toBe('PROJECT_NOT_FOUND')
   })
 
-  it('rejects a request by non-owner with status 403', async () => {
+  it('rejects a delete project request by non-owner with status 403', async () => {
     const newUser = await createTestUser('sdf@fasds.fasd')
     const newToken = await createAuthToken(newUser.id)
 

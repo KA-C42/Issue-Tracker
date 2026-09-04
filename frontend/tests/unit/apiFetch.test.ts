@@ -11,7 +11,7 @@ describe('apiFetch', () => {
   it('returns fetched data when response.ok === true', async () => {
     const data = {
       id: 42,
-      name: 'Finding the answer',
+      title: 'Finding the answer',
       description:
         'The answer to the ultimate question of Life, the Universe, and Everything',
     }

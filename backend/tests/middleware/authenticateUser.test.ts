@@ -1,10 +1,10 @@
 import { Application } from 'express'
 import { beforeEach, describe, it } from 'vitest'
 import request from 'supertest'
-import { Project, User } from '../../src/types/db'
+import { Project, User } from '@issue-tracker/shared'
 import createApp from '../../src/api/app'
 import {
-  createInvitation,
+  createInvite,
   createTestComment,
   createTestIssue,
   createTestProject,
@@ -118,12 +118,12 @@ describe('auth protected routes hit auth first', () => {
       .expect('Content-Type', /json/)
   })
 
-  it('returns 401 if request an invitation without auth provided', async () => {
+  it('returns 401 if request an invite without auth provided', async () => {
     const invitee = await createTestUser('new@m.m')
-    await createInvitation(app, token, invitee.id, project.id)
+    await createInvite(app, token, invitee.id, project.id)
 
     await request(app)
-      .get(`/invitations?receiver_id=${invitee.id}`)
+      .get(`/invites?recipient_id=${invitee.id}`)
       .expect(401)
       .expect('Content-Type', /json/)
   })

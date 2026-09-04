@@ -1,10 +1,8 @@
-import type { Invitation } from '../../types/db.js'
+import type { Invite } from '@issue-tracker/shared'
 import { pool } from '../pool.js'
 
-export async function getInvitation(id: string): Promise<Invitation | null> {
-  const result = await pool.query('SELECT * FROM invitations WHERE id = $1', [
-    id,
-  ])
+export async function getInvite(id: string): Promise<Invite | null> {
+  const result = await pool.query('SELECT * FROM invites WHERE id = $1', [id])
 
-  return (result.rows[0] as Invitation) ?? null
+  return (result.rows[0] as Invite) ?? null
 }

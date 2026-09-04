@@ -10,8 +10,8 @@
  - profiles -> comments: one-to-many
  - profiles -> notifications (actor): one-to-many
  - profiles -> sent_notifications (recipient): one-to-many
- - profiles -> invitations (sender): one-to-many
- - profiles -> invitations (recipient): one-to-many
+ - profiles -> invites (sender): one-to-many
+ - profiles -> invites (recipient): one-to-many
  - projects -> issues: one-to-many
  - issues -> comments: one-to-many
  - notifications -> sent_notifications: one-to-many
@@ -52,14 +52,14 @@ Additional Constraints and Indexes:
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
-| owner_id     | UUID        | NN, FK -> profiles.id                        | creator, ownership transferable post-MVP |
+| creator_id     | UUID        | NN, FK -> profiles.id                        | creator, ownership transferable post-MVP |
 | name         | TEXT        | NN                                           |       |
 | description  | TEXT        |                                              |       |
 | modified_at  | TIMESTAMP   |                                              | set on update |
 | created_at   | TIMESTAMP   | NN, DEFAULT now()                            |       |
 
 Additional Constraints and Indexes:
- - UK (owner_id, project_name)
+ - UK (creator_id, project_name)
     - enforces unique name per owner
     - can support "owned projects" display on user dashboard
 
@@ -94,7 +94,7 @@ Additional Constraints and Indexes:
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
 | id           | UUID        | PK                                           |       |
-| author_id    | UUID        | NN, FK -> profiles.id                        |       |
+| creator_id    | UUID        | NN, FK -> profiles.id                        |       |
 | issue_id     | UUID        | NN, FK -> issues.issue_id (ON DELETE CASCADE) |      |
 | comment      | TEXT        | NN                                           |       |
 | modified_at  | TIMESTAMP   |                                              | set on update |
@@ -105,7 +105,7 @@ Additional Constraints and Indexes:
  - INDEX (issue_id, created_at)
     - supports filtering comments by issue with oldest first (comment display per issue)
 
-### invitations
+### invites
 
 | Column       | Type        | Constraints                                  | Notes |
 |--------------|-------------|----------------------------------------------|-------|
@@ -120,10 +120,10 @@ Additional Constraints and Indexes:
  - UK (project_id, recipient_id) WHERE status = 'PENDING'
     - enforces one pending invite per project/recipient
  - INDEX (recipient_id, status)
-    - supports filtering by recipient to display all invitations
+    - supports filtering by recipient to display all invites
     - can support filtering per recipient by status (likely to display pending incoming invites)
  - INDEX (project_id, status)
-    - supports filter by project to display outgoing invitations
+    - supports filter by project to display outgoing invites
     - can support filtering outgoing invites by status
 
 ## Future tables
@@ -174,7 +174,7 @@ For MVP, deletion behavior is kept intentionally simple and restrictive. Develop
     - Assigned issues are unassigned
  - Projects
     - Hard delete
-    - Delete cascades (issues, comments, project_contributors, invitations)
+    - Delete cascades (issues, comments, project_contributors, invites)
     - Delete corresponding notifications (from application logic)
  - Issues
     - Hard delete
@@ -184,7 +184,7 @@ For MVP, deletion behavior is kept intentionally simple and restrictive. Develop
     - Hard delete
     - Future consideration: Soft delete, Comment row remains for ordering; content removed from UI; UI shows “Comment deleted.”
     - Future consideration: Delete corresponding notifications (except notifications indicating its deletion)
- - Invitations
+ - Invites
     - No direct delete option, only revoke
     - Future consideration: Revoking or deletion via project deletion deletes the corresponding notification
  - Future consideration: Notifications
@@ -197,7 +197,7 @@ For MVP, deletion behavior is kept intentionally simple and restrictive. Develop
 	- intentionally excluded for MVP
 	- enables later implementation of status tracking metadata and custom issue workflows
 	- additionally deferred to demonstrate schema migration post-MVP
- - introduce a dedicated index for projects: (owner_id, modified_at DESC)
+ - introduce a dedicated index for projects: (creator_id, modified_at DESC)
     - supports user dashboard displaying owned projects in order of recently modified
  - introduce an issue index: (assignee_id, project_id, status)
     - supports user dashboard displaying a users assigned issues

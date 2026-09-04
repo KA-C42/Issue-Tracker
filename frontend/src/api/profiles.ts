@@ -7,7 +7,7 @@ export const profileQueryOptions = queryOptions({
 })
 
 async function getProfile(abortSignal: AbortSignal) {
-  const result = await apiFetch('GET', '/api/profiles/me', {
+  const result = await apiFetch('GET', '/api/me/profile', {
     signal: abortSignal,
   })
   return result

@@ -13,7 +13,9 @@ async function postProject(data: projectInputs) {
 }
 
 async function getProjects(abortSignal: AbortSignal) {
-  const result = await apiFetch('GET', '/api/projects', { signal: abortSignal })
+  const result = await apiFetch('GET', '/api/me/projects', {
+    signal: abortSignal,
+  })
   return result
 }
 

@@ -84,19 +84,12 @@
 
 
 <details>
- <summary><code>PATCH</code> <code><b>/profiles/:id</b></code> <code>Modifies profile row (username only)</code></summary>
+ <summary><code>PATCH</code> <code><b>/profiles/me</b></code> <code>Modifies profile row (username only)</code></summary>
 
 
 ##### Auth
 - Required 
-- Auth ID and profile ID must match
-
-
-##### Parameters
-
-> | name      |  type     | data type               | description                                                           |
-> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'id'      |  path     | uuid   | The target user's id  |
+- Accessible to any authenticated user
 
 ##### Request Body
 > | name | required | data type | description |
@@ -114,20 +107,14 @@
 </details>
 
 <details>
- <summary><code>DELETE</code> <code><b>/profiles/:id</b></code> <code>Soft deletes profile row, setting profiles.deactivated_at</code></summary>
+ <summary><code>DELETE</code> <code><b>/profiles/me</b></code> <code>Soft deletes profile row, setting profiles.deactivated_at</code></summary>
 
 
 ##### Auth
 
 - Required 
-- Auth ID and profile ID must match
+- Accessible to any authenticated user
 
-
-##### Parameters
-
-> | name      |  type     | data type               | description                                                           |
-> |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'id'      |  path     | uuid   | The target user's id  |
 
 ##### Responses
 
@@ -727,10 +714,10 @@
 
 ------------------------------------------------------------------------------------------
 
-#### invitations
+#### invites
 
 <details>
- <summary><code>POST</code> <code><b>/projects/:project_id/invitations</b></code> <code>Creates a new invitation row</code></summary>
+ <summary><code>POST</code> <code><b>/projects/:project_id/invites</b></code> <code>Creates a new invite row</code></summary>
 
 
 ##### Auth
@@ -749,16 +736,16 @@
 ##### Request Body
 > | name | required | data type | description |
 > |------|----------|-----------|-------------|
-> | `receiver_id` | required | uuid | target user's id |
+> | `recipient_id` | required | uuid | target user's id |
 
 
 ##### Responses
 
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `201`         | `application/json`        | Newly created invitation record                       |
-> | `400`         | `application/json`                | `{"code":"MISSING_RECEIVER_ID"}`          |
-> | `404`         | `application/json`                | `{"code":"RECEIVER_NOT_FOUND"}`          |
+> | `201`         | `application/json`        | Newly created invite record                       |
+> | `400`         | `application/json`                | `{"code":"MISSING_RECIPIENT_ID"}`          |
+> | `404`         | `application/json`                | `{"code":"RECIPIENT_NOT_FOUND"}`          |
 > | `409`         | `application/json`                | `{"code":"INVITE_ALREADY_PENDING"}`          |
 > | `409`         | `application/json`                | `{"code":"RECIPIENT_ALREADY_CONTRIBUTOR"}`   |
 > | `409`         | `application/json`                | `{"code":"RECIPIENT_OWNS_PROJECT"}`   |
@@ -767,14 +754,14 @@
 </details>
 
 <details>
- <summary><code>GET</code> <code><b>/invitations</b></code> <code>Find invitations by project id or receiver id</code></summary>
+ <summary><code>GET</code> <code><b>/invites</b></code> <code>Find invites by project id or recipient id</code></summary>
 
 
 ##### Auth
 
 - Required
 - If searching by project id, accessible to members of the given project
-- If searching by receiver id, accessible to only that user
+- If searching by recipient id, accessible to only that user
 
 
 ##### Parameters
@@ -783,7 +770,7 @@
 >
 > | name      |  type     | data type               | description                                                           |
 > |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'receiver_id'  |  query     | uuid   | The target user's id  |
+> | 'recipient_id'  |  query     | uuid   | The target user's id  |
 > | 'project_id'  |  query     | uuid   | The target project's id  |
 
 
@@ -791,7 +778,7 @@
 
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | array of invitation records                     |
+> | `200`         | `application/json`        | array of invite records                     |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`          |
 > | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`          |
 > | `400`         | `application/json`                | `{"code":"MISSING_SEARCH_PARAMETER"}`   |
@@ -801,40 +788,40 @@
 </details>
 
 <details>
- <summary><code>PATCH</code> <code><b>/invitations/:id</b></code> <code>Update invitation record by id</code></summary>
+ <summary><code>PATCH</code> <code><b>/invites/:id</b></code> <code>Update invite record by id</code></summary>
 
 
 ##### Auth
 
 - Required 
-- Sender can update invitation.status from 'PENDING' to 'REVOKED'
-- Recipient can update invitation.status from 'PENDING' to 'REJECTED' or 'ACCEPTED'
+- Sender can update invite.status from 'PENDING' to 'REVOKED'
+- Recipient can update invite.status from 'PENDING' to 'REJECTED' or 'ACCEPTED'
 
 
 ##### Parameters
 
 > | name      |  type     | data type               | description                                                           |
 > |-----------|-----------|-------------------------|-----------------------------------------------------------------------|
-> | 'id'  |  path     | uuid   | The target invitation's id  |
+> | 'id'  |  path     | uuid   | The target invite's id  |
 
 
 ##### Request Body
 > | name | required | data type | description |
 > |------|----------|-----------|-------------|
-> | `status` | required | enum | invitation status: `REVOKED` \| `REJECTED` \| `ACCEPTED` |
+> | `status` | required | enum | invite status: `REVOKED` \| `REJECTED` \| `ACCEPTED` |
 
 
 ##### Responses
 
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | Updated invitation record             |
-> | `404`         | `application/json`                | `{"code":"INVITATION_NOT_FOUND"}`          |
+> | `200`         | `application/json`        | Updated invite record             |
+> | `404`         | `application/json`                | `{"code":"INVITE_NOT_FOUND"}`          |
 > | `400`         | `application/json`                | `{"code":"INVALID_STATUS_VALUE"}`     |
 > | `400`         | `application/json`                | `{"code":"MISSING_STATUS"}`     |
-> | `409`         | `application/json`                | `{"code":"INVITATION_NOT_PENDING"}`     |
+> | `409`         | `application/json`                | `{"code":"INVITE_NOT_PENDING"}`     |
 
-- On invitation.status change to 'ACCEPTED' a new project_contributor row is created, adding the receiver to the project
+- On invite.status change to 'ACCEPTED' a new project_contributor row is created, adding the recipient to the project
 
 </details>
 

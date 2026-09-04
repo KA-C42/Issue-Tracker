@@ -1,33 +1,15 @@
-import { AppError } from '../errors/AppError.js'
+import type { UpdateProjectInput } from '@issue-tracker/shared'
 
-type projectPatchReqBody = {
-  name?: string
-  description?: string
-  code?: string
-}
+function buildProjectPatchQuery(data: UpdateProjectInput) {
+  const { id, body } = data
 
-function buildProjectPatchQuery(req: projectPatchReqBody, id: string) {
   const fields = []
   const values = []
   let i = 1
 
-  if (req.name !== undefined) {
-    fields.push(`name = $${i++}`)
-    values.push(req.name)
-  }
-
-  if (req.description !== undefined) {
-    fields.push(`description = $${i++}`)
-    values.push(req.description)
-  }
-
-  if (req.code !== undefined) {
-    fields.push(`code = $${i++}`)
-    values.push(req.code)
-  }
-
-  if (fields.length === 0) {
-    throw new AppError('NO_PROJECT_FIELDS_PROVIDED')
+  for (const [field, value] of Object.entries(body)) {
+    fields.push(`${field} = $${i++}`)
+    values.push(value)
   }
 
   values.push(id)
@@ -43,4 +25,3 @@ function buildProjectPatchQuery(req: projectPatchReqBody, id: string) {
 }
 
 export { buildProjectPatchQuery }
-export type { projectPatchReqBody }

@@ -1,4 +1,4 @@
-import type { Profile } from '../../types/db.js'
+import type { Profile } from '@issue-tracker/shared'
 import { pool } from '../pool.js'
 
 export async function getProfile(userId: string): Promise<Profile | null> {

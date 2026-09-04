@@ -14,7 +14,7 @@ export default function AuthPage() {
 
   // I intend to revisit all visual and verification when the frontend functionality is complete
   // for v1, some repetition of tailwind classes and wrappers is okay
-  // TODO: loading state, ZOD, alerts
+  // TODO: loading state, ZOD rules, alerts
   return (
     <div className="flex min-h-screen items-center justify-center">
       <form
