@@ -8,7 +8,7 @@ import {
   createTestUser,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
-import { Invite, Project, User } from '../../../src/types/db.js'
+import { Invite, Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from '../helpers/createAuthToken.js'
 
 /*
@@ -174,8 +174,6 @@ describe('PATCH /invites/:id', () => {
       .send(payload)
       .expect(404)
       .expect('Content-Type', /json/)
-
-    console.log(JSON.stringify(result.body))
 
     expect(result.body.error.code).toBe('INVITE_NOT_FOUND')
   })

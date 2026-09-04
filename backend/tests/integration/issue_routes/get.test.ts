@@ -8,7 +8,7 @@ import {
 import request from 'supertest'
 import { Application } from 'express'
 import { seedVariedIssues, seedVariedIssuesReturn } from '../helpers/seedDb'
-import { Issue, Project, User } from '../../../src/types/db'
+import { Issue, Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from '../helpers/createAuthToken'
 
 // GET collections
@@ -137,8 +137,7 @@ describe('GET /issues collection', () => {
   })
 
   it('returns 400 by assignee id without project_id', async () => {
-    const newUser = await createTestUser('snoopy@no.privacy')
-    const newToken = await createAuthToken(seed.projectContributor.id) //(newUser.id)
+    const newToken = await createAuthToken(seed.projectContributor.id)
 
     const result = await request(app)
       .get(`/issues?assignee_id=${seed.projectContributor.id}`)

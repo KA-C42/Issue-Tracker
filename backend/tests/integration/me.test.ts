@@ -1,47 +1,26 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import crypto, { randomUUID } from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
 import {
   createTestProject,
-  createTestIssue,
-  createTestComment,
   createTestUser,
   makeContributor,
-  setUsername,
   createInvite,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
 import { createAuthToken } from './helpers/createAuthToken.js'
-import { getComment } from '../../src/db/services/commentServices.js'
-import expectValidationError from './helpers/expectedErrors.js'
 import { seedVariedIssues, seedVariedIssuesReturn } from './helpers/seedDb.js'
-import {
-  Comment,
-  Issue,
-  Profile,
-  Project,
-  User,
-  Invite,
-} from '@issue-tracker/shared'
+import { Issue, Project, User, Invite } from '@issue-tracker/shared'
 
 describe('/me profile routes', () => {
   let app: Application
   let user: User
   let token: string
-  let profile: Profile
-  let project: Project
-  let issue: Issue
-
-  const username = 'ka-c42'
 
   beforeEach(async () => {
     app = createApp()
     user = await createTestUser()
     token = await createAuthToken(user.id)
-    profile = await setUsername(app, user.id, username, token)
-    project = await createTestProject(app, token)
-    issue = await createTestIssue(app, token, project.id)
   })
 
   it('GET retrieves a profile by session user id with status 200', async () => {
@@ -51,7 +30,7 @@ describe('/me profile routes', () => {
       .expect(200)
       .expect('Content-Type', /json/)
 
-    expect(result.body.username).toBe(username)
+    expect(result.body.id).toBe(user.id)
   })
 
   it('PATCH updates username by session user id with status 201', async () => {
@@ -69,6 +48,14 @@ describe('/me profile routes', () => {
     const newUser = await createTestUser('b@b.b')
     const newToken = await createAuthToken(newUser.id)
 
+    const username = 'user'
+    await request(app)
+      .patch(`/me/profile`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ username: username })
+      .expect(200)
+      .expect('Content-Type', /json/)
+
     const result = await request(app)
       .patch(`/me/profile`)
       .set('Authorization', `Bearer ${newToken}`)
@@ -80,7 +67,7 @@ describe('/me profile routes', () => {
   })
 
   it('PATCH returns 400 when provided with an invalid username', async () => {
-    const result = await request(app)
+    await request(app)
       .patch(`/me/profile`)
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -92,7 +79,7 @@ describe('/me profile routes', () => {
   })
 
   it('PATCH returns 400 when provided with a blank username', async () => {
-    const result = await request(app)
+    await request(app)
       .patch(`/me/profile`)
       .set('Authorization', `Bearer ${token}`)
       .send({
@@ -362,5 +349,118 @@ describe('PATCH /me/invites/:id', () => {
       .expect(200)
 
     expect(contributors.body).toMatchObject([])
+  })
+})
+
+describe('GET me/contributors', () => {
+  let app: Application
+  let owner: User
+  let token: string
+
+  beforeEach(async () => {
+    app = createApp()
+    owner = await createTestUser()
+    token = await createAuthToken(owner.id)
+  })
+
+  it('gets all project-contributor rows by user, returning status 200', async () => {
+    const contributor = await createTestUser('contributor')
+    const contributorToken = await createAuthToken(contributor.id)
+
+    const projects = []
+    for (let i = 0; i < 3; i++) {
+      projects[i] = await createTestProject(app, token, `project${i + 1}`)
+      await makeContributor(contributor.id, projects[i].id)
+    }
+
+    const response = await request(app)
+      .get(`/me/contributors`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    for (let i = 0; i < projects.length; i++) {
+      expect(response.body[i]).toMatchObject({
+        user_id: contributor.id,
+        project_id: projects[i].id,
+        joined_at: expect.any(String),
+      })
+    }
+    expect(response.body).toHaveLength(projects.length)
+  })
+
+  it('returns list of just the user with status 200 when user found but no contributor rows', async () => {
+    const app = createApp()
+
+    const user = await createTestUser('newbie@project.free')
+    const token = await createAuthToken(user.id)
+
+    const response = await request(app)
+      .get(`/me/contributors`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(response.body).toHaveLength(0)
+  })
+
+  it('rejects request with status 404 when no rows or user found', async () => {
+    const fakeId = crypto.randomUUID()
+    const fakeIdToken = await createAuthToken(fakeId)
+
+    const response = await request(app)
+      .get(`/me/contributors`)
+      .set('Authorization', `Bearer ${fakeIdToken}`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('USER_NOT_FOUND')
+  })
+})
+
+describe('DELETE project-contributors', () => {
+  let app: Application
+  let owner: User
+  let ownerToken: string
+  let project: Project
+  let contributor: User
+  let contributorToken: string
+
+  beforeEach(async () => {
+    app = createApp()
+    owner = await createTestUser('i@own.you')
+    ownerToken = await createAuthToken(owner.id)
+    project = await createTestProject(app, ownerToken)
+    contributor = await createTestUser('live@to.serve')
+    contributorToken = await createAuthToken(contributor.id)
+    await makeContributor(contributor.id, project.id)
+  })
+
+  it('contributor successfully deletes a project contributor row, returning status 204', async () => {
+    await request(app)
+      .delete(`/me/contributors/${project.id}`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .expect(204)
+
+    const response = await request(app)
+      .get(`/me/contributors`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .expect(200)
+
+    expect(response.body).toHaveLength(0)
+  })
+
+  // return 404
+  it('rejects request with status 404 when no corresponding row found', async () => {
+    const fakeId = crypto.randomUUID()
+    const fakeIdToken = await createAuthToken(fakeId)
+
+    const response = await request(app)
+      .delete(`/me/contributors/${project.id}`)
+      .set('Authorization', `Bearer ${fakeIdToken}`)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('CONTRIBUTOR_NOT_FOUND')
   })
 })

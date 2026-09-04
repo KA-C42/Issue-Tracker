@@ -21,12 +21,13 @@ jobs:
             package-lock.json
             frontend/package-lock.json
             backend/package-lock.json
+            shared/package-lock.json
 
       - name: Install dependencies
-        run: |
-          npm ci
-          npm ci --prefix frontend
-          npm ci --prefix backend
+        run: npm ci
+
+      - name: Build shared package
+        run: npm run build --workspace=shared/
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v3

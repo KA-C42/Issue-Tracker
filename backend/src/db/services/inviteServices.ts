@@ -1,4 +1,4 @@
-import type { Invite } from '../../types/db.js'
+import type { Invite } from '@issue-tracker/shared'
 import { pool } from '../pool.js'
 
 export async function getInvite(id: string): Promise<Invite | null> {

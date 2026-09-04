@@ -4,7 +4,6 @@ import { AppError } from '../errors/AppError.js'
 import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import { buildProjectPatchQuery } from '../queries/projectPatchQuery.js'
-import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { validateRequest } from '../middleware/validateRequest.js'
 import {
   createProjectSchema,
@@ -26,17 +25,16 @@ const projectRouter = Router()
 projectRouter.post(
   '/',
   validateRequest(createProjectSchema, (req) => ({
-    name: req.body.name,
+    title: req.body.title,
     code: req.body.code,
     description: req.body.description,
-    creator_id: req.user?.sub as string,
   })),
   async (req, res) => {
     const text =
-      'INSERT INTO projects (creator_id, name, description, code) VALUES ($1, $2, $3, $4) RETURNING *'
+      'INSERT INTO projects (creator_id, title, description, code) VALUES ($1, $2, $3, $4) RETURNING *'
     const values = [
-      res.locals.validated.creator_id,
-      res.locals.validated.name,
+      req.user?.sub,
+      res.locals.validated.title,
       res.locals.validated.description,
       res.locals.validated.code,
     ]
@@ -63,32 +61,6 @@ projectRouter.get(
     res.status(200).json(res.locals.project)
   },
 )
-
-// Get all projects the session user owns or contributes to
-// TODO: consider moving to /me
-projectRouter.get('/', async (req, res) => {
-  const user = req.user as JwtUser
-
-  const text = `
-    SELECT p.* 
-    FROM projects p 
-    LEFT JOIN project_contributors pc
-    ON pc.project_id = p.id
-    WHERE p.creator_id = $1
-    OR pc.user_id = $1
-    ORDER BY 
-      CASE WHEN p.creator_id = $1 THEN 0 ELSE 1 END,
-      CASE WHEN p.creator_id = $1 THEN p.created_at ELSE pc.joined_at END ASC
-    `
-  const values = [user.sub]
-
-  try {
-    const result = await pool.query(text, values)
-    return res.status(200).json(result.rows)
-  } catch (err) {
-    dbErrorMapper(err as DbError)
-  }
-})
 
 projectRouter.patch(
   '/:id',
@@ -154,7 +126,7 @@ projectRouter.get(
   async (req, res) => {
     const text = `
         SELECT 
-          p.name,
+          p.title,
           pc.*
         FROM projects p
         LEFT JOIN project_contributors pc
@@ -206,7 +178,6 @@ projectRouter.delete(
     try {
       const result = await pool.query(text, values)
       if (result.rowCount === 0) throw new AppError('CONTRIBUTOR_NOT_FOUND')
-
       res.sendStatus(204)
     } catch (err) {
       dbErrorMapper(err as DbError)

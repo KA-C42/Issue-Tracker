@@ -8,17 +8,9 @@ import {
   makeContributor,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
-import { Project, User } from '../../src/types/db.js'
+import { Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from './helpers/createAuthToken.js'
 
-// GET
-// - all by user
-// - all by project
-// - empty list by user
-// - empty list by project
-// - 404 by project
-// - 404 by user
-// - 403 by project
 describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => {
   let app: Application
   let owner: User
@@ -28,32 +20,6 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     app = createApp()
     owner = await createTestUser()
     token = await createAuthToken(owner.id)
-  })
-
-  it('gets all project-contributor rows by user, returning status 200', async () => {
-    const contributor = await createTestUser('contributor')
-    const contributorToken = await createAuthToken(contributor.id)
-
-    const projects = []
-    for (let i = 0; i < 3; i++) {
-      projects[i] = await createTestProject(app, token, `project${i + 1}`)
-      await makeContributor(contributor.id, projects[i].id)
-    }
-
-    const response = await request(app)
-      .get(`/profiles/me/contributors`)
-      .set('Authorization', `Bearer ${contributorToken}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    for (let i = 0; i < projects.length; i++) {
-      expect(response.body[i]).toMatchObject({
-        user_id: contributor.id,
-        project_id: projects[i].id,
-        joined_at: expect.any(String),
-      })
-    }
-    expect(response.body).toHaveLength(projects.length)
   })
 
   it('gets all project-contributor rows by project, returning status 200', async () => {
@@ -82,21 +48,6 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
     expect(response.body).toHaveLength(contributors.length)
   })
 
-  it('returns list of just the user with status 200 when user found but no contributor rows', async () => {
-    const app = createApp()
-
-    const user = await createTestUser('newbie@project.free')
-    const token = await createAuthToken(user.id)
-
-    const response = await request(app)
-      .get(`/profiles/me/contributors`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(response.body).toHaveLength(0)
-  })
-
   it('returns list of just the project with status 200 when project found but no contributor rows', async () => {
     const app = createApp()
 
@@ -110,19 +61,6 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
       .expect('Content-Type', /json/)
 
     expect(response.body).toHaveLength(0)
-  })
-
-  it('rejects request with status 404 when no rows or user found', async () => {
-    const fakeId = crypto.randomUUID()
-    const fakeIdToken = await createAuthToken(fakeId)
-
-    const response = await request(app)
-      .get(`/profiles/me/contributors`)
-      .set('Authorization', `Bearer ${fakeIdToken}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('USER_NOT_FOUND')
   })
 
   it('rejects request with status 404 when no rows or project found', async () => {
@@ -151,12 +89,6 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
   })
 })
 
-// DELETE tests
-// - by project owner
-// - by contributor
-// - 404 no contributor row
-// - 403 by project owner
-// - 403 by contributor
 describe('DELETE project-contributors', () => {
   let app: Application
   let owner: User
@@ -187,34 +119,6 @@ describe('DELETE project-contributors', () => {
       .expect(200)
 
     expect(response.body).toHaveLength(0)
-  })
-
-  it('contributor successfully deletes a project contributor row, returning status 204', async () => {
-    await request(app)
-      .delete(`/profiles/me/contributors/${project.id}`)
-      .set('Authorization', `Bearer ${contributorToken}`)
-      .expect(204)
-
-    const response = await request(app)
-      .get(`/profiles/me/contributors/`)
-      .set('Authorization', `Bearer ${contributorToken}`)
-      .expect(200)
-
-    expect(response.body).toHaveLength(0)
-  })
-
-  // return 404
-  it('rejects request with status 404 when no corresponding row found', async () => {
-    const fakeId = crypto.randomUUID()
-    const fakeIdToken = await createAuthToken(fakeId)
-
-    const response = await request(app)
-      .delete(`/profiles/me/contributors/${project.id}`)
-      .set('Authorization', `Bearer ${fakeIdToken}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('CONTRIBUTOR_NOT_FOUND')
   })
 
   it('rejects request through /projects by non-owner with 403', async () => {

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { idSchema } from '../commonSchemas'
+import { idSchema } from '../commonSchemas.js'
 
 export const createCommentSchema = z.object({
   issue_id: idSchema,

@@ -1,7 +1,7 @@
 import { Application } from 'express'
 import { beforeEach, describe, it } from 'vitest'
 import request from 'supertest'
-import { Project, User } from '../../src/types/db'
+import { Project, User } from '@issue-tracker/shared'
 import createApp from '../../src/api/app'
 import {
   createInvite,

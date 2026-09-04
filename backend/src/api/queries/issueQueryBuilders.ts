@@ -1,61 +1,24 @@
-import type { UpdateIssueInput } from '@issue-tracker/shared'
-import type { IssueStatus } from '../../types/enums.js'
-import { AppError } from '../errors/AppError.js'
+import type {
+  UpdateIssueInput,
+  IssueStatus,
+  CreateIssueInput,
+} from '@issue-tracker/shared'
 
-type issuePostFields = {
-  creator_id: string
-  title: string
-  details?: string
-  status?: string
-  assignee_id?: string
-  project_id: string
-}
+function buildIssuePostQuery(creatorId: string, content: CreateIssueInput) {
+  const body = {
+    creator_id: creatorId,
+    ...content,
+  }
 
-type issuePatchFields = {
-  title?: string
-  details?: string
-  status?: IssueStatus
-  assignee_id?: string | null
-}
-
-function buildIssuePostQuery(body: issuePostFields) {
   const fields = []
   const values = []
   let i = 1
   const valuesNumberList = []
 
-  fields.push(`creator_id`)
-  values.push(body.creator_id)
-  valuesNumberList.push(i++)
-
-  fields.push(`project_id`)
-  values.push(body.project_id)
-  valuesNumberList.push(i++)
-
-  fields.push(`title`)
-  values.push(body.title)
-  valuesNumberList.push(i++)
-
-  if (body.details !== undefined) {
-    fields.push(`details`)
-    values.push(body.details)
+  for (const [field, value] of Object.entries(body)) {
+    fields.push(`${field}`)
+    values.push(value)
     valuesNumberList.push(i++)
-  }
-
-  if (body.status !== undefined) {
-    fields.push(`status`)
-    values.push(body.status)
-    valuesNumberList.push(i++)
-  }
-
-  if (body.assignee_id !== undefined) {
-    fields.push(`assignee_id`)
-    values.push(body.assignee_id)
-    valuesNumberList.push(i++)
-  }
-
-  if (fields.length === 0) {
-    throw new AppError('NO_PROJECT_FIELDS_PROVIDED')
   }
 
   const text = `INSERT INTO issues (${fields.join(', ')}) VALUES ($${valuesNumberList.join(', $')}) RETURNING *`
@@ -127,4 +90,3 @@ function buildIssuePatchQuery(data: UpdateIssueInput) {
 }
 
 export { buildIssuePostQuery, buildIssueGetQuery, buildIssuePatchQuery }
-export type { issuePostFields, issuePatchFields }

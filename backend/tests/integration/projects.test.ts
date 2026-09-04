@@ -2,20 +2,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
-import {
-  createTestProject,
-  createTestUser,
-  makeContributor,
-} from './helpers/createTestRows.js'
+import { createTestProject, createTestUser } from './helpers/createTestRows.js'
 import { Application } from 'express'
-import { Project, User } from '../../src/types/db.js'
+import { Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from './helpers/createAuthToken.js'
 
-// POST
-// - success
-// - missing name
-// - missing code
-// - name conflict
 describe('POST /projects', () => {
   let app: Application
   let user: User
@@ -29,7 +20,7 @@ describe('POST /projects', () => {
 
   it('inserts a new project with status 201, returning the new row', async () => {
     const payload = {
-      name: 'insert project success',
+      title: 'insert project success',
       description: 'successfully inserts a project row',
       code: 'CODE',
     }
@@ -62,7 +53,7 @@ describe('POST /projects', () => {
 
   it('rejects new project missing a code with status 400', async () => {
     const payload = {
-      name: 'you dont own me',
+      title: 'you dont own me',
       description: 'see you never :P',
     }
 
@@ -76,9 +67,9 @@ describe('POST /projects', () => {
     expect(response.body.error.code).toBe('VALIDATION_ERROR')
   })
 
-  it('rejects new project with with status 409 if the project name is already in use by the project owner', async () => {
+  it('rejects new project with with status 409 if the project title is already in use by the project owner', async () => {
     const payload = {
-      name: 'projeyMcProject',
+      title: 'projeyMcProject',
       description: 'the one and only',
       creator_id: user.id,
       code: 'CODE',
@@ -104,7 +95,7 @@ describe('POST /projects', () => {
 
   it('rejects new project with project code greater than 4 characters with status 400', async () => {
     const payload = {
-      name: 'you dont own me',
+      title: 'you dont own me',
       description: 'see you never :P',
       code: 'three',
     }
@@ -121,7 +112,7 @@ describe('POST /projects', () => {
 
   it('rejects new project with project code containing non-alphanumeric characters with status 400', async () => {
     const payload = {
-      name: 'you dont own me',
+      title: 'you dont own me',
       description: 'see you never :P',
       code: ':3',
     }
@@ -137,9 +128,6 @@ describe('POST /projects', () => {
   })
 })
 
-// GET by id
-// - success
-// - no project
 describe('GET /projects/:id', () => {
   let app: Application
   let user: User
@@ -177,12 +165,6 @@ describe('GET /projects/:id', () => {
   })
 })
 
-// PATCH
-// - success
-// - success on partial update
-// - missing both new name/description
-// - missing project id
-// - no project
 describe('PATCH /projects/:id', () => {
   let app: Application
   let user: User
@@ -204,7 +186,7 @@ describe('PATCH /projects/:id', () => {
 
   it("updates a project's name, description, code, and modified_at field with status 200", async () => {
     const payload = {
-      name: 'newProjectName',
+      title: 'newProjectName',
       description: 'updated description',
       code: 'RAWR',
     }
@@ -238,7 +220,7 @@ describe('PATCH /projects/:id', () => {
     expect(response.body).toMatchObject({
       ...payload,
       id: project.id,
-      name: project.name,
+      title: project.title,
       code: project.code,
     })
     expect(response.body.modified_at).not.toBe(project.modified_at)
@@ -259,7 +241,7 @@ describe('PATCH /projects/:id', () => {
 
   it('rejects a patch request missing project id with status 404', async () => {
     const payload = {
-      name: 'newy',
+      title: 'newy',
       description: 'should not',
     }
 
@@ -305,7 +287,7 @@ describe('PATCH /projects/:id', () => {
 
   it('rejects a request to modify a nonexistent project with status 404', async () => {
     const payload = {
-      name: 'newProjectName',
+      title: 'newProjectName',
       description: 'updated description',
     }
 
@@ -324,7 +306,7 @@ describe('PATCH /projects/:id', () => {
     const newToken = await createAuthToken(newUser.id)
 
     const payload = {
-      name: 'newProjectName',
+      title: 'newProjectName',
       description: 'updated description',
       code: 'RAWR',
     }
@@ -343,7 +325,7 @@ describe('PATCH /projects/:id', () => {
     const existingProject = await createTestProject(app, token, 'one of a kind')
 
     const payload = {
-      name: existingProject.name,
+      title: existingProject.title,
       description: 'should not',
     }
 
@@ -358,10 +340,6 @@ describe('PATCH /projects/:id', () => {
   })
 })
 
-// DELETE
-// - success
-// - no project
-// - not owner
 describe('DELETE /projects/:id', () => {
   let app: Application
   let user: User
@@ -382,7 +360,7 @@ describe('DELETE /projects/:id', () => {
       .expect(204)
 
     // verify project is gone
-    const result = await request(app)
+    await request(app)
       .get(`/projects/${project.id}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(404)

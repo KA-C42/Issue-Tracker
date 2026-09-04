@@ -7,21 +7,9 @@ import {
   makeContributor,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
-import { Project, User } from '../../../src/types/db.js'
+import { Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from '../helpers/createAuthToken.js'
 
-// POST
-// - by project owner
-// - by contributor
-// - all fields
-// - minimal fields
-// - 400 missing title
-// - 404 project
-// - 404 assignee_id
-// - 409 title conflict
-// - allow duplicate titles in diff project
-// - 422 assignee not member
-// - 403 creator not authorized
 describe('POST /issues', () => {
   let app: Application
   let owner: User

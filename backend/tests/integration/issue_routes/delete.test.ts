@@ -8,13 +8,9 @@ import {
   createTestUser,
   makeContributor,
 } from '../helpers/createTestRows'
-import { Issue, Project, User } from '../../../src/types/db'
+import { Issue, Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from '../helpers/createAuthToken'
 
-// DELETE
-// - success
-// - 404
-// - 403
 describe('DELETE issues', () => {
   let app: Application
   let user: User

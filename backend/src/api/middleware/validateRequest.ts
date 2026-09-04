@@ -1,9 +1,5 @@
-import type { Request, Response, NextFunction, RequestHandler } from 'express'
-import type { Issue } from '@issue-tracker/shared'
-import type { Project, User } from '../../types/db.js'
+import type { Request, RequestHandler } from 'express'
 import { AppError } from '../errors/AppError.js'
-import { getIssue } from '../../db/services/issueServices.js'
-import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { z } from 'zod'
 
 export const validateRequest = <T extends z.ZodSchema>(

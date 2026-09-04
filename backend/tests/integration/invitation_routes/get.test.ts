@@ -8,7 +8,7 @@ import {
   createTestUser,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
-import { Invite, Project, User } from '../../../src/types/db.js'
+import { Invite, Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from '../helpers/createAuthToken.js'
 
 describe('GET /projects/:project_id/invites', () => {

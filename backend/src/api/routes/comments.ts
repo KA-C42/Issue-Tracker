@@ -3,7 +3,6 @@ import { pool } from '../../db/pool.js'
 import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import type { JwtUser } from '../../types/authenticatedRequest.js'
-import { z } from 'zod'
 import {
   createCommentSchema,
   getByIdSchema,
@@ -94,7 +93,11 @@ commentRouter.patch(
 
     const text =
       'UPDATE comments SET comment = $1 WHERE id = $2 AND creator_id = $3 RETURNING *'
-    const values = [req.body.comment, req.params.id, user.sub]
+    const values = [
+      res.locals.validated.comment,
+      res.locals.validated.id,
+      user.sub,
+    ]
 
     try {
       const result = await pool.query(text, values)
@@ -115,14 +118,12 @@ commentRouter.delete(
   loadProject((req, res) => res.locals.issue.project_id),
   requireRule(anyOf(isProjectCreator, isCommentCreator)),
   async (req, res) => {
-    const user = req.user as JwtUser
-
     const text = `
     DELETE FROM comments
     WHERE id = $1
     `
 
-    const values = [req.params.id]
+    const values = [res.locals.validated.id]
 
     try {
       await pool.query(text, values)

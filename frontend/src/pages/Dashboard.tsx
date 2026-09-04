@@ -5,12 +5,11 @@ import CardBox from '@/components/cards/CardBox'
 import OwnedProjectCard from '@/components/cards/OwnedProjectCard'
 import { CreateProjectForm } from '@/components/CreateProjectForm'
 import { FormDialog } from '@/components/FormDialog'
-import type { Project } from '@/types/db'
+import type { Project } from '@issue-tracker/shared'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState, type Dispatch, type SetStateAction } from 'react'
 import { useOutletContext } from 'react-router-dom'
 
-// TODO as separate commit: load username in navbar from dashboard -> useAuth?
 export default function Dashboard() {
   const { user } = useAuthProtected()
 

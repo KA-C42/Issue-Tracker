@@ -8,7 +8,7 @@ import {
   makeContributor,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
-import { Project, User } from '../../../src/types/db.js'
+import { Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from '../helpers/createAuthToken.js'
 
 describe('POST invites', () => {

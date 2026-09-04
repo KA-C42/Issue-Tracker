@@ -1,4 +1,4 @@
-import type { Comment } from '../../types/db.js'
+import type { Comment } from '@issue-tracker/shared'
 import { pool } from '../pool.js'
 
 export async function getComment(commentId: string): Promise<Comment | null> {

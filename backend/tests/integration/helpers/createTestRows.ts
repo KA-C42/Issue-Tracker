@@ -8,8 +8,8 @@ import {
   Comment,
   Invite,
   User,
+  IssueStatus,
 } from '@issue-tracker/shared'
-import { IssueStatus } from '../../../src/types/enums'
 import { pool } from '../../../src/db/pool'
 
 const createTestUser = async (
@@ -44,7 +44,7 @@ const setUsername = async (
   token: string,
 ): Promise<Profile> => {
   const response = await request(app)
-    .patch(`/profiles/me`)
+    .patch(`/me/profile`)
     .set('Authorization', `Bearer ${token}`)
     .send({
       username: username,
@@ -57,7 +57,7 @@ const setUsername = async (
 const createTestProject = async (
   app: Application,
   token: string,
-  name: string = 'testProject',
+  title: string = 'testProject',
   code: string = 'PROJ',
   description: string = 'project for dev testing only',
 ): Promise<Project> => {
@@ -65,7 +65,7 @@ const createTestProject = async (
     .post('/projects')
     .set('Authorization', `Bearer ${token}`)
     .send({
-      name: name,
+      title: title,
       description: description,
       code: code,
     })

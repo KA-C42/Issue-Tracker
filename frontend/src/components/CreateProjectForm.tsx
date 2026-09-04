@@ -15,31 +15,22 @@ import { Spinner } from './ui/spinner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiError, apiErrorToFormDisplay } from '@/api/apiError'
+import {
+  createProjectSchema,
+  type CreateProjectInput,
+} from '@issue-tracker/shared'
 
 interface CreateProjectFormProps {
   close: () => void
 }
 
-const createProjectSchema = z.object({
-  name: z
-    .string()
-    .min(3, 'Name must be at least 3 characters')
-    .max(20, 'Name must be 20 or fewer characters'),
-  description: z
-    .string()
-    .max(300, 'Description must not exceed 300 characters'),
-  code: z.string().length(4, 'Code must be exactly 4 characters'),
-})
-
-type FormData = z.infer<typeof createProjectSchema>
-
 export function CreateProjectForm({ close }: CreateProjectFormProps) {
   const queryClient = useQueryClient()
 
-  const form = useForm<FormData>({
+  const form = useForm<CreateProjectInput>({
     resolver: zodResolver(createProjectSchema),
     defaultValues: {
-      name: '',
+      title: '',
       description: '',
       code: '',
     },
@@ -48,11 +39,10 @@ export function CreateProjectForm({ close }: CreateProjectFormProps) {
   const projectPost = useMutation({
     mutationFn: postProject,
     onSuccess: (data) => {
-      // TODO: once projects are listed, queryClient.invalidateQueries({ queryKey: ['Projects'] })
       form.reset()
       queryClient.invalidateQueries({ queryKey: projectsQueryOptions.queryKey })
       close()
-      toast.success(`Project '${data.name}' successfully created`)
+      toast.success(`Project '${data.title}' successfully created`)
     },
     onError: (err) => {
       if (err instanceof ApiError) {
@@ -76,16 +66,16 @@ export function CreateProjectForm({ close }: CreateProjectFormProps) {
       ></form>
       <FieldGroup>
         <Controller
-          name="name"
+          name="title"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="create-project-form-name">
-                Project Name
+              <FieldLabel htmlFor="create-project-form-title">
+                Project Title
               </FieldLabel>
               <Input
                 {...field}
-                id="create-project-form-name"
+                id="create-project-form-title"
                 placeholder="3-20 characters"
                 aria-invalid={fieldState.invalid}
               />

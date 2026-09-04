@@ -5,28 +5,13 @@ import {
   createTestUser,
   makeContributor,
 } from '../helpers/createTestRows'
-import { Issue, Project, User } from '../../../src/types/db'
+import { Issue, Project, User } from '@issue-tracker/shared'
 import createApp from '../../../src/api/app'
 import { beforeEach, describe, expect, it } from 'vitest'
 import request from 'supertest'
 import { createAuthToken } from '../helpers/createAuthToken'
+import { randomUUID } from 'node:crypto'
 
-// PATCH
-// - success maximum fields
-// - success only status
-// - success only assignee
-// - success assignee to null
-// - success only details
-// - 400 no body
-// - 404 issue
-// - 404 assignee
-// - 422 assignee
-
-// - success creator patches
-// - success project owner patches
-// - success non-creator/owner assignee changes status
-// - 403 non-creator/owner assignee changes non-status field
-// - 403 non-creator/owner/assignee
 describe('PATCH /issues/:id', () => {
   let app: Application
   let user: User
@@ -210,7 +195,7 @@ describe('PATCH /issues/:id', () => {
     expect(result.body.error.code).toBe('VALIDATION_ERROR')
   })
 
-  it('returns 400 when provided with an empty body', async () => {
+  it('returns 409 when provided with a pre-existing issue title', async () => {
     const existingIssue = await createTestIssue(
       app,
       token,
@@ -499,5 +484,231 @@ describe('PATCH /issues/:id/status', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('VALIDATION_ERROR')
+  })
+})
+
+describe('PATCH /issues/:id/assignee', () => {
+  let app: Application
+  let projectCreator: User
+  let token: string
+  let project: Project
+  let issue: Issue
+  let contributor: User
+  let contributorToken: string
+
+  beforeEach(async () => {
+    app = createApp()
+    projectCreator = await createTestUser()
+    token = await createAuthToken(projectCreator.id)
+    project = await createTestProject(app, token)
+    issue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'old title',
+      undefined,
+      'BACKLOG',
+    )
+    contributor = await createTestUser('m@m.m')
+    await makeContributor(contributor.id, project.id)
+    contributorToken = await createAuthToken(contributor.id)
+  })
+
+  it('project creator can update assignee_id, returning 200', async () => {
+    const payload = {
+      assignee_id: contributor.id,
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    const modifiedIssue = result.body
+
+    expect(modifiedIssue).toMatchObject({
+      ...issue,
+      assignee_id: payload.assignee_id,
+    })
+  })
+
+  it('issue creator can update assignee_id, returning 200', async () => {
+    const newIssue = await createTestIssue(
+      app,
+      contributorToken,
+      project.id,
+      'issue',
+    )
+    const payload = {
+      assignee_id: projectCreator.id,
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${newIssue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    const modifiedIssue = result.body
+
+    expect(modifiedIssue).toMatchObject({
+      ...newIssue,
+      assignee_id: payload.assignee_id,
+    })
+  })
+
+  it('project contributors, other than issue creator, cannot remove or replace another assigned member', async () => {
+    await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ assignee_id: projectCreator.id })
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    const replaceResult = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send({
+        assignee_id: contributor.id,
+      })
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(replaceResult.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+
+    const removeResult = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send({
+        assignee_id: null,
+      })
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(removeResult.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('project contributors can assign themselves when the existing assignee_id is null', async () => {
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send({
+        assignee_id: contributor.id,
+      })
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    const modifiedIssue = result.body
+
+    expect(modifiedIssue).toMatchObject({
+      ...issue,
+      assignee_id: contributor.id,
+    })
+  })
+
+  it('project contributors can unassign themselves, setting the assignee id to null', async () => {
+    await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        assignee_id: contributor.id,
+      })
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send({
+        assignee_id: null,
+      })
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    const modifiedIssue = result.body
+
+    expect(modifiedIssue).toMatchObject({
+      ...issue,
+      assignee_id: null,
+    })
+  })
+
+  it('project contributors cannot assign other members', async () => {
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send({ assignee_id: projectCreator.id })
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 403 when called by a user that is not a project member', async () => {
+    const newUser = await createTestUser('b@m.m')
+    const newToken = await createAuthToken(newUser.id)
+
+    const payload = {
+      assignee_id: randomUUID(),
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 400 when called with an invalid id', async () => {
+    const payload = {
+      assignee_id: 'flarb-n-garbl',
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(400)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('returns 404 when issue id not found', async () => {
+    const payload = {
+      assignee_id: contributor.id,
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${randomUUID()}/assignee`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(404)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('ISSUE_NOT_FOUND')
+  })
+
+  it('returns 422 when assignee is not a project member', async () => {
+    const outsider = await createTestUser('outsider@nope.com')
+
+    const payload = {
+      assignee_id: outsider.id,
+    }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}/assignee`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(422)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('INVALID_ASSIGNEE')
   })
 })

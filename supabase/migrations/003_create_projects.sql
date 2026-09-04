@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS projects (
 
   creator_id uuid REFERENCES profiles (id) ON DELETE CASCADE NOT NULL, 
 
-  name text NOT NULL CHECK (char_length(name) BETWEEN 1 and 64),
+  title text NOT NULL CHECK (char_length(title) BETWEEN 1 and 64),
 
   description text,
 
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS projects (
 
   created_at timestamptz NOT NULL DEFAULT now(),
 
-  UNIQUE (creator_id, name)
+  UNIQUE (creator_id, title)
 
 );
 

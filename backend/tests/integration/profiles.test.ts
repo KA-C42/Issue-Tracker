@@ -1,47 +1,11 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import crypto, { randomUUID } from 'node:crypto'
+import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
 import { createTestUser, setUsername } from './helpers/createTestRows.js'
-import { getProfile } from '../../src/db/services/userServices.js'
 import { createAuthToken } from './helpers/createAuthToken.js'
 import { Application } from 'express'
-import { Profile, User } from '../../src/types/db.js'
-
-describe('GET /profiles/me', () => {
-  let app: Application
-
-  beforeEach(async () => {
-    app = createApp()
-  })
-
-  it('retrieves a user row by session id with status 200', async () => {
-    const user = await createTestUser()
-    const token = await createAuthToken(user.id)
-
-    const response = await request(app)
-      .get(`/profiles/me`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(response.body).toMatchObject({
-      id: user.id,
-    })
-  })
-
-  it('rejects a request for nonexistent session user id with status 404', async () => {
-    const token = await createAuthToken(randomUUID())
-
-    const response = await request(app)
-      .get(`/profiles/me`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('USER_NOT_FOUND')
-  })
-})
+import { Profile, User } from '@issue-tracker/shared'
 
 describe('GET /profiles/:id', () => {
   let app: Application
@@ -126,29 +90,9 @@ describe('GET /profiles?user', () => {
     expect(result.body).toMatchObject(otherProfile)
   })
 
-  it("returns another user's profile by email", async () => {
-    const result = await request(app)
-      .get(`/profiles?user=${email}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(result.body).toMatchObject(otherProfile)
-  })
-
   it('returns 404 when user not found by username', async () => {
     const result = await request(app)
       .get(`/profiles?user=${'4040404'}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('USER_NOT_FOUND')
-  })
-
-  it('returns 404 when user not found by email', async () => {
-    const result = await request(app)
-      .get(`/profiles?user=${'404@not.found'}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(404)
       .expect('Content-Type', /json/)
@@ -164,74 +108,5 @@ describe('GET /profiles?user', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('VALIDATION_ERROR')
-  })
-})
-
-// only changeable field is username
-describe('PATCH /profiles', () => {
-  let app: Application
-  let user: User
-  let oldUsername: string | undefined
-  let token: string
-
-  beforeEach(async () => {
-    app = createApp()
-    user = await createTestUser()
-    oldUsername = (await getProfile(user.id))?.username
-    token = await createAuthToken(user.id)
-  })
-
-  it('successfully changes a users username with status 200', async () => {
-    const payload = {
-      username: 'kacy',
-    }
-
-    const response = await request(app)
-      .patch(`/profiles/me`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    expect(response.body).toMatchObject({
-      ...payload,
-      id: user.id,
-    })
-    expect(response.body.username).not.toBe(oldUsername)
-  })
-
-  it('rejects a request when the username is already in use with status 409', async () => {
-    const newUser = await createTestUser('other@users.email')
-    const newToken = await createAuthToken(newUser.id)
-
-    const payload = {
-      username: oldUsername,
-    }
-
-    const response = await request(app)
-      .patch(`/profiles/me`)
-      .set('Authorization', `Bearer ${newToken}`)
-      .send(payload)
-      .expect(409)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('USERNAME_CONFLICT')
-  })
-
-  it('rejects a request for a non-existent user with status 404', async () => {
-    const newToken = await createAuthToken(randomUUID())
-
-    const payload = {
-      username: 'totallyreal',
-    }
-
-    const response = await request(app)
-      .patch(`/profiles/me`)
-      .set('Authorization', `Bearer ${newToken}`)
-      .send(payload)
-      .expect(404)
-      .expect('Content-Type', /json/)
-
-    expect(response.body.error.code).toBe('USER_NOT_FOUND')
   })
 })

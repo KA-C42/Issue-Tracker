@@ -8,7 +8,7 @@ export default function dbErrorMapper(err: DbError): never {
   } 
   
   else if (err.code === '23505') {
-    if (err.constraint === 'projects_creator_id_name_key') throw new AppError('PROJECT_NAME_CONFLICT')
+    if (err.constraint === 'projects_creator_id_title_key') throw new AppError('PROJECT_NAME_CONFLICT')
     else if (err.constraint === 'profiles_username_key') throw new AppError('USERNAME_CONFLICT')
     else if (err.constraint === 'project_contributors_pkey') throw new AppError('ALREADY_MADE_CONTRIBUTOR')
     else if (err.constraint === 'issues_project_id_title_key') throw new AppError('ISSUE_TITLE_CONFLICT')

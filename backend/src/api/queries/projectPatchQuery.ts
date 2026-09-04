@@ -1,5 +1,3 @@
-import type { Response } from 'express'
-import { AppError } from '../errors/AppError.js'
 import type { UpdateProjectInput } from '@issue-tracker/shared'
 
 function buildProjectPatchQuery(data: UpdateProjectInput) {

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { getByIdSchema } from '../commonSchemas'
+import { getByIdSchema, idSchema } from '../commonSchemas.js'
 
 // enum enforced in db, any change in these requires a schema update
 export const issueStatusSchema = z.enum(['BACKLOG', 'IN_PROGRESS', 'DONE'])
@@ -45,6 +45,12 @@ export const updateIssueStatusSchema = updateIssueBaseSchema
 
 export const deleteIssueSchema = getByIdSchema
 export type DeleteIssueInput = z.infer<typeof deleteIssueSchema>
+
+export const updateIssueAssigneeSchema = z.object({
+  id: idSchema,
+  assignee_id: idSchema.nullable(),
+})
+export type UpdateIssueAssigneeInput = z.infer<typeof updateIssueAssigneeSchema>
 
 export type Issue = CreateIssueInput & {
   status: IssueStatus

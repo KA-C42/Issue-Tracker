@@ -10,7 +10,7 @@ import {
   makeContributor,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
-import { Comment, Issue, Project, User } from '../../src/types/db.js'
+import { Comment, Issue, Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from './helpers/createAuthToken.js'
 import { getComment } from '../../src/db/services/commentServices.js'
 import expectValidationError from './helpers/expectedErrors.js'

@@ -1,13 +1,11 @@
-import type { Request, Response, NextFunction, RequestHandler } from 'express'
-import {
-  getContributor,
-  getProject,
-} from '../../db/services/project.services.js'
+import type { Request, Response, RequestHandler } from 'express'
+import { getProject } from '../../db/services/project.services.js'
 import { AppError } from '../errors/AppError.js'
 import { getIssue } from '../../db/services/issueServices.js'
 import { getComment } from '../../db/services/commentServices.js'
 import { getProfile } from '../../db/services/userServices.js'
 import { getInvite } from '../../db/services/inviteServices.js'
+import { getContributor } from '../../db/services/contributorServices.js'
 
 type KeyGetter<K> = (req: Request, res: Response) => K
 

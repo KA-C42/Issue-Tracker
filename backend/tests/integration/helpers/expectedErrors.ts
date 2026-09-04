@@ -1,7 +1,6 @@
 import type { Response } from 'supertest'
 import { expect } from 'vitest'
 
-// TODO: refactor all validation errors to use this
 export default function expectValidationError(
   result: Response,
   expectedProblem: { code: string; path: string[] },

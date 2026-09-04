@@ -3,7 +3,6 @@ import { pool } from '../../db/pool.js'
 import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
 import { buildInviteGetQuery } from '../queries/inviteQueryBuilders.js'
-import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { validateRequest } from '../middleware/validateRequest.js'
 import {
   createInviteSchema,
@@ -11,7 +10,6 @@ import {
   inviteSenderResponseSchema,
 } from '@issue-tracker/shared'
 import {
-  allOf,
   anyOf,
   isProjectCreator,
   isProjectMember,
