@@ -5,7 +5,7 @@ A lightweight issue tracker for managing shared projects and issues among indivi
 
 
 ## MVP Features
- - User Accounts & Authentication: Account creation, authentication, and authorization based on project roles (MVP limited to owner or contributor).
+ - User Accounts & Authentication: Account creation, authentication, and relationship-based authorization (project creator, contributor, issue creator/assignee, comment author).
  - Project Management: Shared projects with a single owner and invited contributors.
  - Issue Tracking (Kanban-style): Issue creation, editing, assignment, and status tracking via a Backlog / In Progress / Done kanban view.
  - User Dashboard: Displays account info and project lists.
@@ -49,7 +49,6 @@ Base URL: `http://localhost:3000` (local) / TBD (deployed)
 Full endpoint reference: [docs/API.md](docs/API.md)
 
 ## Tooling & Code Quality
-CI checks planned, enforced once scaffolding in place  
 - ESLint + Prettier enforced locally (on save)
 - CI checks on PR or push to main:
   - Automated tests (Vitest, Playwright)
@@ -68,5 +67,5 @@ CI checks planned, enforced once scaffolding in place
 - [x] Test strategy defined
 - [x] Backend / frontend scaffolding
 - [x] CI pipeline (typecheck, lint, tests)
-- [ ] Backend feature implementation
+- [x] Backend feature implementation
 - [ ] Frontend feature implementation
