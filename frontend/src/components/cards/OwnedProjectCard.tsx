@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 
 export default function OwnedProjectCard(data: Project) {
   return (
-    <Link to={`/asd`}>
+    <Link to={`/projects/${data.id}`}>
       <Card>
         <CardHeader>
           <CardTitle>{data.title}</CardTitle>
