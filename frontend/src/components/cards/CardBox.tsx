@@ -11,7 +11,7 @@ export default function CardBox<T extends { id: string }>({
   CardType: ComponentType<T>
 }) {
   return (
-    <Card className="flex h-100 flex-col">
+    <Card className="flex sm:h-full flex-col">
       <CardHeader>
         <CardTitle className="text-center font-semibold">{title}</CardTitle>
       </CardHeader>

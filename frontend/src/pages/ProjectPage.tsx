@@ -24,10 +24,12 @@ export default function ProjectPage() {
   }
 
   return (
-    <div>
-      <SidebarProvider className="flex">
+    <div className="h-full flex flex-col min-h-0">
+      <SidebarProvider className="flex flex-1 min-h-0">
         <ProjectSidebar />
-        <Outlet />
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden p-6">
+          <Outlet />
+        </div>
       </SidebarProvider>
     </div>
   )

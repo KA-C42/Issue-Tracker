@@ -10,7 +10,10 @@ export const createIssueSchema = z.object({
   title: z.string().min(1),
   details: z.string().nullable().optional(),
   status: issueStatusSchema.optional(),
-  assignee_id: z.uuid().nullable().optional(),
+  assignee_id: z
+    .union([z.string(''), z.uuid()])
+    .nullable()
+    .optional(),
 })
 export type CreateIssueInput = z.infer<typeof createIssueSchema>
 

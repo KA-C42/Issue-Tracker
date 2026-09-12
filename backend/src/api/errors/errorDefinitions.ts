@@ -115,6 +115,7 @@ export const ERROR_DEFS: ErrorDictionary = {
   MISSING_ISSUE_TITLE: {
     statusCode: 400,
     message: 'Please provide an issue title',
+    field: 'title',
   },
   CREATOR_NOT_FOUND: {
     statusCode: 404,
@@ -123,14 +124,17 @@ export const ERROR_DEFS: ErrorDictionary = {
   ASSIGNEE_NOT_FOUND: {
     statusCode: 404,
     message: 'Requested assignee_id not found in profiles',
+    field: 'assignee_id',
   },
   INVALID_ASSIGNEE: {
     statusCode: 422,
     message: 'Requested assignee_id not owner or contributor to this project',
+    field: 'assignee_id',
   },
   ISSUE_TITLE_CONFLICT: {
     statusCode: 409,
     message: 'Requested title in use by another issue in this project',
+    field: 'title',
   },
   MISSING_SEARCH_PARAMETER: {
     statusCode: 400,
