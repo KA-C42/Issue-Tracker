@@ -8,7 +8,7 @@ export function Navbar({ pageName }: { pageName: string }) {
   }
 
   return (
-    <nav className="flex items-center justify-between border-b bg-background px-3 py-2 text-lg sticky top-0">
+    <nav className="flex items-center justify-between border-b bg-background px-3 py-2 text-lg sticky top-0 z-50">
       <span>Issue Tracker</span>
       <span>{pageName}</span>
       <button

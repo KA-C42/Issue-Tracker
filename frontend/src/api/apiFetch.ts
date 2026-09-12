@@ -1,13 +1,14 @@
 import { supabase } from '@/auth/supabaseClient'
 import { ApiError, type ApiErrorBody } from './apiError'
-import type {
-  CreateIssueInput,
-  CreateProjectInput,
+import {
+  type CreateIssueInput,
+  type CreateProjectInput,
+  type IssueStatus,
 } from '@issue-tracker/shared'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
-type bodyTypes = CreateProjectInput | CreateIssueInput
+type bodyTypes = CreateProjectInput | CreateIssueInput | { status: IssueStatus }
 
 const UNKNOWN_ERROR: ApiErrorBody = {
   code: 'UNKNOWN_ERROR',

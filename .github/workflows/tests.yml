@@ -47,6 +47,9 @@ jobs:
         run: npm run test --prefix backend
  
       - name: Frontend Vitest
+        env:
+          VITE_SUPABASE_URL: ${{ env.API_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ env.PUBLISHABLE_KEY }}
         run: npm run test:ui --prefix frontend
  
       - name: Install Playwright
