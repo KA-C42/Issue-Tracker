@@ -8,6 +8,12 @@ export const projectIssuesQueryOptions = (id: string) =>
     queryFn: ({ signal }) => getProjectIssues(signal, id),
   })
 
+export const singleIssueQueryOptions = (issueId: string) =>
+  queryOptions({
+    queryKey: ['issue', issueId],
+    queryFn: ({ signal }) => getIssue(signal, issueId),
+  })
+
 async function postIssue(data: CreateIssueInput) {
   const result = await apiFetch(
     'POST',
@@ -48,4 +54,31 @@ async function updateIssueStatus({
   return result
 }
 
-export { postIssue, getProjectIssues, updateIssueStatus }
+async function getIssue(abortSignal: AbortSignal, issueId: string) {
+  return apiFetch('GET', `/api/issues/${issueId}`, { signal: abortSignal })
+}
+
+async function patchIssue({
+  issueId,
+  data,
+}: {
+  issueId: string
+  data: Partial<
+    Pick<CreateIssueInput, 'title' | 'details' | 'status' | 'assignee_id'>
+  >
+}) {
+  return apiFetch('PATCH', `/api/issues/${issueId}`, { body: data })
+}
+
+async function deleteIssue(issueId: string) {
+  await apiFetch('DELETE', `/api/issues/${issueId}`)
+}
+
+export {
+  postIssue,
+  getProjectIssues,
+  updateIssueStatus,
+  patchIssue,
+  getIssue,
+  deleteIssue,
+}

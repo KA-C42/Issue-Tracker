@@ -11,6 +11,7 @@ import ProjectPage from './pages/ProjectPage'
 import IssueScreen from './pages/projectPages/IssueScreen'
 import MemberScreen from './pages/projectPages/MemberScreen'
 import ProjectDetailsScreen from './pages/projectPages/ProjectDetailsScreen'
+import IssueDetailScreen from './pages/projectPages/IssueDetailScreen'
 
 const queryClient = new QueryClient()
 
@@ -27,6 +28,10 @@ function App() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/projects/:id" element={<ProjectPage />}>
                   <Route index element={<IssueScreen />} />
+                  <Route
+                    path="/projects/:id/issues/:issueId"
+                    element={<IssueDetailScreen />}
+                  />
                   <Route
                     path="/projects/:id/members"
                     element={<MemberScreen />}

@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { apiFetch } from './apiFetch'
-import type { CreateProjectInput } from '@issue-tracker/shared'
+import type { CreateProjectInput, Project } from '@issue-tracker/shared'
 
 export const projectsQueryOptions = queryOptions({
   queryKey: ['projects'],
@@ -18,18 +18,21 @@ async function postProject(data: CreateProjectInput) {
   return result
 }
 
-async function getProjects(abortSignal: AbortSignal) {
+async function getProjects(abortSignal: AbortSignal): Promise<Project[]> {
   const result = await apiFetch('GET', '/api/me/projects', {
     signal: abortSignal,
   })
   return result
 }
 
-async function getSingleProject(abortSignal: AbortSignal, projectId: string) {
+async function getSingleProject(
+  abortSignal: AbortSignal,
+  projectId: string,
+): Promise<Project> {
   const result = await apiFetch('GET', `/api/projects/${projectId}`, {
     signal: abortSignal,
   })
   return result
 }
 
-export { postProject, getProjects }
+export { postProject, getProjects, getSingleProject }

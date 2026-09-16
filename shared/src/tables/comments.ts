@@ -6,6 +6,7 @@ export const createCommentSchema = z.object({
   comment: z.string(),
 })
 export type CreateCommentInput = z.infer<typeof createCommentSchema>
+export type CommentFields = Pick<CreateCommentInput, 'comment'>
 
 export const updateCommentSchema = z
   .object({ id: idSchema })

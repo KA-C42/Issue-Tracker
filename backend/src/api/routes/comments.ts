@@ -66,6 +66,10 @@ commentRouter.get<{ issue_id: string }>(
   })),
   loadIssue((req, res) => res.locals.validated.id),
   loadProject((req, res) => res.locals.issue.project_id),
+  loadContributor((req, res) => ({
+    project_id: res.locals.project.id,
+    user_id: req.user?.sub as string,
+  })),
   requireRule(isProjectMember),
   async (req, res) => {
     const text = `SELECT * FROM comments WHERE issue_id = $1 ORDER BY created_at ASC`
