@@ -17,6 +17,11 @@ export const createIssueSchema = z.object({
 })
 export type CreateIssueInput = z.infer<typeof createIssueSchema>
 
+export type UpdateIssueFields = Partial<
+  Pick<CreateIssueInput, 'title' | 'details' | 'status' | 'assignee_id'>
+>
+export type UpdateIssueStatusFields = { status: IssueStatus }
+
 export const getProjectIssuesSchema = createIssueSchema.omit({
   title: true,
   details: true,

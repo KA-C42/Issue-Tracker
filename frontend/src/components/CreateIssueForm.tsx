@@ -14,7 +14,7 @@ import { Spinner } from './ui/spinner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiError, apiErrorToFormDisplay } from '@/api/apiError'
-import { createIssueSchema, type IssueStatus } from '@issue-tracker/shared'
+import { createIssueSchema } from '@issue-tracker/shared'
 import { postIssue, projectIssuesQueryOptions } from '@/api/issues'
 import {
   Select,
@@ -25,12 +25,7 @@ import {
   SelectValue,
 } from './ui/select'
 import { useParams } from 'react-router-dom'
-
-const STATUS_ITEMS = [
-  { key: 'BACKLOG', value: 'BACKLOG', label: 'Backlog' },
-  { key: 'IN_PROGRESS', value: 'IN_PROGRESS', label: 'In Progress' },
-  { key: 'DONE', value: 'DONE', label: 'Done' },
-] as const satisfies { key: IssueStatus; value: IssueStatus; label: string }[]
+import { STATUS_ITEMS } from '@/lib/issueStatusOptions'
 
 interface CreateIssueFormProps {
   close: () => void

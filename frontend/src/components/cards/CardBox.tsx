@@ -1,14 +1,20 @@
+// components/cards/CardBox.tsx
 import type { ComponentType } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
-export default function CardBox<T extends { id: string }>({
+export default function CardBox<
+  T extends { id: string },
+  E extends object = object,
+>({
   title,
   data,
   CardType,
+  extraProps,
 }: {
   title: string
   data: T[]
-  CardType: ComponentType<T>
+  CardType: ComponentType<T & E>
+  extraProps?: E
 }) {
   return (
     <Card className="flex sm:h-full flex-col">
@@ -21,7 +27,7 @@ export default function CardBox<T extends { id: string }>({
         ) : (
           data.map((item) => (
             <div key={item.id}>
-              <CardType {...item} />
+              <CardType {...item} {...(extraProps as E)} />
             </div>
           ))
         )}
