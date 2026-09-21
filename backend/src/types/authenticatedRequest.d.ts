@@ -2,7 +2,6 @@ import type { JwtPayload } from 'jsonwebtoken'
 
 export interface JwtUser extends JwtPayload {
   sub: string
-  email: string
   session_id: string
   iss: string
 }

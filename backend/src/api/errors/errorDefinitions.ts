@@ -45,7 +45,7 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
   MISSING_USER_QUERY: {
     statusCode: 400,
-    message: 'Please provide a username or email',
+    message: 'Please provide a valid username',
   },
   PROFILE_NOT_FOUND: {
     statusCode: 404,
