@@ -110,6 +110,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Please provide both a user_id and a project_id',
   },
+  CANNOT_REMOVE_OWNER: {
+    statusCode: 409,
+    message: 'Project creator/owner cannot be removed',
+  },
 
   // issue errors
   MISSING_ISSUE_TITLE: {

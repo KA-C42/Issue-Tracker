@@ -19,7 +19,6 @@ import {
 import {
   loadContributor,
   loadInvite,
-  loadProfile,
   loadProject,
 } from '../middleware/loadRequest.js'
 import { AppError } from '../errors/AppError.js'
@@ -32,9 +31,8 @@ inviteRouter.post<{ project_id: string }>(
   validateRequest(createInviteSchema, (req) => ({
     sender_id: req.user?.sub as string,
     project_id: req.params.project_id as string,
-    ...req.body,
+    recipient_id: req.body.recipient_id,
   })),
-  loadProfile((req, res) => res.locals.validated.recipient_id),
   loadProject((req, res) => res.locals.validated.project_id),
   loadContributor((req, res) => ({
     project_id: res.locals.validated.project_id,
@@ -69,6 +67,10 @@ inviteRouter.get<{ project_id: string }>(
     id: req.params.project_id as string,
   })),
   loadProject((req, res) => res.locals.validated.id),
+  loadContributor((req, res) => ({
+    project_id: res.locals.validated.id,
+    user_id: req.user?.sub as string,
+  })),
   requireRule(isProjectMember),
   async (req, res) => {
     const { text, values } = buildInviteGetQuery(

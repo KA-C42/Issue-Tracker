@@ -12,7 +12,7 @@ import {
 } from '@issue-tracker/shared'
 import { buildInviteGetQuery } from '../queries/inviteQueryBuilders.js'
 import { isInvitee, requireRule } from '../middleware/authorize.js'
-import { loadInvite } from '../middleware/loadRequest.js'
+import { loadInvite, loadProject } from '../middleware/loadRequest.js'
 
 const meRouter = Router()
 
@@ -194,7 +194,11 @@ meRouter.delete(
     user_id: req.user?.sub as string,
     project_id: req.params.project_id as string,
   })),
+  loadProject((req, res) => res.locals.validated.project_id),
   async (req, res) => {
+    if (res.locals.validated.user_id === res.locals.project.creator_id)
+      throw new AppError('CANNOT_REMOVE_OWNER')
+
     const text = `
     DELETE FROM project_contributors
     WHERE user_id = $1

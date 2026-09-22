@@ -125,30 +125,15 @@ projectRouter.get(
   requireRule(isProjectMember),
   async (req, res) => {
     const text = `
-        SELECT 
-          p.title,
-          pc.*
-        FROM projects p
-        LEFT JOIN project_contributors pc
-          ON p.id = pc.project_id
-        WHERE p.id = $1
-        ORDER BY pc.joined_at
+      SELECT * FROM project_contributors
+      WHERE project_id = $1
+      ORDER BY joined_at
     `
     const values = [res.locals.validated.id]
 
     try {
       const result = await pool.query(text, values)
-
-      if (result.rowCount === 0) {
-        // if no row, no project
-        throw new AppError('PROJECT_NOT_FOUND')
-      } else if (result.rowCount === 1 && result.rows[0].user_id === null) {
-        // if 1 row w/ null user_id, no contributors
-        return res.status(200).send([])
-      } else {
-        // project w/ contributors
-        return res.status(200).send(result.rows)
-      }
+      return res.status(200).send(result.rows)
     } catch (err) {
       dbErrorMapper(err as DbError)
     }
@@ -164,6 +149,9 @@ projectRouter.delete(
   loadProject((req, res) => res.locals.validated.project_id),
   requireRule(isProjectCreator),
   async (req, res) => {
+    if (res.locals.validated.user_id === res.locals.project.creator_id)
+      throw new AppError('CANNOT_REMOVE_OWNER')
+
     const text = `
     DELETE FROM project_contributors
     WHERE project_id = $1
