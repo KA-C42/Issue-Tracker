@@ -294,7 +294,11 @@ describe('PATCH /me/invites/:id', () => {
       .set('AUTHORIZATION', `Bearer ${ownerToken}`)
       .expect(200)
 
-    expect(existingContributors.body).toStrictEqual([])
+    expect(existingContributors.body).toContainEqual(
+      expect.objectContaining({ user_id: owner.id, project_id: project.id }),
+    )
+
+    const ownerRow = existingContributors.body[0]
 
     const payload = {
       status: 'ACCEPTED',
@@ -318,6 +322,7 @@ describe('PATCH /me/invites/:id', () => {
       .expect(200)
 
     expect(contributors.body).toMatchObject([
+      ownerRow,
       {
         user_id: invitee.id,
         project_id: project.id,
@@ -342,13 +347,16 @@ describe('PATCH /me/invites/:id', () => {
       status: payload.status,
     })
 
-    // ensure project contributor row not created
+    // ensure no NEW contributor row was created — only the owner's own row is there
     const contributors = await request(app)
       .get(`/projects/${project.id}/contributors`)
       .set('Authorization', `Bearer ${ownerToken}`)
       .expect(200)
 
-    expect(contributors.body).toMatchObject([])
+    expect(contributors.body).toHaveLength(1)
+    expect(contributors.body).toContainEqual(
+      expect.objectContaining({ user_id: owner.id, project_id: project.id }),
+    )
   })
 })
 
@@ -462,5 +470,24 @@ describe('DELETE project-contributors', () => {
       .expect('Content-Type', /json/)
 
     expect(response.body.error.code).toBe('CONTRIBUTOR_NOT_FOUND')
+  })
+
+  it('rejects owner leaving their own project via /me/contributors with CANNOT_REMOVE_OWNER', async () => {
+    const response = await request(app)
+      .delete(`/me/contributors/${project.id}`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .expect(409)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('CANNOT_REMOVE_OWNER')
+
+    const contributors = await request(app)
+      .get(`/me/contributors`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .expect(200)
+
+    expect(contributors.body).toContainEqual(
+      expect.objectContaining({ project_id: project.id }),
+    )
   })
 })

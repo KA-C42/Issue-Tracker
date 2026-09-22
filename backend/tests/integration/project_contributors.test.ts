@@ -37,18 +37,24 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
       .expect(200)
       .expect('Content-Type', /json/)
 
-    for (let i = 0; i < contributors.length; i++) {
-      expect(response.body[i]).toMatchObject({
-        user_id: contributors[i].id,
-        project_id: project.id,
-        joined_at: expect.any(String),
-      })
+    expect(response.body).toHaveLength(contributors.length + 1)
+
+    for (const c of contributors) {
+      expect(response.body).toContainEqual(
+        expect.objectContaining({
+          user_id: c.id,
+          project_id: project.id,
+          joined_at: expect.any(String),
+        }),
+      )
     }
 
-    expect(response.body).toHaveLength(contributors.length)
+    expect(response.body).toContainEqual(
+      expect.objectContaining({ user_id: owner.id, project_id: project.id }),
+    )
   })
 
-  it('returns list of just the project with status 200 when project found but no contributor rows', async () => {
+  it("returns just the owner's row with status 200 when project has no other contributors", async () => {
     const app = createApp()
 
     const projectName = 'projecty'
@@ -60,7 +66,10 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
       .expect(200)
       .expect('Content-Type', /json/)
 
-    expect(response.body).toHaveLength(0)
+    expect(response.body).toHaveLength(1)
+    expect(response.body).toContainEqual(
+      expect.objectContaining({ user_id: owner.id, project_id: project.id }),
+    )
   })
 
   it('rejects request with status 404 when no rows or project found', async () => {
@@ -118,7 +127,10 @@ describe('DELETE project-contributors', () => {
       .set('Authorization', `Bearer ${ownerToken}`)
       .expect(200)
 
-    expect(response.body).toHaveLength(0)
+    expect(response.body).toHaveLength(1)
+    expect(response.body).toContainEqual(
+      expect.objectContaining({ user_id: owner.id, project_id: project.id }),
+    )
   })
 
   it('rejects request through /projects by non-owner with 403', async () => {
@@ -128,5 +140,24 @@ describe('DELETE project-contributors', () => {
       .expect(403)
 
     expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('rejects creator removing themselves via the admin route with CANNOT_REMOVE_OWNER', async () => {
+    const response = await request(app)
+      .delete(`/projects/${project.id}/contributors/${owner.id}`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .expect(409)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('CANNOT_REMOVE_OWNER')
+
+    const contributors = await request(app)
+      .get(`/projects/${project.id}/contributors`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .expect(200)
+
+    expect(contributors.body).toContainEqual(
+      expect.objectContaining({ user_id: owner.id, project_id: project.id }),
+    )
   })
 })

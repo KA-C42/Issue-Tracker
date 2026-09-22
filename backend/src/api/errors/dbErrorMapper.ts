@@ -18,6 +18,7 @@ export default function dbErrorMapper(err: DbError): never {
   else if (err.code === '23503') {
     if (err.constraint === 'project_contributors_user_id_fkey') throw new AppError('USER_NOT_FOUND')
     else if (err.constraint === 'project_contributors_project_id_fkey') throw new AppError('PROJECT_NOT_FOUND')
+    else if (err.constraint === 'invites_recipient_id_fkey') throw new AppError('RECIPIENT_NOT_FOUND')
   } 
   
   else if (err.code === '23502') {
@@ -27,6 +28,7 @@ export default function dbErrorMapper(err: DbError): never {
   else if (err.code === 'P0001') {
     if ( err.message === 'RECIPIENT_OWNS_PROJECT' ) throw new AppError('RECIPIENT_OWNS_PROJECT')
     else if ( err.message === 'RECIPIENT_ALREADY_CONTRIBUTOR' ) throw new AppError('RECIPIENT_ALREADY_CONTRIBUTOR')
+    else if ( err.message === 'CANNOT_REMOVE_OWNER') throw new AppError(err.message)
   }
 
   throw err

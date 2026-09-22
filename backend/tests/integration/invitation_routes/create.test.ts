@@ -60,7 +60,7 @@ describe('POST invites', () => {
       .expect(404)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('PROFILE_NOT_FOUND')
+    expect(result.body.error.code).toBe('RECIPIENT_NOT_FOUND')
   })
 
   it('returns 404 when project_id not found', async () => {
@@ -172,7 +172,7 @@ describe('POST invites', () => {
       .expect(409)
       .expect('Content-Type', /json/)
 
-    expect(result.body.error.code).toBe('RECIPIENT_OWNS_PROJECT')
+    expect(result.body.error.code).toBe('RECIPIENT_ALREADY_CONTRIBUTOR')
   })
 
   it('returns 403 when token id/sender is not project member', async () => {
