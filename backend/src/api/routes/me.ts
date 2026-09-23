@@ -76,15 +76,14 @@ meRouter.get('/projects', async (req, res) => {
   const user = req.user as JwtUser
 
   const text = `
-        SELECT p.* 
-        FROM projects p 
-        LEFT JOIN project_contributors pc
-        ON pc.project_id = p.id
-        WHERE p.creator_id = $1
-        OR pc.user_id = $1
-        ORDER BY 
+        SELECT p.*
+        FROM projects p
+        JOIN project_contributors pc
+          ON pc.project_id = p.id
+          AND pc.user_id = $1
+        ORDER BY
           CASE WHEN p.creator_id = $1 THEN 0 ELSE 1 END,
-          CASE WHEN p.creator_id = $1 THEN p.created_at ELSE pc.joined_at END ASC
+          pc.joined_at ASC
         `
   const values = [user.sub]
 

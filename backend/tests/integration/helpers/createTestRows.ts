@@ -91,6 +91,23 @@ const makeContributor = async (
   return result.rows[0]
 }
 
+const removeContributor = async (
+  user_id: string,
+  project_id: string,
+): Promise<void> => {
+  const text = `
+    DELETE FROM project_contributors
+    WHERE user_id = $1 AND project_id = $2
+  `
+  const values = [user_id, project_id]
+
+  const result = await pool.query(text, values)
+  if (result.rowCount !== 1)
+    throw new Error(
+      `removeContributor: ${user_id} not a contributor of ${project_id}`,
+    )
+}
+
 const createTestIssue = async (
   app: Application,
   token: string,
@@ -152,6 +169,7 @@ export {
   setUsername,
   createTestProject,
   makeContributor,
+  removeContributor,
   createTestIssue,
   createTestComment,
   createInvite,

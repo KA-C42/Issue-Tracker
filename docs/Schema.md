@@ -73,7 +73,7 @@ Additional Constraints and Indexes:
 | code         | TEXT        | NN                                           |       |
 | details      | TEXT        |                                              |       |
 | status       | TEXT        | NN, DEFAULT 'BACKLOG', CHECK                 | BACKLOG, IN_PROGRESS, DONE |
-| assignee_id  | UUID        | FK -> profiles.id                            | must be project member, enforced in code |
+| assignee_id  | UUID        | FK -> profiles.id                            | must be project member: checked in code on assign, cleared by trigger when the assignee leaves |
 | status_changed_at | TIMESTAMP |                                           | set on status change |
 | modified_at  | TIMESTAMP   |                                              | set on update |
 | created_at   | TIMESTAMP   | NN, DEFAULT now()                            |       |
@@ -170,6 +170,10 @@ For MVP, deletion behavior is kept intentionally simple and restrictive. Develop
     - Issues and comments stay, list creator/author as deactivated
     - Keep entries in project_contributors / mark deactivated in project member lists
     - Assigned issues are unassigned
+ - Project contributors
+    - Hard delete, via owner removal or the contributor leaving
+    - Owner's row is created with the project and cannot be deleted (triggers)
+    - Departing user's assigned issues in that project are unassigned (trigger)
  - Projects
     - Hard delete
     - Delete cascades (issues, comments, project_contributors, invites)

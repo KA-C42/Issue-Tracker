@@ -6,6 +6,7 @@ import {
   createTestUser,
   makeContributor,
   createInvite,
+  createTestIssue,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
 import { createAuthToken } from './helpers/createAuthToken.js'
@@ -154,6 +155,20 @@ describe('GET /me/projects', () => {
       .expect('Content-Type', /json/)
 
     expect(response.body).toStrictEqual([])
+  })
+
+  it('returns an owned project once when it has other contributors', async () => {
+    const other = await createTestUser('another@one.here')
+    const project = await createTestProject(app, token, 'shared')
+    await makeContributor(other.id, project.id)
+
+    const response = await request(app)
+      .get('/me/projects')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+
+    expect(response.body).toHaveLength(1)
+    expect(response.body[0].id).toBe(project.id)
   })
 })
 
@@ -489,5 +504,26 @@ describe('DELETE project-contributors', () => {
     expect(contributors.body).toContainEqual(
       expect.objectContaining({ project_id: project.id }),
     )
+  })
+
+  it("leaving a project drops only that project's issues from /me/issues", async () => {
+    // assigned one issue in `project` (will leave) and one in `other` (stays)
+    const other = await createTestProject(app, ownerToken, 'other')
+    await makeContributor(contributor.id, other.id)
+    await createTestIssue(app, ownerToken, project.id, 'left', contributor.id)
+    await createTestIssue(app, ownerToken, other.id, 'kept', contributor.id)
+
+    await request(app)
+      .delete(`/me/contributors/${project.id}`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .expect(204)
+
+    const myIssues = await request(app)
+      .get('/me/issues')
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .expect(200)
+
+    expect(myIssues.body).toHaveLength(1)
+    expect(myIssues.body[0].project_id).toBe(other.id)
   })
 })

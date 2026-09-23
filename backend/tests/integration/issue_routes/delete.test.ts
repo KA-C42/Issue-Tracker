@@ -7,6 +7,7 @@ import {
   createTestProject,
   createTestUser,
   makeContributor,
+  removeContributor,
 } from '../helpers/createTestRows'
 import { Issue, Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from '../helpers/createAuthToken'
@@ -57,6 +58,35 @@ describe('DELETE issues', () => {
 
     const response = await request(app)
       .delete(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 403 when the issue creator is no longer a project member', async () => {
+    const newUser = await createTestUser('gone@soon.bye')
+    const newToken = await createAuthToken(newUser.id)
+    await makeContributor(newUser.id, project.id)
+    const controlIssue = await createTestIssue(
+      app,
+      newToken,
+      project.id,
+      'control',
+    )
+    const newIssue = await createTestIssue(app, newToken, project.id, 'target')
+
+    // allowed while a member
+    await request(app)
+      .delete(`/issues/${controlIssue.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(204)
+
+    await removeContributor(newUser.id, project.id)
+
+    const response = await request(app)
+      .delete(`/issues/${newIssue.id}`)
       .set('Authorization', `Bearer ${newToken}`)
       .expect(403)
       .expect('Content-Type', /json/)

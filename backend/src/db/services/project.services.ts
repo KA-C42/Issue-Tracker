@@ -12,8 +12,7 @@ export async function getProject(projectId: string): Promise<Project | null> {
 
 export async function checkMembership(
   user_id: string,
-  project: Project,
+  project_id: string,
 ): Promise<boolean> {
-  if (user_id === project.creator_id) return true
-  return (await getContributor(project.id, user_id)) !== null
+  return (await getContributor(project_id, user_id)) !== null
 }
