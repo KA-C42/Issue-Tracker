@@ -15,6 +15,7 @@ import {
   loadProject,
 } from '../middleware/loadRequest.js'
 import {
+  allOf,
   anyOf,
   isCommentCreator,
   isProjectCreator,
@@ -33,7 +34,6 @@ commentRouter.post<{ issue_id: string }>(
     comment: req.body.comment,
   })),
   loadIssue((req, res) => res.locals.validated.issue_id),
-  loadProject((req, res) => res.locals.issue.project_id),
   loadContributor((req, res) => ({
     project_id: res.locals.issue.project_id,
     user_id: req.user?.sub as string,
@@ -65,9 +65,8 @@ commentRouter.get<{ issue_id: string }>(
     id: req.params.issue_id as string,
   })),
   loadIssue((req, res) => res.locals.validated.id),
-  loadProject((req, res) => res.locals.issue.project_id),
   loadContributor((req, res) => ({
-    project_id: res.locals.project.id,
+    project_id: res.locals.issue.project_id,
     user_id: req.user?.sub as string,
   })),
   requireRule(isProjectMember),
@@ -91,7 +90,12 @@ commentRouter.patch(
     ...req.body,
   })),
   loadComment((req, res) => res.locals.validated.id),
-  requireRule(isCommentCreator),
+  loadIssue((req, res) => res.locals.comment.issue_id),
+  loadContributor((req, res) => ({
+    project_id: res.locals.issue.project_id,
+    user_id: req.user?.sub as string,
+  })),
+  requireRule(allOf(isProjectMember, isCommentCreator)),
   async (req, res) => {
     const user = req.user as JwtUser
 
@@ -120,7 +124,13 @@ commentRouter.delete(
   loadComment((req, res) => res.locals.validated.id),
   loadIssue((req, res) => res.locals.comment.issue_id),
   loadProject((req, res) => res.locals.issue.project_id),
-  requireRule(anyOf(isProjectCreator, isCommentCreator)),
+  loadContributor((req, res) => ({
+    project_id: res.locals.project.id,
+    user_id: req.user?.sub as string,
+  })),
+  requireRule(
+    allOf(isProjectMember, anyOf(isProjectCreator, isCommentCreator)),
+  ),
   async (req, res) => {
     const text = `
     DELETE FROM comments

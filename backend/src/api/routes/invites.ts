@@ -10,6 +10,7 @@ import {
   inviteSenderResponseSchema,
 } from '@issue-tracker/shared'
 import {
+  allOf,
   anyOf,
   isProjectCreator,
   isProjectMember,
@@ -95,7 +96,11 @@ inviteRouter.patch(
   })),
   loadInvite((req, res) => res.locals.validated.id),
   loadProject((req, res) => res.locals.invite.project_id),
-  requireRule(anyOf(isProjectCreator, isSender)),
+  loadContributor((req, res) => ({
+    project_id: res.locals.project.id,
+    user_id: req.user?.sub as string,
+  })),
+  requireRule(allOf(isProjectMember, anyOf(isProjectCreator, isSender))),
   async (req, res) => {
     if (res.locals.invite.status !== 'PENDING')
       throw new AppError('INVITE_NOT_PENDING')

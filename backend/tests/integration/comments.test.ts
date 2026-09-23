@@ -8,6 +8,7 @@ import {
   createTestComment,
   createTestUser,
   makeContributor,
+  removeContributor,
 } from './helpers/createTestRows.js'
 import { Application } from 'express'
 import { Comment, Issue, Project, User } from '@issue-tracker/shared'
@@ -241,6 +242,35 @@ describe('PATCH comments', () => {
     expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 
+  it('returns 403 when the comment creator is no longer a project member', async () => {
+    const newUser = await createTestUser('gone@soon.bye')
+    const newToken = await createAuthToken(newUser.id)
+    await makeContributor(newUser.id, project.id)
+    const newComment = await createTestComment(app, newToken, issue.id, 'mine')
+
+    const payload = {
+      comment: 'edited',
+    }
+
+    // allowed while a member
+    await request(app)
+      .patch(`/comments/${newComment.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(200)
+
+    await removeContributor(newUser.id, project.id)
+
+    const result = await request(app)
+      .patch(`/comments/${newComment.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
   it('returns 404 when comment id not found', async () => {
     const payload = {
       creator_id: token,
@@ -318,6 +348,40 @@ describe('DELETE comments', () => {
 
     const response = await request(app)
       .delete(`/comments/${comment.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 403 when the comment creator is no longer a project member', async () => {
+    const newUser = await createTestUser('gone@soon.bye')
+    const newToken = await createAuthToken(newUser.id)
+    await makeContributor(newUser.id, project.id)
+    const controlComment = await createTestComment(
+      app,
+      newToken,
+      issue.id,
+      'control',
+    )
+    const newComment = await createTestComment(
+      app,
+      newToken,
+      issue.id,
+      'target',
+    )
+
+    // allowed while a member
+    await request(app)
+      .delete(`/comments/${controlComment.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .expect(204)
+
+    await removeContributor(newUser.id, project.id)
+
+    const response = await request(app)
+      .delete(`/comments/${newComment.id}`)
       .set('Authorization', `Bearer ${newToken}`)
       .expect(403)
       .expect('Content-Type', /json/)

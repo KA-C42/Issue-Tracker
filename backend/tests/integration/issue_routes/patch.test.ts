@@ -4,6 +4,7 @@ import {
   createTestProject,
   createTestUser,
   makeContributor,
+  removeContributor,
 } from '../helpers/createTestRows'
 import { Issue, Project, User } from '@issue-tracker/shared'
 import createApp from '../../../src/api/app'
@@ -343,6 +344,36 @@ describe('PATCH /issues/:id', () => {
 
     expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
+
+  it('returns 403 when the issue creator is no longer a project member', async () => {
+    const newUser = await createTestUser('gone@soon.bye')
+    await makeContributor(newUser.id, project.id)
+    const newToken = await createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(app, newToken, project.id, 'oldie')
+
+    const payload = {
+      title: 'new title',
+      details: 'so detailed wow',
+    }
+
+    // allowed while a member
+    await request(app)
+      .patch(`/issues/${newIssue.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(200)
+
+    await removeContributor(newUser.id, project.id)
+    // now disallowed
+    const result = await request(app)
+      .patch(`/issues/${newIssue.id}`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
 })
 
 describe('PATCH /issues/:id/status', () => {
@@ -484,6 +515,75 @@ describe('PATCH /issues/:id/status', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('VALIDATION_ERROR')
+  })
+
+  it('returns 403 when the issue creator is no longer a project member', async () => {
+    const newUser = await createTestUser('gone@soon.bye')
+    await makeContributor(newUser.id, project.id)
+    const newToken = await createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(
+      app,
+      newToken,
+      project.id,
+      'titleytitle',
+    )
+
+    const payload = {
+      status: 'DONE',
+    }
+
+    // allowed while a member
+    await request(app)
+      .patch(`/issues/${newIssue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(200)
+
+    await removeContributor(newUser.id, project.id)
+
+    const result = await request(app)
+      .patch(`/issues/${newIssue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 403 when the assignee is no longer a project member', async () => {
+    const newUser = await createTestUser('gone@soon.bye')
+    await makeContributor(newUser.id, project.id)
+    const newToken = await createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'titleytitle',
+      newUser.id,
+    )
+
+    const payload = {
+      status: 'DONE',
+    }
+
+    // allowed while a member
+    await request(app)
+      .patch(`/issues/${newIssue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(200)
+
+    await removeContributor(newUser.id, project.id)
+
+    const result = await request(app)
+      .patch(`/issues/${newIssue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })
 
@@ -710,5 +810,73 @@ describe('PATCH /issues/:id/assignee', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('INVALID_ASSIGNEE')
+  })
+
+  it('returns 403 when the issue creator is no longer a project member', async () => {
+    const newIssue = await createTestIssue(
+      app,
+      contributorToken,
+      project.id,
+      'issue',
+    )
+    const payload = {
+      assignee_id: projectCreator.id,
+    }
+
+    // allowed while a member
+    await request(app)
+      .patch(`/issues/${newIssue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send(payload)
+      .expect(200)
+
+    await removeContributor(contributor.id, project.id)
+
+    const result = await request(app)
+      .patch(`/issues/${newIssue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('returns 403 when an assignee who is no longer a project member tries to unassign themselves', async () => {
+    const controlIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'control',
+      contributor.id,
+    )
+    const newIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'target',
+      contributor.id,
+    )
+    const payload = {
+      assignee_id: null,
+    }
+
+    // allowed while a member
+    await request(app)
+      .patch(`/issues/${controlIssue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send(payload)
+      .expect(200)
+
+    await removeContributor(contributor.id, project.id)
+
+    const result = await request(app)
+      .patch(`/issues/${newIssue.id}/assignee`)
+      .set('Authorization', `Bearer ${contributorToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })

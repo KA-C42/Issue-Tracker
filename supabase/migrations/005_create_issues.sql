@@ -71,3 +71,18 @@ $$ LANGUAGE plpgsql SET search_path = public;
 CREATE OR REPLACE TRIGGER new_codeless_issue
     BEFORE INSERT ON issues
     FOR EACH ROW EXECUTE FUNCTION assign_issue_code();
+
+CREATE OR REPLACE FUNCTION unassign_departed_contributor()
+    RETURNS trigger AS $$
+    BEGIN
+        UPDATE issues
+            SET assignee_id = NULL
+            WHERE project_id = OLD.project_id
+            AND assignee_id = OLD.user_id;
+    RETURN NULL;
+    END;
+$$ LANGUAGE plpgsql SET search_path = public;
+
+CREATE OR REPLACE TRIGGER contributor_departed
+    AFTER DELETE ON project_contributors
+    FOR EACH ROW EXECUTE FUNCTION unassign_departed_contributor();

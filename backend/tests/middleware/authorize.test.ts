@@ -183,20 +183,17 @@ describe('individual Rule checks', () => {
       expect(rule(req, res)).toBe(false)
     },
   )
-
-  it('isProjectMember returns true when user id matches res.locals.project.creator_id', () => {
+  it('isProjectMember returns false for the project creator when no contributor row was loaded', () => {
     res.locals.project = { creator_id: userId }
-    expect(isProjectMember(req, res)).toBe(true)
+    expect(isProjectMember(req, res)).toBe(false)
   })
 
   it('isProjectMember returns true when res.locals.contributor was found and loaded onto res.locals', () => {
-    res.locals.project = { creator_id: 'some1 else' }
     res.locals.contributor = { user_id: userId }
     expect(isProjectMember(req, res)).toBe(true)
   })
 
-  it('isProjectMember returns false when user is not project creator and no contributor row was found/loaded into res.locals', () => {
-    res.locals.project = { creator_id: 'some2 else' }
+  it('isProjectMember returns false when no contributor row was found/loaded into res.locals', () => {
     expect(isProjectMember(req, res)).toBe(false)
   })
 

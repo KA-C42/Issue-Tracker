@@ -6,6 +6,8 @@ import {
   createTestProject,
   createInvite,
   createTestUser,
+  removeContributor,
+  makeContributor,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
 import { Invite, Project, User } from '@issue-tracker/shared'
@@ -176,5 +178,47 @@ describe('PATCH /invites/:id', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('INVITE_NOT_FOUND')
+  })
+
+  it('returns 403 when the sender is no longer a project member', async () => {
+    const sender = await createTestUser('sender@m.m')
+    const senderToken = await createAuthToken(sender.id)
+    await makeContributor(sender.id, project.id)
+    const controlRecipient = await createTestUser('control@m.m')
+    const recipient = await createTestUser('recipient@m.m')
+    const controlInvite = await createInvite(
+      app,
+      senderToken,
+      controlRecipient.id,
+      project.id,
+    )
+    const senderInvite = await createInvite(
+      app,
+      senderToken,
+      recipient.id,
+      project.id,
+    )
+
+    const payload = {
+      status: 'REVOKED',
+    }
+
+    // allowed while a member
+    await request(app)
+      .patch(`/invites/${controlInvite.id}`)
+      .set('Authorization', `Bearer ${senderToken}`)
+      .send(payload)
+      .expect(200)
+
+    await removeContributor(sender.id, project.id)
+
+    const result = await request(app)
+      .patch(`/invites/${senderInvite.id}`)
+      .set('Authorization', `Bearer ${senderToken}`)
+      .send(payload)
+      .expect(403)
+      .expect('Content-Type', /json/)
+
+    expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
 })

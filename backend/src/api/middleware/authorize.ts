@@ -15,7 +15,10 @@ export const isProjectCreator: Rule = (req, res) => {
 }
 
 export const isProjectMember: Rule = (req, res) => {
-  return isProjectCreator(req, res) || Boolean(res.locals.contributor)
+  return (
+    Boolean(res.locals.contributor) &&
+    res.locals.contributor.user_id === req.user?.sub
+  )
 }
 
 export const isIssueCreator: Rule = (req, res) => {

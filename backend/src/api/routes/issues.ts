@@ -43,10 +43,10 @@ const issueRouter = Router({ mergeParams: true })
 issueRouter.post<{ project_id: string }>(
   '/',
   validateRequest(createIssueSchema, (req) => ({
-    project_id: req.params.project_id as string,
     ...req.body,
+    project_id: req.params.project_id as string,
   })),
-  loadProject((req, res) => res.locals.validated.project_id),
+  loadProject((req, res) => res.locals.validated.project_id), // existence check, throws 404 if not
   loadContributor((req, res) => ({
     project_id: res.locals.validated.project_id,
     user_id: req.user?.sub as string,
@@ -57,7 +57,7 @@ issueRouter.post<{ project_id: string }>(
     if (assignee_id) {
       const assigneeIsMember = await checkMembership(
         assignee_id,
-        res.locals.project,
+        res.locals.validated.project_id,
       )
       if (!assigneeIsMember) throw new AppError('INVALID_ASSIGNEE')
     }
@@ -76,8 +76,8 @@ issueRouter.post<{ project_id: string }>(
 issueRouter.get<{ project_id: string }>(
   '/',
   validateRequest(getProjectIssuesSchema, (req) => ({
-    project_id: req.params.project_id as string,
     ...req.query,
+    project_id: req.params.project_id as string,
   })),
   loadProject((req, res) => res.locals.validated.project_id),
   loadContributor((req, res) => ({
@@ -110,7 +110,6 @@ issueRouter.get(
     id: req.params.id as string,
   })),
   loadIssue((req, res) => res.locals.validated.id),
-  loadProject((req, res) => res.locals.issue.project_id),
   loadContributor((req, res) => ({
     project_id: res.locals.issue.project_id,
     user_id: req.user?.sub as string,
@@ -132,7 +131,11 @@ issueRouter.patch(
   })),
   loadIssue((req, res) => res.locals.validated.id),
   loadProject((req, res) => res.locals.issue.project_id),
-  requireRule(anyOf(isIssueCreator, isProjectCreator)),
+  loadContributor((req, res) => ({
+    project_id: res.locals.project.id,
+    user_id: req.user?.sub as string,
+  })),
+  requireRule(allOf(isProjectMember, anyOf(isIssueCreator, isProjectCreator))),
 
   async (req, res) => {
     const assignee_id = res.locals.validated.assignee_id
@@ -140,7 +143,7 @@ issueRouter.patch(
     if (assignee_id) {
       const assigneeIsMember = await checkMembership(
         assignee_id,
-        res.locals.project,
+        res.locals.issue.project_id,
       )
       if (!assigneeIsMember) throw new AppError('INVALID_ASSIGNEE')
     }
@@ -166,8 +169,13 @@ issueRouter.patch(
   })),
   loadIssue((req, res) => res.locals.validated.id),
   loadProject((req, res) => res.locals.issue.project_id),
-  requireRule(anyOf(isProjectCreator, isIssueCreator, isAssignee)),
-
+  loadContributor((req, res) => ({
+    project_id: res.locals.issue.project_id,
+    user_id: req.user?.sub as string,
+  })),
+  requireRule(
+    allOf(isProjectMember, anyOf(isProjectCreator, isIssueCreator, isAssignee)),
+  ),
   async (req, res) => {
     const text = `
     UPDATE issues
@@ -194,15 +202,18 @@ issueRouter.patch(
   loadIssue((req, res) => res.locals.validated.id),
   loadProject((req, res) => res.locals.issue.project_id),
   loadContributor((req, res) => ({
-    project_id: res.locals.project.id,
+    project_id: res.locals.issue.project_id,
     user_id: req.user?.sub as string,
   })),
   requireRule(
-    anyOf(
-      isProjectCreator,
-      isIssueCreator,
-      allOf(isProjectMember, assigneeNullToSelf),
-      allOf(isAssignee, removingAssignee),
+    allOf(
+      isProjectMember,
+      anyOf(
+        isProjectCreator,
+        isIssueCreator,
+        assigneeNullToSelf,
+        allOf(isAssignee, removingAssignee),
+      ),
     ),
   ),
   async (req, res) => {
@@ -211,7 +222,7 @@ issueRouter.patch(
     if (assignee_id) {
       const assigneeIsMember = await checkMembership(
         assignee_id,
-        res.locals.project,
+        res.locals.project.id,
       )
       if (!assigneeIsMember) throw new AppError('INVALID_ASSIGNEE')
     }
@@ -239,7 +250,11 @@ issueRouter.delete(
   })),
   loadIssue((req, res) => res.locals.validated.id),
   loadProject((req, res) => res.locals.issue.project_id),
-  requireRule(anyOf(isProjectCreator, isIssueCreator)),
+  loadContributor((req, res) => ({
+    project_id: res.locals.issue.project_id,
+    user_id: req.user?.sub as string,
+  })),
+  requireRule(allOf(isProjectMember, anyOf(isProjectCreator, isIssueCreator))),
   async (req, res) => {
     const text = `
     DELETE FROM issues

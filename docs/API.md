@@ -184,6 +184,8 @@
 > | `204`         | no content        | no content             |
 > | `404`         | `application/json`                | `{"code":"CONTRIBUTOR_NOT_FOUND"}`                            |
 > | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`                            |
+> | `409` | `application/json` | `{"code":"CANNOT_REMOVE_OWNER"}` |
+- Unassigns the removed user from their issues in this project` under the table.
 
 </details>
 
@@ -433,6 +435,9 @@
 > | `204`         | no content        | no content             |
 > | `404`         | `application/json`        | `{"code":"CONTRIBUTOR_NOT_FOUND"}`           |
 > | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`           |
+> | `409` | `application/json` | `{"code":"CANNOT_REMOVE_OWNER"}` |
+
+- Unassigns the removed user from their issues in this project` under the table.
 
 </details>
 

@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import crypto from 'node:crypto'
 import request from 'supertest'
 import createApp from '../../src/api/app.js'
-import { createTestProject, createTestUser } from './helpers/createTestRows.js'
+import {
+  createTestIssue,
+  createTestProject,
+  createTestUser,
+  makeContributor,
+} from './helpers/createTestRows.js'
 import { Application } from 'express'
 import { Project, User } from '@issue-tracker/shared'
 import { createAuthToken } from './helpers/createAuthToken.js'
@@ -388,5 +393,16 @@ describe('DELETE /projects/:id', () => {
       .expect('Content-Type', /json/)
 
     expect(response.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('deletes a project whose contributors are assigned issues, returning code 204', async () => {
+    const contributor = await createTestUser('assigned@work.work')
+    await makeContributor(contributor.id, project.id)
+    await createTestIssue(app, token, project.id, 'assigned', contributor.id)
+
+    await request(app)
+      .delete(`/projects/${project.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(204)
   })
 })
