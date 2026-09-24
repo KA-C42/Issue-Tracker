@@ -12,6 +12,11 @@ export default function createApp() {
 
   app.use(express.json())
 
+  app.use((req, _res, next) => {
+    req.body ??= {}
+    next()
+  })
+
   app.use('/health', healthRouter)
 
   app.use(authenticateUser)
