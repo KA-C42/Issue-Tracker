@@ -253,4 +253,14 @@ describe('POST /issues', () => {
 
     expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
   })
+
+  it('returns 400 when assignee_id is not a uuid', async () => {
+    const result = await request(app)
+      .post(`/projects/${project.id}/issues`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .send({ title: 'new issue', assignee_id: 'abc' })
+      .expect(400)
+
+    expect(result.body.error.code).toBe('VALIDATION_ERROR')
+  })
 })

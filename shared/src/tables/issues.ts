@@ -7,13 +7,10 @@ export type IssueStatus = z.infer<typeof issueStatusSchema>
 
 export const createIssueSchema = z.object({
   project_id: z.uuid(),
-  title: z.string().min(1),
+  title: z.string().min(1).max(128, 'Title must be 128 or fewer characters'),
   details: z.string().nullable().optional(),
   status: issueStatusSchema.optional(),
-  assignee_id: z
-    .union([z.string(''), z.uuid()])
-    .nullable()
-    .optional(),
+  assignee_id: idSchema.nullable().optional(),
 })
 export type CreateIssueInput = z.infer<typeof createIssueSchema>
 
