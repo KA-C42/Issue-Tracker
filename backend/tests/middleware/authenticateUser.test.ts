@@ -46,7 +46,7 @@ describe('authenticateUser middleware function', () => {
     await request(app)
       .get(`/profiles/${user.id}`)
       .set('Authorization', `Bearer ${tamperedToken}`)
-      .expect(403)
+      .expect(401)
   })
 
   it('fails when using an expired jwt', async () => {
@@ -58,7 +58,7 @@ describe('authenticateUser middleware function', () => {
     await request(app)
       .get(`/profiles/${user.id}`)
       .set('Authorization', `Bearer ${expiredToken}`)
-      .expect(403)
+      .expect(401)
   })
 })
 
