@@ -85,7 +85,7 @@ API handling data transactions between the frontend and the database.
 
 **Provider:** Supabase Auth (frontend login/session via Supabase JS client)
 
-**Backend verification:** JWT signature verified locally on each request via the shared Supabase JWT secret — no network call to Supabase per request. `authenticateUser` middleware attaches the decoded payload to `req.user`; `req.user.sub` matches `profiles.id` (auto-created via trigger on signup).
+**Backend verification:** JWT signature verified locally against the Supabase project's public keys — no network call to Supabase per request. `authenticateUser` middleware attaches the decoded payload to `req.user`; `req.user.sub` matches `profiles.id` (auto-created via trigger on signup). 
 
 ## 6. Authorization
 
