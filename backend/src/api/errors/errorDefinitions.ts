@@ -24,7 +24,7 @@ export const ERROR_DEFS: ErrorDictionary = {
     message: 'No auth token provided, please login or register',
   },
   INVALID_TOKEN: {
-    statusCode: 403,
+    statusCode: 401,
     message: 'Invalid or expired token',
   },
 
