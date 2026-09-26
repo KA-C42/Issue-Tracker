@@ -4,6 +4,8 @@ import type { JwtUser } from '../../types/authenticatedRequest.js'
 import { AppError } from '../errors/AppError.js'
 import * as jose from 'jose'
 
+let jwks: ReturnType<typeof jose.createRemoteJWKSet> | undefined
+
 const authenticateUser: RequestHandler = async (req, res, next) => {
   const authHeader = req.headers['authorization']
   const token = authHeader && authHeader.split(' ')[1]
@@ -14,10 +16,10 @@ const authenticateUser: RequestHandler = async (req, res, next) => {
   const AUTH_URL = process.env.SUPABASE_AUTH_URL
   if (!AUTH_URL) throw new Error('Missing jwt key url')
 
-  const PROJECT_JWKS = jose.createRemoteJWKSet(new URL(AUTH_URL))
+  jwks ??= jose.createRemoteJWKSet(new URL(AUTH_URL))
 
   try {
-    const { payload } = await jose.jwtVerify(token, PROJECT_JWKS)
+    const { payload } = await jose.jwtVerify(token, jwks)
     req.user = payload as JwtUser
     next()
   } catch {
