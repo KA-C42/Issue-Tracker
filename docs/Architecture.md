@@ -77,7 +77,7 @@ API handling data transactions between the frontend and the database.
 
 **Type:** Supabase Postgres
 
-**Access:** Backend API via Supabase client / Postgres adapter
+**Access:** Backend only. Supabase's Data API is disabled in deployed environments, so the Express API is the only path to the data. The frontend uses Supabase for auth only.
 
 **Purpose:** Store issues, projects, and basic account information
 
