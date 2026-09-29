@@ -14,6 +14,8 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
       },
     })
   } catch {
+    console.error(err) // temporary logging. TODO: select and use a logging library
+
     return res.status(500).json({
       error: {
         code: 'SERVER_ERROR',
