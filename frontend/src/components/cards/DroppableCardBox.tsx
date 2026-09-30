@@ -19,8 +19,8 @@ export function DroppableCardbox({
       <CardBox
         title={title}
         data={issueData}
-        CardType={(issue: Issue) => (
-          <SortableIssueCard issue={issue} index={issueData.indexOf(issue)} />
+        renderCard={(issue, index) => (
+          <SortableIssueCard key={issue.id} issue={issue} index={index} />
         )}
       />
     </div>

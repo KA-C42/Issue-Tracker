@@ -324,8 +324,13 @@ export default function IssueDetailScreen() {
               <CardBox
                 title="Comments"
                 data={commentsQuery.data}
-                CardType={CommentCard}
-                extraProps={{ project }}
+                renderCard={(comment) => (
+                  <CommentCard
+                    key={comment.id}
+                    {...comment}
+                    project={project}
+                  />
+                )}
               />
             )}
           </div>
