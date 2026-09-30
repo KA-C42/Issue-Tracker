@@ -840,7 +840,7 @@
 ##### Request Body
 > | name | required | data type | description |
 > |------|----------|-----------|-------------|
-> | `recipient_id` | required | uuid | target user's id |
+> | `recipient_username` | required | string | target user's username |
 
 
 ##### Responses

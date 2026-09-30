@@ -152,12 +152,16 @@ const createInvite = async (
   recipient_id: string,
   project_id: string,
 ): Promise<Invite> => {
+  // route takes a username; look it up so callers can keep passing ids
+  const { rows } = await pool.query(
+    'SELECT username FROM profiles WHERE id = $1',
+    [recipient_id],
+  )
+
   const response = await request(app)
     .post(`/projects/${project_id}/invites`)
     .set('Authorization', `Bearer ${token}`)
-    .send({
-      recipient_id: recipient_id,
-    })
+    .send({ recipient_username: rows[0].username })
     .expect(201)
 
   return response.body as Invite

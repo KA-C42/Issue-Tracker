@@ -32,7 +32,7 @@ inviteRouter.post<{ project_id: string }>(
   validateRequest(createInviteSchema, (req) => ({
     sender_id: req.user?.sub as string,
     project_id: req.params.project_id as string,
-    recipient_id: req.body.recipient_id,
+    recipient_username: req.body.recipient_username,
   })),
   loadProject((req, res) => res.locals.validated.project_id),
   loadContributor((req, res) => ({
@@ -41,16 +41,20 @@ inviteRouter.post<{ project_id: string }>(
   })),
   requireRule(isProjectMember),
   async (req, res) => {
-    const text =
-      'INSERT INTO invites (sender_id, recipient_id, project_id) VALUES ($1, $2, $3) RETURNING *'
+    const text = `
+      INSERT INTO invites (sender_id, recipient_id, project_id)
+      SELECT $1, id, $3 FROM profiles WHERE username = $2
+      RETURNING *
+    `
     const values = [
       res.locals.validated.sender_id,
-      res.locals.validated.recipient_id,
+      res.locals.validated.recipient_username,
       res.locals.validated.project_id,
     ]
 
     try {
       const result = await pool.query(text, values)
+      if (result.rowCount === 0) throw new AppError('RECIPIENT_NOT_FOUND')
       return res.status(201).json(result.rows[0])
     } catch (err) {
       dbErrorMapper(err as DbError)

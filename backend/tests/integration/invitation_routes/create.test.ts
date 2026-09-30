@@ -6,6 +6,7 @@ import {
   createTestProject,
   createTestUser,
   makeContributor,
+  setUsername,
 } from '../helpers/createTestRows.js'
 import { Application } from 'express'
 import { Project, User } from '@issue-tracker/shared'
@@ -24,11 +25,14 @@ describe('POST invites', () => {
     token = await createAuthToken(owner.id)
     project = await createTestProject(app, token)
     recipient = await createTestUser('invite@me.please')
+    await setUsername(app, owner.id, 'owner', token)
+    const recipientToken = await createAuthToken(recipient.id)
+    await setUsername(app, recipient.id, 'invitee', recipientToken)
   })
 
   it('creates a new invite, returning 201', async () => {
     const payload = {
-      recipient_id: recipient.id,
+      recipient_username: 'invitee',
     }
 
     const result = await request(app)
@@ -39,7 +43,7 @@ describe('POST invites', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body).toMatchObject({
-      ...payload,
+      recipient_id: recipient.id,
       id: expect.any(String),
       project_id: project.id,
       status: 'PENDING',
@@ -48,9 +52,9 @@ describe('POST invites', () => {
     })
   })
 
-  it('returns 404 when recipient_id not found', async () => {
+  it('returns 404 when username not found', async () => {
     const payload = {
-      recipient_id: crypto.randomUUID(),
+      recipient_username: 'myBestFriend:D',
     }
 
     const result = await request(app)
@@ -65,7 +69,7 @@ describe('POST invites', () => {
 
   it('returns 404 when project_id not found', async () => {
     const payload = {
-      recipient_id: recipient.id,
+      recipient_username: 'invitee',
     }
 
     const result = await request(app)
@@ -78,7 +82,7 @@ describe('POST invites', () => {
     expect(result.body.error.code).toBe('PROJECT_NOT_FOUND')
   })
 
-  it('returns 400 when recipient_id not provided', async () => {
+  it('returns 400 when recipient_username not provided', async () => {
     const payload = {}
 
     const result = await request(app)
@@ -93,7 +97,7 @@ describe('POST invites', () => {
 
   it('returns 409 when a duplicate pending invite already exists', async () => {
     const payload = {
-      recipient_id: recipient.id,
+      recipient_username: 'invitee',
     }
 
     await request(app)
@@ -115,7 +119,7 @@ describe('POST invites', () => {
 
   it('allows invite when a duplicate exists but is not pending', async () => {
     const payload = {
-      recipient_id: recipient.id,
+      recipient_username: 'invitee',
     }
 
     const response = await request(app)
@@ -145,7 +149,7 @@ describe('POST invites', () => {
     const contributor = await makeContributor(recipient.id, project.id)
 
     const payload = {
-      recipient_id: contributor.user_id,
+      recipient_username: 'invitee',
     }
 
     const result = await request(app)
@@ -162,7 +166,7 @@ describe('POST invites', () => {
     await makeContributor(recipient.id, project.id)
 
     const payload = {
-      recipient_id: owner.id,
+      recipient_username: 'owner',
     }
 
     const result = await request(app)
@@ -180,7 +184,7 @@ describe('POST invites', () => {
     const newToken = await createAuthToken(newUser.id)
 
     const payload = {
-      recipient_id: recipient.id,
+      recipient_username: 'invitee',
     }
 
     const result = await request(app)
