@@ -29,7 +29,4 @@ export default defineConfig({
     mockReset: true,
     unstubGlobals: true,
   },
-  optimizeDeps: {
-    include: ['@issue-tracker/shared'],
-  },
 })
