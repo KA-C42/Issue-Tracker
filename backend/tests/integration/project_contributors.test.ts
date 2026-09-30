@@ -45,6 +45,7 @@ describe('GET /projects/:id/contributors and /profiles/:id/contributors', () => 
           user_id: c.id,
           project_id: project.id,
           joined_at: expect.any(String),
+          username: expect.any(String),
         }),
       )
     }

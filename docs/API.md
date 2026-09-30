@@ -404,7 +404,7 @@
 
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | Array of project_contributor records                  |
+> | `200`         | `application/json`        | Array of project_contributor records, each with the member's 'username'                  |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`           |
 > | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`           |
 

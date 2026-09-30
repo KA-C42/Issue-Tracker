@@ -125,9 +125,11 @@ projectRouter.get(
   requireRule(isProjectMember),
   async (req, res) => {
     const text = `
-      SELECT * FROM project_contributors
-      WHERE project_id = $1
-      ORDER BY joined_at
+      SELECT pc.*, pr.username
+      FROM project_contributors pc
+      JOIN profiles pr ON pr.id = pc.user_id
+      WHERE pc.project_id = $1
+      ORDER BY pc.joined_at
     `
     const values = [res.locals.validated.id]
 
