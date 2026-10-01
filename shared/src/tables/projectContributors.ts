@@ -11,3 +11,5 @@ export type RemoveProjectContributorInput = z.infer<
 export type ProjectContributor = RemoveProjectContributorInput & {
   joined_at: string
 }
+
+export type ProjectMember = ProjectContributor & { username: string }

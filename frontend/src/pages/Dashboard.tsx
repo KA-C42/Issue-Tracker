@@ -57,7 +57,9 @@ export default function Dashboard() {
           <CardBox
             title="Owned Projects"
             data={ownedProjects ?? []}
-            CardType={OwnedProjectCard}
+            renderCard={(project) => (
+              <OwnedProjectCard key={project.id} {...project} />
+            )}
           />
           {/* 
           adding this cardbox to to prevent dead code with the filter.
@@ -65,9 +67,11 @@ export default function Dashboard() {
           for now, type Project still maps neatly regardless of owner
           */}
           <CardBox
-            title="Contributor Projects"
+            title="Owned Projects"
             data={contributingProjects ?? []}
-            CardType={OwnedProjectCard}
+            renderCard={(project) => (
+              <OwnedProjectCard key={project.id} {...project} />
+            )}
           />
         </div>
       </div>

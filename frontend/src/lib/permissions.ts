@@ -13,7 +13,6 @@ const isUnassigned = (issue: Issue) => issue.assignee_id === null
 
 export const canPatchProject = isProjectCreator
 export const canDeleteProject = isProjectCreator
-export const canRemoveContributor = isProjectCreator
 
 export const canPatchIssue = (userId: string, issue: Issue, project: Project) =>
   isProjectCreator(userId, project) || isIssueCreator(userId, issue)
@@ -46,3 +45,9 @@ export const canRevokeInvite = (
   invite: Invite,
   project: Project,
 ) => isProjectCreator(userId, project) || isSender(userId, invite)
+
+export const canRemoveContributor = (
+  userId: string,
+  project: Project,
+  targetUserId: string,
+) => isProjectCreator(userId, project) && targetUserId !== project.creator_id

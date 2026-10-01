@@ -41,19 +41,44 @@ describe('GET /projects/:project_id/invites', () => {
     ]
   })
 
-  it('returns all by project_id', async () => {
+  it('returns pending invites with usernames by project_id', async () => {
     const result = await request(app)
       .get(`/projects/${projects[0].id}/invites`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
+    const withUsernames = (invite: Invite) =>
+      expect.objectContaining({
+        ...invite,
+        sender_username: expect.any(String),
+        recipient_username: expect.any(String),
+      })
+
     expect(result.body).toHaveLength(2)
     expect(result.body).toEqual(
-      expect.arrayContaining([invites[0], invites[1]]),
+      expect.arrayContaining([
+        withUsernames(invites[0]),
+        withUsernames(invites[1]),
+      ]),
     )
-    expect(result.body).not.toEqual(expect.arrayContaining([invites[2]]))
-    expect(result.body).not.toEqual(expect.arrayContaining([invites[3]]))
+  })
+
+  it('excludes invites that are no longer pending', async () => {
+    await request(app)
+      .patch(`/invites/${invites[0].id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ status: 'REVOKED' })
+      .expect(200)
+
+    const result = await request(app)
+      .get(`/projects/${projects[0].id}/invites`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(result.body).toHaveLength(1)
+    expect(result.body[0].id).toBe(invites[1].id)
   })
 
   it('returns empty array by project_id if no results', async () => {

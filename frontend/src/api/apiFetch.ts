@@ -4,6 +4,8 @@ import {
   type CommentFields,
   type CreateIssueInput,
   type CreateProjectInput,
+  type InviteFields,
+  type RevokeInviteFields,
   type UpdateIssueFields,
   type UpdateIssueStatusFields,
 } from '@issue-tracker/shared'
@@ -16,6 +18,8 @@ type bodyTypes =
   | UpdateIssueStatusFields
   | UpdateIssueFields
   | CommentFields
+  | InviteFields
+  | RevokeInviteFields
 
 const UNKNOWN_ERROR: ApiErrorBody = {
   code: 'UNKNOWN_ERROR',

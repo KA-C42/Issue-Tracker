@@ -182,27 +182,32 @@ export const ERROR_DEFS: ErrorDictionary = {
   },
   RECIPIENT_NOT_FOUND: {
     statusCode: 404,
-    message: 'Provided receiever_id does not match any user',
+    message: 'Provided username does not match any user',
+    field: 'recipient_username',
   },
   MISSING_SENDER_ID: {
     statusCode: 400,
     message: 'Please provide a sender_id',
   },
-  MISSING_RECIPIENT_ID: {
+  MISSING_RECIPIENT_USERNAME: {
     statusCode: 400,
-    message: 'Please provide a recipient_id',
+    message: 'Please provide a recipient_username',
+    field: 'recipient_username',
   },
   RECIPIENT_OWNS_PROJECT: {
     statusCode: 409,
     message: 'Cannot invite a project owner to their own project',
+    field: 'recipient_username',
   },
   RECIPIENT_ALREADY_CONTRIBUTOR: {
     statusCode: 409,
     message: 'Cannot invite a user to a project they already contribute to',
+    field: 'recipient_username',
   },
   INVITE_ALREADY_PENDING: {
     statusCode: 409,
     message: 'Cannot invite a user when an invite is already pending',
+    field: 'recipient_username',
   },
   TOO_MANY_PARAMETERS: {
     statusCode: 400,
