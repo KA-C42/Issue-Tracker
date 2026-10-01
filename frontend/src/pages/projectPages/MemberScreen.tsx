@@ -5,12 +5,14 @@ import { Skeleton } from '@/components/ui/skeleton'
 import CardBox from '@/components/cards/CardBox'
 import MemberCard from '@/components/cards/MemberCard'
 import { InvitesBox } from '@/components/InvitesBox'
+import { singleProjectQueryOptions } from '@/api/projects'
 
 export default function MemberScreen() {
   const { id: projectId } = useParams()
   const membersQuery = useQuery(
     projectContributorsQueryOptions(projectId ?? ''),
   )
+  const { data: project } = useQuery(singleProjectQueryOptions(projectId ?? ''))
 
   if (!projectId) return <div>Project not found</div>
 
@@ -25,12 +27,16 @@ export default function MemberScreen() {
               Couldn't load members.
             </p>
           )}
-          {membersQuery.data && (
+          {membersQuery.data && project && (
             <CardBox
               title="Members"
               data={membersQuery.data}
               renderCard={(member) => (
-                <MemberCard key={member.user_id} {...member} />
+                <MemberCard
+                  key={member.user_id}
+                  {...member}
+                  project={project}
+                />
               )}
             />
           )}

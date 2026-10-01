@@ -18,4 +18,15 @@ async function getProjectContributors(
   })
 }
 
-export { getProjectContributors }
+// creator only; db trigger unassigns the removed user's issues
+async function deleteProjectContributor({
+  projectId,
+  userId,
+}: {
+  projectId: string
+  userId: string
+}) {
+  await apiFetch('DELETE', `/api/projects/${projectId}/contributors/${userId}`)
+}
+
+export { getProjectContributors, deleteProjectContributor }

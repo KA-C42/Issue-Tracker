@@ -50,9 +50,10 @@ test('canDeleteProject allows only the project creator', () => {
   expect(canDeleteProject('stranger', project)).toBe(false)
 })
 
-test('canRemoveContributor allows only the project creator', () => {
-  expect(canRemoveContributor('creator', project)).toBe(true)
-  expect(canRemoveContributor('stranger', project)).toBe(false)
+test("canRemoveContributor allows only the creator, never on the creator's row", () => {
+  expect(canRemoveContributor('creator', project, 'member')).toBe(true)
+  expect(canRemoveContributor('creator', project, 'creator')).toBe(false)
+  expect(canRemoveContributor('stranger', project, 'member')).toBe(false)
 })
 
 test('canPatchIssue allows the issue creator or project creator, not anyone else', () => {
