@@ -16,7 +16,7 @@ function renderForm() {
 }
 
 function submitUsername(username: string) {
-  fireEvent.change(screen.getByLabelText(/username/i), {
+  fireEvent.change(screen.getByLabelText(/invite user/i), {
     target: { value: username },
   })
   fireEvent.click(screen.getByRole('button', { name: /send/i }))
@@ -29,7 +29,7 @@ test('submits successfully with valid username', async () => {
 
   renderForm()
 
-  fireEvent.change(screen.getByLabelText(/username/i), {
+  fireEvent.change(screen.getByLabelText(/invite user/i), {
     target: { value: 'invitee' },
   })
   fireEvent.click(screen.getByRole('button', { name: /send/i }))
@@ -45,7 +45,7 @@ test('submits successfully with valid username', async () => {
 test('blocks submission and shows an error when username is empty', async () => {
   renderForm()
 
-  const usernameInput = screen.getByLabelText(/username/i)
+  const usernameInput = screen.getByLabelText(/invite user/i)
   const sendButton = screen.getByRole('button', { name: /send/i })
   fireEvent.click(sendButton)
 

@@ -1,5 +1,21 @@
-import type { Invite } from '@issue-tracker/shared'
+import { queryOptions } from '@tanstack/react-query'
+import type { Invite, PendingInvite } from '@issue-tracker/shared'
 import { apiFetch } from './apiFetch'
+
+export const projectInvitesQueryOptions = (projectId: string) =>
+  queryOptions({
+    queryKey: ['project-invites', projectId],
+    queryFn: ({ signal }) => getProjectInvites(signal, projectId),
+  })
+
+async function getProjectInvites(
+  abortSignal: AbortSignal,
+  projectId: string,
+): Promise<PendingInvite[]> {
+  return apiFetch('GET', `/api/projects/${projectId}/invites`, {
+    signal: abortSignal,
+  })
+}
 
 async function postInvite({
   projectId,
@@ -13,4 +29,4 @@ async function postInvite({
   })
 }
 
-export { postInvite }
+export { postInvite, getProjectInvites }

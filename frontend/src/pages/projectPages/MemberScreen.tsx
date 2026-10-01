@@ -2,9 +2,9 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { projectContributorsQueryOptions } from '@/api/contributors'
 import { Skeleton } from '@/components/ui/skeleton'
-import { InviteForm } from '@/components/InviteForm'
 import CardBox from '@/components/cards/CardBox'
 import MemberCard from '@/components/cards/MemberCard'
+import { InvitesBox } from '@/components/InvitesBox'
 
 export default function MemberScreen() {
   const { id: projectId } = useParams()
@@ -36,12 +36,8 @@ export default function MemberScreen() {
           )}
         </div>
         {/* right column: invites */}
-        <div className="flex w-full flex-col gap-4 sm:w-1/2 sm:overflow-y-auto">
-          <h2 className="text-xl font-semibold">Invites</h2>
-
-          <div className="border-t" />
-
-          <InviteForm projectId={projectId} />
+        <div className="flex w-full flex-col sm:w-1/2 sm:min-h-0">
+          <InvitesBox projectId={projectId} />
         </div>
       </div>
     </div>
