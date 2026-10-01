@@ -29,4 +29,11 @@ async function postInvite({
   })
 }
 
-export { postInvite, getProjectInvites }
+// sender or project creator only
+async function revokeInvite(inviteId: string): Promise<Invite> {
+  return apiFetch('PATCH', `/api/invites/${inviteId}`, {
+    body: { status: 'REVOKED' },
+  })
+}
+
+export { postInvite, getProjectInvites, revokeInvite }

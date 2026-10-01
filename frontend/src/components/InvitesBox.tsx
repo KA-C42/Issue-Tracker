@@ -4,6 +4,7 @@ import CardBox from './cards/CardBox'
 import InviteCard from './cards/InviteCard'
 import { InviteForm } from './InviteForm'
 import { Skeleton } from './ui/skeleton'
+import { singleProjectQueryOptions } from '@/api/projects'
 
 interface InvitesPanelProps {
   projectId: string
@@ -11,6 +12,8 @@ interface InvitesPanelProps {
 
 export function InvitesBox({ projectId }: InvitesPanelProps) {
   const invitesQuery = useQuery(projectInvitesQueryOptions(projectId))
+
+  const { data: project } = useQuery(singleProjectQueryOptions(projectId))
 
   return (
     <div className="flex flex-1 flex-col gap-3 sm:min-h-0">
@@ -23,11 +26,13 @@ export function InvitesBox({ projectId }: InvitesPanelProps) {
             Couldn't load invites.
           </p>
         )}
-        {invitesQuery.data && (
+        {invitesQuery.data && project && (
           <CardBox
             title="Pending Invites"
             data={invitesQuery.data}
-            renderCard={(invite) => <InviteCard key={invite.id} {...invite} />}
+            renderCard={(invite) => (
+              <InviteCard key={invite.id} {...invite} project={project} />
+            )}
           />
         )}
       </div>
