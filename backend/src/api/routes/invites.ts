@@ -2,7 +2,6 @@ import { Router } from 'express'
 import { pool } from '../../db/pool.js'
 import type { DbError } from '../errors/DbError.js'
 import dbErrorMapper from '../errors/dbErrorMapper.js'
-import { buildInviteGetQuery } from '../queries/inviteQueryBuilders.js'
 import { validateRequest } from '../middleware/validateRequest.js'
 import {
   createInviteSchema,
@@ -78,10 +77,16 @@ inviteRouter.get<{ project_id: string }>(
   })),
   requireRule(isProjectMember),
   async (req, res) => {
-    const { text, values } = buildInviteGetQuery(
-      res.locals.validated.id,
-      undefined,
-    )
+    const text = `
+      SELECT i.*, s.username AS sender_username, r.username AS recipient_username
+      FROM invites i
+      JOIN profiles s ON s.id = i.sender_id
+      JOIN profiles r ON r.id = i.recipient_id
+      WHERE i.project_id = $1 AND i.status = 'PENDING'
+      ORDER BY i.sent_at DESC
+      `
+
+    const values = [res.locals.validated.id]
 
     try {
       const result = await pool.query(text, values)

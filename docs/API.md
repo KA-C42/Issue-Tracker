@@ -850,7 +850,7 @@
 > | `201`         | `application/json`        | Newly created invite record                       |
 > | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`          |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`          |
-> | `404`         | `application/json`                | `{"code":"USER_NOT_FOUND"}`          |
+> | `404`         | `application/json`                | `{"code":"RECIPIENT_NOT_FOUND"}`          |
 > | `409`         | `application/json`                | `{"code":"INVITE_ALREADY_PENDING"}`          |
 > | `409`         | `application/json`                | `{"code":"RECIPIENT_ALREADY_CONTRIBUTOR"}`   |
 > | `409`         | `application/json`                | `{"code":"RECIPIENT_OWNS_PROJECT"}`   |
@@ -859,7 +859,7 @@
 </details>
 
 <details>
- <summary><code>GET</code> <code><b>/projects/:project_id/invites</b></code> <code>Find invites by project id</code></summary>
+ <summary><code>GET</code> <code><b>/projects/:project_id/invites</b></code> <code>Find pending invites by project id</code></summary>
 
 
 ##### Auth
@@ -879,10 +879,10 @@
 
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | array of invite records                     |
+> | `200`         | `application/json`        | array of pending invite records, each with 'sender_username' and 'recipient_username'                     |
 > | `404`         | `application/json`                | `{"code":"PROJECT_NOT_FOUND"}`          |
 > | `400`         | `application/json`                | `{"code":"VALIDATION_ERROR"}`   |
-
+- response is ordered newest first by `sent_at`
 
 </details>
 

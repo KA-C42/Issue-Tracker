@@ -43,3 +43,8 @@ export type Invite = {
   sent_at: string
   status_changed_at: string
 }
+
+export type PendingInvite = Invite & {
+  sender_username: string
+  recipient_username: string
+}
