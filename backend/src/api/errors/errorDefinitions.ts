@@ -57,10 +57,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 400,
     message: 'Invalid request due to missing project id',
   },
-  MISSING_PROJECT_NAME: {
+  MISSING_PROJECT_TITLE: {
     statusCode: 400,
     message: 'Invalid request due to missing project name',
-    field: 'name',
+    field: 'title',
   },
   MISSING_PROJECT_CODE: {
     statusCode: 400,
@@ -71,10 +71,10 @@ export const ERROR_DEFS: ErrorDictionary = {
     statusCode: 404,
     message: 'Requested project not found',
   },
-  PROJECT_NAME_CONFLICT: {
+  PROJECT_TITLE_CONFLICT: {
     statusCode: 409,
     message: 'Requested project name is already in use by the user',
-    field: 'name',
+    field: 'title',
   },
   NO_PROJECT_FIELDS_PROVIDED: {
     statusCode: 400,
