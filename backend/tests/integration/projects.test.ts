@@ -95,7 +95,7 @@ describe('POST /projects', () => {
       .expect(409)
       .expect('Content-Type', /json/)
 
-    expect(cloneProject.body.error.code).toBe('PROJECT_NAME_CONFLICT')
+    expect(cloneProject.body.error.code).toBe('PROJECT_TITLE_CONFLICT')
   })
 
   it('rejects new project with project code greater than 4 characters with status 400', async () => {
@@ -341,7 +341,7 @@ describe('PATCH /projects/:id', () => {
       .expect(409)
       .expect('Content-Type', /json/)
 
-    expect(response.body.error.code).toBe('PROJECT_NAME_CONFLICT')
+    expect(response.body.error.code).toBe('PROJECT_TITLE_CONFLICT')
   })
 })
 
