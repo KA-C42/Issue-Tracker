@@ -4,9 +4,11 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from './ui/sidebar'
 
 type sidebarButton = {
@@ -34,6 +36,21 @@ export function ProjectSidebar() {
 
   return (
     <Sidebar>
+      <SidebarHeader>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="sm"
+              className="text-muted-foreground"
+              render={<Link to="/" />}
+            >
+              <HugeiconsIcon icon={ArrowLeft01Icon} />
+              Dashboard
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarSeparator className={'w-auto! bg-foreground/20'} />
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
