@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import {
   Sidebar,
   SidebarContent,
@@ -10,6 +10,8 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from './ui/sidebar'
+import { HugeiconsIcon } from '@hugeicons/react'
+import { ArrowLeft01Icon } from '@hugeicons/core-free-icons'
 
 type sidebarButton = {
   label: string
@@ -32,7 +34,9 @@ const sidebarData: sidebarButton[] = [
 ]
 
 export function ProjectSidebar() {
-  const projectId = useParams().id
+  const { id: projectId } = useParams()
+
+  const { pathname } = useLocation()
 
   return (
     <Sidebar>
@@ -54,15 +58,22 @@ export function ProjectSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {sidebarData.map((button) => (
-              <SidebarMenuItem key={button.label}>
-                <SidebarMenuButton
-                  render={<Link to={'/projects/' + projectId + button.link} />}
-                >
-                  {button.label}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
+            {sidebarData.map((button) => {
+              const to = '/projects/' + projectId + button.link
+              const isActive = pathname === to
+
+              return (
+                <SidebarMenuItem key={button.label}>
+                  <SidebarMenuButton
+                    isActive={isActive}
+                    aria-current={isActive ? 'page' : undefined}
+                    render={<Link to={to} />}
+                  >
+                    {button.label}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            })}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
