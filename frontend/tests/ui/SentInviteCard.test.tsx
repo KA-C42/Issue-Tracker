@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { test, expect, vi } from 'vitest'
-import InviteCard from '@/components/cards/InviteCard'
+import SentInviteCard from '@/components/cards/SentInviteCard'
 import * as auth from '@/auth/UseAuth'
 
 const PROJECT = {
@@ -33,7 +33,7 @@ function renderCard(viewerId: string) {
 
   return render(
     <QueryClientProvider client={new QueryClient()}>
-      <InviteCard {...INVITE} project={PROJECT} />
+      <SentInviteCard {...INVITE} project={PROJECT} />
     </QueryClientProvider>,
   )
 }

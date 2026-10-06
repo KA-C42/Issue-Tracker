@@ -48,7 +48,7 @@ export type RevokeInviteFields = Pick<
 // Read results
 
 // GET /projects/:id/invites: pending invites joined with usernames
-export type PendingInvite = Invite & {
+export type PendingSentInvite = Invite & {
   sender_username: string
   recipient_username: string
 }
