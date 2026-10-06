@@ -24,15 +24,17 @@ export default function SentInviteCard({
   const inviteRevoke = useMutation({
     mutationFn: revokeInvite,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: projectInvitesQueryOptions(project.id).queryKey,
-      })
       toast.success(`Invite to '${invite.recipient_username}' revoked`)
     },
     onError: (err) =>
       toast.error(
         err instanceof ApiError ? err.message : 'Something went wrong',
       ),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectInvitesQueryOptions(project.id).queryKey,
+      })
+    },
   })
 
   const canRevoke = canRevokeInvite(user.id, invite, project)
