@@ -10,7 +10,6 @@ import {
   inviteRecipientResponseSchema,
   usernameSchema,
 } from '@issue-tracker/shared'
-import { buildInviteGetQuery } from '../queries/inviteQueryBuilders.js'
 import { isInvitee, requireRule } from '../middleware/authorize.js'
 import { loadInvite, loadProject } from '../middleware/loadRequest.js'
 
@@ -120,7 +119,16 @@ meRouter.get('/issues', async (req, res) => {
 meRouter.get('/invites', async (req, res) => {
   const user = req.user as JwtUser
 
-  const { text, values } = buildInviteGetQuery(undefined, user.sub)
+  const text = `
+      SELECT i.*, s.username AS sender_username, p.title AS project_title
+      FROM invites i
+      JOIN profiles s ON s.id = i.sender_id
+      JOIN projects p ON p.id = i.project_id
+      WHERE i.recipient_id = $1 AND i.status = 'PENDING'
+      ORDER BY i.sent_at DESC
+      `
+
+  const values = [user.sub]
 
   try {
     const result = await pool.query(text, values)

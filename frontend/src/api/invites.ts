@@ -1,8 +1,5 @@
 import { queryOptions } from '@tanstack/react-query'
-import type {
-  Invite,
-  PendingSentInvite,
-} from '@issue-tracker/shared'
+import type { Invite, PendingSentInvite } from '@issue-tracker/shared'
 import { apiFetch } from './apiFetch'
 
 export const projectInvitesQueryOptions = (projectId: string) =>

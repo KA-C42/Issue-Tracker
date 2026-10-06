@@ -151,9 +151,10 @@ const createInvite = async (
   token: string,
   recipient_id: string,
   project_id: string,
+  status: Invite['status'] = 'PENDING',
 ): Promise<Invite> => {
   // route takes a username; look it up so callers can keep passing ids
-  const { rows } = await pool.query(
+  const { rows: userRows } = await pool.query(
     'SELECT username FROM profiles WHERE id = $1',
     [recipient_id],
   )
@@ -161,10 +162,19 @@ const createInvite = async (
   const response = await request(app)
     .post(`/projects/${project_id}/invites`)
     .set('Authorization', `Bearer ${token}`)
-    .send({ recipient_username: rows[0].username })
+    .send({ recipient_username: userRows[0].username })
     .expect(201)
 
-  return response.body as Invite
+  const invite = response.body
+
+  // update status after, rather than in main request, to trigger create-contributor db trigger (UPDATE only)
+  if (status === 'PENDING') return invite
+
+  const { rows: updateRows } = await pool.query(
+    'UPDATE invites SET status = $1 WHERE id = $2 RETURNING *',
+    [status, invite.id],
+  )
+  return JSON.parse(JSON.stringify(updateRows[0])) // dates as strings, like API responses
 }
 
 export {

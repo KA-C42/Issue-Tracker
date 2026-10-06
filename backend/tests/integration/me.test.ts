@@ -224,59 +224,110 @@ describe('GET /me/issues', () => {
 
 describe('GET /me/invites', () => {
   let app: Application
-  let owner: User
-  let token: string
-  let projects: Project[]
-  let invitees: User[]
-  let invites: Invite[]
+  let sender: User
+  let senderToken: string
+  let recipient: User
+  let recipientToken: string
 
   beforeEach(async () => {
     app = createApp()
-    owner = await createTestUser()
-    token = await createAuthToken(owner.id)
-    projects = [
-      await createTestProject(app, token, 'project 1'),
-      await createTestProject(app, token, 'project 2'),
-    ]
-    invitees = [
-      await createTestUser('user1@O.O'),
-      await createTestUser('user2@u.u'),
-    ]
-    // reference for which invites are expected in return
-    invites = [
-      await createInvite(app, token, invitees[0].id, projects[0].id),
-      await createInvite(app, token, invitees[1].id, projects[0].id),
-
-      await createInvite(app, token, invitees[0].id, projects[1].id),
-      await createInvite(app, token, invitees[1].id, projects[1].id),
-    ]
+    sender = await createTestUser('sender@m.m')
+    senderToken = await createAuthToken(sender.id)
+    recipient = await createTestUser('recipient@m.m')
+    recipientToken = await createAuthToken(recipient.id)
   })
 
-  it('returns all by recipient_id', async () => {
-    const searchId = invitees[0].id
-    const newToken = await createAuthToken(searchId)
+  it('returns pending invites newest first, with sender username and project title', async () => {
+    const projectA = await createTestProject(app, senderToken, 'project A')
+    const projectB = await createTestProject(app, senderToken, 'project B')
+    const olderInvite = await createInvite(
+      app,
+      senderToken,
+      recipient.id,
+      projectA.id,
+    )
+    const newerInvite = await createInvite(
+      app,
+      senderToken,
+      recipient.id,
+      projectB.id,
+    )
+
+    const { body: senderProfile } = await request(app)
+      .get('/me/profile')
+      .set('Authorization', `Bearer ${senderToken}`)
+      .expect(200)
 
     const result = await request(app)
-      .get(`/me/invites`)
-      .set('Authorization', `Bearer ${newToken}`)
+      .get('/me/invites')
+      .set('Authorization', `Bearer ${recipientToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
-    expect(result.body).toHaveLength(2)
-    expect(result.body).toEqual(
-      expect.arrayContaining([invites[0], invites[2]]),
-    )
-    expect(result.body).not.toEqual(expect.arrayContaining([invites[1]]))
-    expect(result.body).not.toEqual(expect.arrayContaining([invites[3]]))
+    expect(result.body).toEqual([
+      {
+        ...newerInvite,
+        sender_username: senderProfile.username,
+        project_title: projectB.title,
+      },
+      {
+        ...olderInvite,
+        sender_username: senderProfile.username,
+        project_title: projectA.title,
+      },
+    ])
   })
 
-  it('returns empty array by recipient_id if no results', async () => {
-    const newUser = await createTestUser('new@o.o')
-    const newToken = await createAuthToken(newUser.id)
+  it('excludes invites sent to other users', async () => {
+    const otherUser = await createTestUser('other@m.m')
+    const project = await createTestProject(app, senderToken)
+    const recipientInvite = await createInvite(
+      app,
+      senderToken,
+      recipient.id,
+      project.id,
+    )
+    await createInvite(app, senderToken, otherUser.id, project.id)
 
     const result = await request(app)
-      .get(`/me/invites`)
-      .set('Authorization', `Bearer ${newToken}`)
+      .get('/me/invites')
+      .set('Authorization', `Bearer ${recipientToken}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(result.body).toHaveLength(1)
+    expect(result.body[0].id).toBe(recipientInvite.id)
+  })
+
+  it('excludes invites that are no longer pending', async () => {
+    const pendingProject = await createTestProject(app, senderToken, 'pending')
+    const pendingInvite = await createInvite(
+      app,
+      senderToken,
+      recipient.id,
+      pendingProject.id,
+    )
+
+    // one project per status so the invites don't collide
+    for (const status of ['ACCEPTED', 'REJECTED', 'REVOKED'] as const) {
+      const project = await createTestProject(app, senderToken, status)
+      await createInvite(app, senderToken, recipient.id, project.id, status)
+    }
+
+    const result = await request(app)
+      .get('/me/invites')
+      .set('Authorization', `Bearer ${recipientToken}`)
+      .expect(200)
+      .expect('Content-Type', /json/)
+
+    expect(result.body).toHaveLength(1)
+    expect(result.body[0].id).toBe(pendingInvite.id)
+  })
+
+  it('returns an empty array when the recipient has no invites', async () => {
+    const result = await request(app)
+      .get('/me/invites')
+      .set('Authorization', `Bearer ${recipientToken}`)
       .expect(200)
       .expect('Content-Type', /json/)
 
