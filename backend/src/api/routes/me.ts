@@ -147,15 +147,19 @@ meRouter.patch(
   loadInvite((req, res) => res.locals.validated.id),
   requireRule(isInvitee),
   async (req, res) => {
+    if (res.locals.invite.status !== 'PENDING')
+      throw new AppError('INVITE_NOT_PENDING')
+
     const text = `UPDATE invites
       SET status = $1
-      WHERE id = $2
+      WHERE id = $2 AND status = 'PENDING'
       RETURNING *
       `
     const values = [res.locals.validated.status, res.locals.validated.id]
 
     try {
       const result = await pool.query(text, values)
+      if (result.rowCount === 0) throw new AppError('INVITE_NOT_PENDING')
       return res.status(200).json(result.rows[0])
     } catch (err) {
       dbErrorMapper(err as DbError)

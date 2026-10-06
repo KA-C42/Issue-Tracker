@@ -143,6 +143,8 @@
 > | `200`         | `application/json`        | Updated invite record             |
 > | `404`         | `application/json`        | `{"code":"INVITE_NOT_FOUND"}`          |
 > | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`            |
+> | `409`         | `application/json`        | `{"code":"INVITE_NOT_PENDING"}`            |
+- Changing the status to 'ACCEPTED' triggers an automatic project-contributor insertion at the database level
 
 </details>
 

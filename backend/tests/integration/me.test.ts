@@ -424,6 +424,54 @@ describe('PATCH /me/invites/:id', () => {
       expect.objectContaining({ user_id: owner.id, project_id: project.id }),
     )
   })
+
+  it('returns 409 and creates no contributor row when accepting a revoked invite', async () => {
+    await request(app)
+      .patch(`/invites/${invite.id}`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .send({ status: 'REVOKED' })
+      .expect(200)
+
+    const result = await request(app)
+      .patch(`/me/invites/${invite.id}`)
+      .set('Authorization', `Bearer ${inviteeToken}`)
+      .send({ status: 'ACCEPTED' })
+      .expect(409)
+
+    expect(result.body.error.code).toBe('INVITE_NOT_PENDING')
+
+    const contributors = await request(app)
+      .get(`/projects/${project.id}/contributors`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .expect(200)
+
+    expect(contributors.body).toHaveLength(1)
+  })
+
+  it('lets only one of a simultaneous accept and revoke succeed', async () => {
+    const [accept, revoke] = await Promise.all([
+      request(app)
+        .patch(`/me/invites/${invite.id}`)
+        .set('Authorization', `Bearer ${inviteeToken}`)
+        .send({ status: 'ACCEPTED' }),
+      request(app)
+        .patch(`/invites/${invite.id}`)
+        .set('Authorization', `Bearer ${ownerToken}`)
+        .send({ status: 'REVOKED' }),
+    ])
+
+    expect([accept.status, revoke.status].sort((a, b) => a - b)).toEqual([
+      200, 409,
+    ])
+
+    const contributors = await request(app)
+      .get(`/projects/${project.id}/contributors`)
+      .set('Authorization', `Bearer ${ownerToken}`)
+      .expect(200)
+
+    // the invitee joined only if the accept won
+    expect(contributors.body).toHaveLength(accept.status === 200 ? 2 : 1)
+  })
 })
 
 describe('GET me/contributors', () => {
