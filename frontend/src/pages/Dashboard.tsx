@@ -31,8 +31,8 @@ export default function Dashboard() {
   api returns all owned/contributing when search by token/user id
   project contributors are impossible for now, but i still want the filter for consistency
   */
-  const projectQuery = useQuery(projectsQueryOptions)
-  const projects = projectQuery?.data
+  const projectsQuery = useQuery(projectsQueryOptions)
+  const projects = projectsQuery?.data
   const ownedProjects = projects?.filter(
     (project: Project) => project.creator_id === user.id,
   )
@@ -56,19 +56,16 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 gap-4">
           <CardBox
             title="Owned Projects"
-            data={ownedProjects ?? []}
+            isError={projectsQuery.isError}
+            data={ownedProjects}
             renderCard={(project) => (
               <OwnedProjectCard key={project.id} {...project} />
             )}
           />
-          {/* 
-          adding this cardbox to to prevent dead code with the filter.
-          ContributingProjectCard will be added in a future update
-          for now, type Project still maps neatly regardless of owner
-          */}
           <CardBox
             title="Owned Projects"
-            data={contributingProjects ?? []}
+            isError={projectsQuery.isError}
+            data={contributingProjects}
             renderCard={(project) => (
               <OwnedProjectCard key={project.id} {...project} />
             )}

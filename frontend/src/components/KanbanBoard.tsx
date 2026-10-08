@@ -16,9 +16,13 @@ const COLUMNS: { status: IssueStatus; title: string }[] = [
 export function KanbanBoard() {
   const { id } = useParams()
 
-  const issueQuery = useQuery(projectIssuesQueryOptions(id as string))
-  const issues: Issue[] = issueQuery?.data ?? []
+  const { data: issues, isError } = useQuery(
+    projectIssuesQueryOptions(id as string),
+  )
   const issueStatusPatch = useUpdateIssueStatus(id ?? '')
+
+  if (!issues && isError)
+    return <p className="text-center">Couldn't load issues. Try refreshing.</p>
 
   return (
     <DragDropProvider
@@ -37,7 +41,11 @@ export function KanbanBoard() {
           <DroppableCardbox
             status={status}
             title={title}
-            issueData={issues.filter((i) => i.status === status)}
+            issueData={
+              issues
+                ? issues.filter((i: Issue) => i.status === status)
+                : undefined
+            }
           />
         ))}
       </div>

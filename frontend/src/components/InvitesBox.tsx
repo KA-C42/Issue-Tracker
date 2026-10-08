@@ -29,6 +29,7 @@ export function InvitesBox({ projectId }: InvitesPanelProps) {
         {invitesQuery.data && project && (
           <CardBox
             title="Pending Invites"
+            isError={invitesQuery.isError}
             data={invitesQuery.data}
             renderCard={(invite) => (
               <InviteCard key={invite.id} {...invite} project={project} />
