@@ -36,6 +36,11 @@ export const inviteRecipientResponseSchema = z.object({
   status: inviteResponseSchema.extract(['ACCEPTED', 'REJECTED']),
 })
 
+export type RecipientResponseFields = Pick<
+  z.infer<typeof inviteRecipientResponseSchema>,
+  'status'
+>
+
 export const inviteSenderResponseSchema = z.object({
   id: idSchema,
   status: inviteResponseSchema.extract(['REVOKED']),
@@ -48,7 +53,12 @@ export type RevokeInviteFields = Pick<
 // Read results
 
 // GET /projects/:id/invites: pending invites joined with usernames
-export type PendingInvite = Invite & {
+export type PendingSentInvite = Invite & {
   sender_username: string
   recipient_username: string
+}
+
+export type PendingReceivedInvite = Invite & {
+  sender_username: string
+  project_title: string
 }

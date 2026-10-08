@@ -1,8 +1,10 @@
+import { receivedInvitesQueryOptions } from '@/api/invites'
 import { profileQueryOptions } from '@/api/profiles'
 import { projectsQueryOptions } from '@/api/projects'
 import { useAuthProtected } from '@/auth/UseAuth'
 import CardBox from '@/components/cards/CardBox'
 import OwnedProjectCard from '@/components/cards/OwnedProjectCard'
+import ReceivedInviteCard from '@/components/cards/ReceivedInviteCard'
 import { CreateProjectForm } from '@/components/CreateProjectForm'
 import { FormDialog } from '@/components/FormDialog'
 import type { Project } from '@issue-tracker/shared'
@@ -26,11 +28,6 @@ export default function Dashboard() {
 
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  // get and sort projects
-  /* 
-  api returns all owned/contributing when search by token/user id
-  project contributors are impossible for now, but i still want the filter for consistency
-  */
   const projectsQuery = useQuery(projectsQueryOptions)
   const projects = projectsQuery?.data
   const ownedProjects = projects?.filter(
@@ -40,9 +37,13 @@ export default function Dashboard() {
     (project: Project) => project.creator_id !== user.id,
   )
 
+  // get pending invites
+  const invitesQuery = useQuery(receivedInvitesQueryOptions)
+  const invites = invitesQuery?.data
+
   return (
     <div className="flex justify-center">
-      <div className="flex w-full max-w-2xl flex-col gap-4">
+      <div className="flex w-full max-w-6xl flex-col gap-4">
         <div className="flex items-center justify-center gap-4">
           <h1 className="text-xl font-semibold text-center">Projects</h1>
 
@@ -53,7 +54,7 @@ export default function Dashboard() {
             New Project
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <CardBox
             title="Owned Projects"
             isError={projectsQuery.isError}
@@ -63,11 +64,19 @@ export default function Dashboard() {
             )}
           />
           <CardBox
-            title="Owned Projects"
+            title="Contributing Projects"
             isError={projectsQuery.isError}
             data={contributingProjects}
             renderCard={(project) => (
               <OwnedProjectCard key={project.id} {...project} />
+            )}
+          />
+          <CardBox
+            title="Pending Invites"
+            isError={invitesQuery.isError}
+            data={invites}
+            renderCard={(invite) => (
+              <ReceivedInviteCard key={invite.id} {...invite} />
             )}
           />
         </div>

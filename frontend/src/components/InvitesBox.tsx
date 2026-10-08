@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { projectInvitesQueryOptions } from '@/api/invites'
 import CardBox from './cards/CardBox'
-import InviteCard from './cards/InviteCard'
+import SentInviteCard from './cards/SentInviteCard'
 import { InviteForm } from './InviteForm'
 import { Skeleton } from './ui/skeleton'
 import { singleProjectQueryOptions } from '@/api/projects'
@@ -32,7 +32,7 @@ export function InvitesBox({ projectId }: InvitesPanelProps) {
             isError={invitesQuery.isError}
             data={invitesQuery.data}
             renderCard={(invite) => (
-              <InviteCard key={invite.id} {...invite} project={project} />
+              <SentInviteCard key={invite.id} {...invite} project={project} />
             )}
           />
         )}

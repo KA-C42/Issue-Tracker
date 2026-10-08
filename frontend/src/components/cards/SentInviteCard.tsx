@@ -1,4 +1,4 @@
-import type { PendingInvite, Project } from '@issue-tracker/shared'
+import type { PendingSentInvite, Project } from '@issue-tracker/shared'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
@@ -14,25 +14,26 @@ import { canRevokeInvite } from '@/lib/permissions'
 import { useAuthProtected } from '@/auth/UseAuth'
 import { ApiError } from '@/api/apiError'
 
-export default function InviteCard({
+export default function SentInviteCard({
   project,
   ...invite
-}: PendingInvite & { project: Project }) {
+}: PendingSentInvite & { project: Project }) {
   const { user } = useAuthProtected()
   const queryClient = useQueryClient()
 
   const inviteRevoke = useMutation({
     mutationFn: revokeInvite,
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: projectInvitesQueryOptions(project.id).queryKey,
-      })
       toast.success(`Invite to '${invite.recipient_username}' revoked`)
     },
     onError: (err) =>
       toast.error(
         err instanceof ApiError ? err.message : 'Something went wrong',
       ),
+    onSettled: () =>
+      queryClient.invalidateQueries({
+        queryKey: projectInvitesQueryOptions(project.id).queryKey,
+      }),
   })
 
   const canRevoke = canRevokeInvite(user.id, invite, project)

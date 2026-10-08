@@ -5,6 +5,7 @@ import {
   type CreateIssueInput,
   type CreateProjectInput,
   type InviteFields,
+  type RecipientResponseFields,
   type RevokeInviteFields,
   type UpdateIssueFields,
   type UpdateIssueStatusFields,
@@ -20,6 +21,7 @@ type bodyTypes =
   | CommentFields
   | InviteFields
   | RevokeInviteFields
+  | RecipientResponseFields
 
 const UNKNOWN_ERROR: ApiErrorBody = {
   code: 'UNKNOWN_ERROR',

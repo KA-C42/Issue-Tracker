@@ -102,7 +102,7 @@
 </details>
 
 <details>
- <summary><code>GET</code> <code><b>/me/invites</b></code> <code>Find invites where authenticated user is recipient</code></summary>
+ <summary><code>GET</code> <code><b>/me/invites</b></code> <code>Find pending invites where authenticated user is recipient</code></summary>
 
 ##### Auth
 
@@ -114,6 +114,7 @@
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
 > | `200`         | `application/json`        | Array of invite records             |
+- Each pending invite has sender_username and project_title attached to the invite row data
 
 </details>
 
@@ -143,6 +144,8 @@
 > | `200`         | `application/json`        | Updated invite record             |
 > | `404`         | `application/json`        | `{"code":"INVITE_NOT_FOUND"}`          |
 > | `400`         | `application/json`        | `{"code":"VALIDATION_ERROR"}`            |
+> | `409`         | `application/json`        | `{"code":"INVITE_NOT_PENDING"}`            |
+- Changing the status to 'ACCEPTED' triggers an automatic project-contributor insertion at the database level
 
 </details>
 
