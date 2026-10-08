@@ -10,7 +10,7 @@ export function DroppableCardbox({
 }: {
   status: IssueStatus
   title: string
-  issueData: Issue[]
+  issueData: Issue[] | undefined
 }) {
   const { ref } = useDroppable({ id: status })
 

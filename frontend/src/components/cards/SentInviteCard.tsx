@@ -30,11 +30,10 @@ export default function SentInviteCard({
       toast.error(
         err instanceof ApiError ? err.message : 'Something went wrong',
       ),
-    onSettled: () => {
+    onSettled: () =>
       queryClient.invalidateQueries({
         queryKey: projectInvitesQueryOptions(project.id).queryKey,
-      })
-    },
+      }),
   })
 
   const canRevoke = canRevokeInvite(user.id, invite, project)

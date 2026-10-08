@@ -28,8 +28,8 @@ export default function Dashboard() {
 
   const [showCreateForm, setShowCreateForm] = useState(false)
 
-  const projectQuery = useQuery(projectsQueryOptions)
-  const projects = projectQuery?.data
+  const projectsQuery = useQuery(projectsQueryOptions)
+  const projects = projectsQuery?.data
   const ownedProjects = projects?.filter(
     (project: Project) => project.creator_id === user.id,
   )
@@ -38,8 +38,8 @@ export default function Dashboard() {
   )
 
   // get pending invites
-  const inviteQuery = useQuery(receivedInvitesQueryOptions)
-  const invites = inviteQuery?.data
+  const invitesQuery = useQuery(receivedInvitesQueryOptions)
+  const invites = invitesQuery?.data
 
   return (
     <div className="flex justify-center">
@@ -57,26 +57,24 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <CardBox
             title="Owned Projects"
-            data={ownedProjects ?? []}
+            isError={projectsQuery.isError}
+            data={ownedProjects}
             renderCard={(project) => (
               <OwnedProjectCard key={project.id} {...project} />
             )}
           />
-          {/* 
-          adding this cardbox to to prevent dead code with the filter.
-          ContributingProjectCard will be added in a future update
-          for now, type Project still maps neatly regardless of owner
-          */}
           <CardBox
             title="Contributing Projects"
-            data={contributingProjects ?? []}
+            isError={projectsQuery.isError}
+            data={contributingProjects}
             renderCard={(project) => (
               <OwnedProjectCard key={project.id} {...project} />
             )}
           />
           <CardBox
             title="Pending Invites"
-            data={invites ?? []}
+            isError={invitesQuery.isError}
+            data={invites}
             renderCard={(invite) => (
               <ReceivedInviteCard key={invite.id} {...invite} />
             )}
