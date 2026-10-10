@@ -4,7 +4,7 @@ import { queryOptions } from '@tanstack/react-query'
 
 export const projectIssuesQueryOptions = (id: string) =>
   queryOptions({
-    queryKey: ['project-issues'],
+    queryKey: ['project-issues', id],
     queryFn: ({ signal }) => getProjectIssues(signal, id),
   })
 

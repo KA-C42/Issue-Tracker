@@ -9,7 +9,7 @@ const ISSUE = { id: 'issue-1', status: 'BACKLOG', title: 'Test issue' }
 
 function setup() {
   const queryClient = new QueryClient()
-  queryClient.setQueryData(['project-issues'], [ISSUE])
+  queryClient.setQueryData(['project-issues', PROJECT_ID], [ISSUE])
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -38,7 +38,7 @@ test('keeps the optimistic update and invalidates on success', async () => {
     expect(invalidateSpy).toHaveBeenCalled()
   })
 
-  const issues = queryClient.getQueryData<any[]>(['project-issues'])
+  const issues = queryClient.getQueryData<any[]>(['project-issues', PROJECT_ID])
   expect(issues?.[0].status).toBe('DONE')
 })
 
@@ -53,7 +53,10 @@ test('rolls back the optimistic update when the request fails', async () => {
   result.current.mutate({ issueId: 'issue-1', newStatus: 'DONE' })
 
   await waitFor(() => {
-    const issues = queryClient.getQueryData<any[]>(['project-issues'])
+    const issues = queryClient.getQueryData<any[]>([
+      'project-issues',
+      PROJECT_ID,
+    ])
     expect(issues?.[0].status).toBe('BACKLOG')
   })
 })
