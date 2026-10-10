@@ -10,14 +10,15 @@ export default function ProjectPage() {
 
   const [, setPageName] =
     useOutletContext<[string, Dispatch<SetStateAction<string>>]>()
-  const projectQuery = useQuery(singleProjectQueryOptions(projectId ?? ''))
+  const { isLoading, isSuccess, isError, data } = useQuery(
+    singleProjectQueryOptions(projectId ?? ''),
+  )
 
   useEffect(() => {
-    if (projectQuery.isLoading) setPageName('Loading...')
-    if (projectQuery.isSuccess)
-      setPageName(projectQuery.data?.title ?? 'Loading...')
-    if (projectQuery.isError) setPageName('project unavailable')
-  }, [setPageName, projectQuery])
+    if (isLoading) setPageName('Loading...')
+    if (isSuccess) setPageName(data?.title ?? 'Loading...')
+    if (isError) setPageName('project unavailable')
+  }, [setPageName, isLoading, isSuccess, data, isError])
 
   if (!projectId) {
     return <div>Project not found</div> // or <Navigate to="/" replace />

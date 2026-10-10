@@ -5,6 +5,7 @@ import tseslint from 'typescript-eslint'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import prettier from 'eslint-config-prettier'
+import pluginQuery from '@tanstack/eslint-plugin-query'
 
 export default defineConfig([
   // Ignore built output
@@ -18,6 +19,12 @@ export default defineConfig([
       '**/playwright-results/**',
     ],
   },
+
+  // TanStack Query best-practice rules — frontend only
+  ...pluginQuery.configs['flat/recommended'].map((config) => ({
+    ...config,
+    files: ['frontend/**/*.{ts,tsx,js,jsx}'],
+  })),
 
   // Base eslint recommended rules
   js.configs.recommended,

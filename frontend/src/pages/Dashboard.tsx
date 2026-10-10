@@ -17,14 +17,13 @@ export default function Dashboard() {
 
   const [, setPageName] =
     useOutletContext<[string, Dispatch<SetStateAction<string>>]>()
-  const profileQuery = useQuery(profileQueryOptions)
+  const { isLoading, isSuccess, isError, data } = useQuery(profileQueryOptions)
 
   useEffect(() => {
-    if (profileQuery.isLoading) setPageName('Loading...')
-    if (profileQuery.isSuccess)
-      setPageName(profileQuery.data?.username ?? 'Loading...')
-    if (profileQuery.isError) setPageName('profile unavailable')
-  }, [setPageName, profileQuery])
+    if (isLoading) setPageName('Loading...')
+    if (isSuccess) setPageName(data?.username ?? 'Loading...')
+    if (isError) setPageName('profile unavailable')
+  }, [setPageName, isLoading, isSuccess, isError, data])
 
   const [showCreateForm, setShowCreateForm] = useState(false)
 
