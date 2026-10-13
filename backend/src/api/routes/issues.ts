@@ -123,6 +123,9 @@ issueRouter.get(
 // General patch only available to:
 // - Issue creator
 // - Project creator
+// Only patches
+// - title
+// - details
 issueRouter.patch(
   '/:id',
   validateRequest(updateIssueSchema, (req) => ({
@@ -138,16 +141,6 @@ issueRouter.patch(
   requireRule(allOf(isProjectMember, anyOf(isIssueCreator, isProjectCreator))),
 
   async (req, res) => {
-    const assignee_id = res.locals.validated.assignee_id
-
-    if (assignee_id) {
-      const assigneeIsMember = await checkMembership(
-        assignee_id,
-        res.locals.issue.project_id,
-      )
-      if (!assigneeIsMember) throw new AppError('INVALID_ASSIGNEE')
-    }
-
     const { text, values } = buildIssuePatchQuery(
       res.locals.validated as UpdateIssueInput,
     )

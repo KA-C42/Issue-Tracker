@@ -7,6 +7,7 @@ import {
   type InviteFields,
   type RecipientResponseFields,
   type RevokeInviteFields,
+  type UpdateIssueAssigneeFields,
   type UpdateIssueFields,
   type UpdateIssueStatusFields,
 } from '@issue-tracker/shared'
@@ -17,6 +18,7 @@ type bodyTypes =
   | CreateProjectInput
   | CreateIssueInput
   | UpdateIssueStatusFields
+  | UpdateIssueAssigneeFields
   | UpdateIssueFields
   | CommentFields
   | InviteFields

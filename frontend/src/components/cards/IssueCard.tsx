@@ -1,20 +1,42 @@
 import type { Issue } from '@issue-tracker/shared'
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { singleProjectQueryOptions } from '@/api/projects'
+import { Username } from '@/components/Username'
+import {
+  Card,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '../ui/card'
 
-export default function IssueCard(data: Issue) {
+export default function IssueCard(issue: Issue) {
+  // ProjectPage already loaded this project, so this reads from the cache
+  const { data: project } = useQuery(
+    singleProjectQueryOptions(issue.project_id),
+  )
+
   return (
     <Link
-      to={`/projects/${data.project_id}/issues/${data.id}`}
+      to={`/projects/${issue.project_id}/issues/${issue.id}`}
       draggable={false}
     >
-      <Card>
-        <CardHeader>
-          <CardTitle>{data.title}</CardTitle>
+      <Card size="sm">
+        {/* pr-6 keeps text clear of the drag handle in the top-right corner */}
+        <CardHeader className="pr-6">
+          <CardDescription className="font-mono">
+            {project ? `${project.code}-${issue.code}` : `#${issue.code}`}
+          </CardDescription>
+          <CardTitle className="line-clamp-2">{issue.title}</CardTitle>
         </CardHeader>
-        <CardContent>
-          {data.details ? data.details : 'No description'}
-        </CardContent>
+        <CardFooter className="text-muted-foreground">
+          {issue.assignee_id ? (
+            <Username userId={issue.assignee_id} />
+          ) : (
+            'Unassigned'
+          )}
+        </CardFooter>
       </Card>
     </Link>
   )
