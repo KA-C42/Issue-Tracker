@@ -42,8 +42,6 @@ describe('PATCH /issues/:id', () => {
     const payload = {
       title: 'new title',
       details: 'new details',
-      status: 'DONE',
-      assignee_id: newUser.id,
     }
 
     const result = await request(app)
@@ -65,90 +63,8 @@ describe('PATCH /issues/:id', () => {
       modified_at: expect.any(String),
       created_at: issue.created_at,
     })
-    expect(modifiedIssue.status_changed_at).not.toBe(issue.status_changed_at)
+    expect(modifiedIssue.status_changed_at).toBe(issue.status_changed_at)
     expect(modifiedIssue.modified_at).not.toBe(issue.modified_at)
-  })
-
-  it('patches only status, updating the status changed_at', async () => {
-    const payload = {
-      status: 'DONE',
-    }
-
-    const result = await request(app)
-      .patch(`/issues/${issue.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    const modifiedIssue = result.body
-
-    expect(modifiedIssue).toMatchObject({
-      ...issue,
-      status: payload.status,
-      status_changed_at: expect.any(String),
-    })
-    expect(modifiedIssue.status_changed_at).not.toBe(issue.status_changed_at)
-  })
-
-  it('patches only assignee_id, not updating the modified_at or status_changed_at rows', async () => {
-    const newUser = await createTestUser('asfd@fds.co')
-    await makeContributor(newUser.id, project.id)
-    const payload = {
-      assignee_id: newUser.id,
-    }
-
-    const result = await request(app)
-      .patch(`/issues/${issue.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    const modifiedIssue = result.body
-
-    expect(modifiedIssue).toMatchObject({
-      assignee_id: payload.assignee_id,
-      id: issue.id,
-      creator_id: issue.creator_id,
-      project_id: issue.project_id,
-      title: issue.title,
-      details: issue.details,
-      status: issue.status,
-      code: issue.code,
-      status_changed_at: issue.status_changed_at,
-      modified_at: issue.modified_at,
-      created_at: issue.created_at,
-    })
-  })
-
-  it('sets assignee_id to null, not updating the modified_at or status_changed_at rows', async () => {
-    const payload = {
-      assignee_id: null,
-    }
-
-    const result = await request(app)
-      .patch(`/issues/${issue.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-      .expect(200)
-      .expect('Content-Type', /json/)
-
-    const modifiedIssue = result.body
-
-    expect(modifiedIssue).toMatchObject({
-      assignee_id: payload.assignee_id,
-      id: issue.id,
-      creator_id: issue.creator_id,
-      project_id: issue.project_id,
-      title: issue.title,
-      details: issue.details,
-      status: issue.status,
-      code: issue.code,
-      status_changed_at: issue.status_changed_at,
-      modified_at: issue.modified_at,
-      created_at: issue.created_at,
-    })
   })
 
   it('patches only details, updating the modified_at row', async () => {
@@ -233,21 +149,6 @@ describe('PATCH /issues/:id', () => {
     expect(result.body.error.code).toBe('ISSUE_NOT_FOUND')
   })
 
-  it('returns 422 when assignee is not project owner or conributor', async () => {
-    const newUser = await createTestUser('r@asf.sgg')
-    const payload = {
-      assignee_id: newUser.id,
-    }
-    const result = await request(app)
-      .patch(`/issues/${issue.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send(payload)
-      .expect(422)
-      .expect('Content-Type', /json/)
-
-    expect(result.body.error.code).toBe('INVALID_ASSIGNEE')
-  })
-
   it('allows the issue creator to patch all patchable fields', async () => {
     const newUser = await createTestUser('r@asf.sgg')
     await makeContributor(newUser.id, project.id)
@@ -257,8 +158,6 @@ describe('PATCH /issues/:id', () => {
     const payload = {
       title: 'new title',
       details: 'so detailed wow',
-      assignee_id: newUser.id,
-      status: 'DONE',
     }
 
     await request(app)
@@ -278,8 +177,6 @@ describe('PATCH /issues/:id', () => {
     const payload = {
       title: 'new title',
       details: 'so detailed wow',
-      assignee_id: newUser.id,
-      status: 'DONE',
     }
 
     await request(app)
@@ -305,7 +202,6 @@ describe('PATCH /issues/:id', () => {
     const payload = {
       title: 'grrrr',
       details: 'keeeeeep it going',
-      assignee_id: user.id,
     }
 
     const result = await request(app)
@@ -332,7 +228,6 @@ describe('PATCH /issues/:id', () => {
     const payload = {
       title: 'grrrr',
       details: 'keeeeeep it going',
-      assignee_id: user.id,
     }
 
     const result = await request(app)
@@ -373,6 +268,22 @@ describe('PATCH /issues/:id', () => {
       .expect('Content-Type', /json/)
 
     expect(result.body.error.code).toBe('UNAUTHORIZED_REQUEST')
+  })
+
+  it('ignores status and assignee_id, which have their own routes', async () => {
+    const payload = { title: 'new title', status: 'DONE', assignee_id: null }
+
+    const result = await request(app)
+      .patch(`/issues/${issue.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(payload)
+      .expect(200)
+
+    expect(result.body).toMatchObject({
+      title: 'new title',
+      status: issue.status,
+      assignee_id: issue.assignee_id,
+    })
   })
 })
 

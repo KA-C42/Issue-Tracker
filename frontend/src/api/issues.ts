@@ -1,4 +1,8 @@
-import type { CreateIssueInput, IssueStatus } from '@issue-tracker/shared'
+import type {
+  CreateIssueInput,
+  IssueStatus,
+  UpdateIssueFields,
+} from '@issue-tracker/shared'
 import { apiFetch } from './apiFetch'
 import { queryOptions } from '@tanstack/react-query'
 
@@ -63,9 +67,7 @@ async function patchIssue({
   data,
 }: {
   issueId: string
-  data: Partial<
-    Pick<CreateIssueInput, 'title' | 'details' | 'status' | 'assignee_id'>
-  >
+  data: UpdateIssueFields
 }) {
   return apiFetch('PATCH', `/api/issues/${issueId}`, { body: data })
 }
