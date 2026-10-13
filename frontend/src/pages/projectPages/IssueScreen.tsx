@@ -2,9 +2,13 @@ import { useState } from 'react'
 import { FormDialog } from '@/components/FormDialog'
 import { CreateIssueForm } from '@/components/CreateIssueForm'
 import { KanbanBoard } from '@/components/KanbanBoard'
+import { Navigate, useParams } from 'react-router-dom'
 
 export default function IssueScreen() {
+  const { id: projectId } = useParams()
   const [showCreateForm, setShowCreateForm] = useState(false)
+
+  if (!projectId) return <Navigate to={'/'} replace />
 
   return (
     <div className="flex flex-1 min-h-0 flex-col px-10 overflow-hidden">
@@ -15,7 +19,7 @@ export default function IssueScreen() {
           New Issue
         </button>
       </div>
-      <KanbanBoard />
+      <KanbanBoard projectId={projectId} />
 
       {showCreateForm && (
         <FormDialog
@@ -24,7 +28,10 @@ export default function IssueScreen() {
           title={'Create Issue'}
           description={''}
         >
-          <CreateIssueForm close={() => setShowCreateForm(false)} />
+          <CreateIssueForm
+            projectId={projectId}
+            close={() => setShowCreateForm(false)}
+          />
         </FormDialog>
       )}
     </div>

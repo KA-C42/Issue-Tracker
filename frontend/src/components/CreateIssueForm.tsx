@@ -11,7 +11,7 @@ import {
 } from './ui/input-group'
 import { Button } from './ui/button'
 import { Spinner } from './ui/spinner'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiError, apiErrorToFormDisplay } from '@/api/apiError'
 import { createIssueSchema } from '@issue-tracker/shared'
@@ -24,22 +24,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
-import { useParams } from 'react-router-dom'
 import { STATUS_ITEMS } from '@/lib/issueStatusOptions'
+import { projectContributorsQueryOptions } from '@/api/contributors'
 
 interface CreateIssueFormProps {
+  projectId: string
   close: () => void
 }
 
 type FormData = z.infer<typeof createIssueSchema>
 
-export function CreateIssueForm({ close }: CreateIssueFormProps) {
-  const { id: project_id } = useParams()
-
+export function CreateIssueForm({ projectId, close }: CreateIssueFormProps) {
   const form = useForm<FormData>({
     resolver: zodResolver(createIssueSchema),
     defaultValues: {
-      project_id: project_id,
+      project_id: projectId,
       title: '',
       details: '',
       status: 'BACKLOG',
@@ -49,12 +48,22 @@ export function CreateIssueForm({ close }: CreateIssueFormProps) {
 
   const queryClient = useQueryClient()
 
+  const {
+    data: members,
+    isLoading: membersLoading,
+    isError: membersError,
+  } = useQuery(projectContributorsQueryOptions(projectId))
+  const memberSelectItems = [
+    { value: null, label: 'Unassigned' },
+    ...(members?.map((m) => ({ value: m.user_id, label: m.username })) ?? []),
+  ]
+
   const issuePost = useMutation({
     mutationFn: postIssue,
     onSuccess: (data) => {
       form.reset()
       queryClient.invalidateQueries({
-        queryKey: projectIssuesQueryOptions(project_id as string).queryKey,
+        queryKey: projectIssuesQueryOptions(projectId).queryKey,
       })
       close()
       toast.success(`Issue '${data.title}' successfully created`)
@@ -160,7 +169,6 @@ export function CreateIssueForm({ close }: CreateIssueFormProps) {
             </Field>
           )}
         />
-        {/* TODO: Add Select dropdown of possible assignees once projectMembers query created */}
         <Controller
           name="assignee_id"
           control={form.control}
@@ -169,14 +177,30 @@ export function CreateIssueForm({ close }: CreateIssueFormProps) {
               <FieldLabel htmlFor="create-issue-form-assignee-id">
                 Assignee
               </FieldLabel>
-              <Input
-                {...field}
-                onChange={(e) => field.onChange(e.target.value || null)}
-                value={field.value || ''}
-                id="create-issue-form-assignee-id"
-                placeholder="optional"
-                aria-invalid={fieldState.invalid}
-              />
+              <Select
+                items={memberSelectItems}
+                value={field.value}
+                onValueChange={(v) => field.onChange(v || null)}
+                disabled={membersLoading || membersError}
+              >
+                <SelectTrigger
+                  id="create-issue-form-assignee-id"
+                  className="w-[180px]"
+                >
+                  <SelectValue
+                    placeholder={membersLoading ? 'Loading…' : 'Unassigned'}
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {memberSelectItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}

@@ -70,6 +70,18 @@ async function patchIssue({
   return apiFetch('PATCH', `/api/issues/${issueId}`, { body: data })
 }
 
+async function updateIssueAssignee({
+  issueId,
+  assigneeId,
+}: {
+  issueId: string
+  assigneeId: string | null
+}) {
+  return apiFetch('PATCH', `/api/issues/${issueId}/assignee`, {
+    body: { assignee_id: assigneeId },
+  })
+}
+
 async function deleteIssue(issueId: string) {
   await apiFetch('DELETE', `/api/issues/${issueId}`)
 }
@@ -81,4 +93,5 @@ export {
   patchIssue,
   getIssue,
   deleteIssue,
+  updateIssueAssignee,
 }

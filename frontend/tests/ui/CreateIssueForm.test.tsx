@@ -15,7 +15,12 @@ function renderForm() {
         <Routes>
           <Route
             path="/projects/:id/issues"
-            element={<CreateIssueForm close={() => {}} />}
+            element={
+              <CreateIssueForm
+                projectId={crypto.randomUUID()}
+                close={() => {}}
+              />
+            }
           />
         </Routes>
       </MemoryRouter>

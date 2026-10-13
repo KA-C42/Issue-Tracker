@@ -1,16 +1,23 @@
 import { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { IssueStatus } from '@issue-tracker/shared'
 
 import { singleProjectQueryOptions } from '@/api/projects'
-import { singleIssueQueryOptions, patchIssue, deleteIssue } from '@/api/issues'
+import {
+  singleIssueQueryOptions,
+  patchIssue,
+  deleteIssue,
+  updateIssueAssignee,
+  projectIssuesQueryOptions,
+} from '@/api/issues'
 import { issueCommentsQueryOptions, postComment } from '@/api/comments'
 import {
   canPatchIssue,
   canDeleteIssue,
   canPatchIssueStatus,
+  canPatchIssueAssignee,
 } from '@/lib/permissions'
 import { STATUS_ITEMS } from '@/lib/issueStatusOptions'
 import { useAuthProtected } from '@/auth/UseAuth'
@@ -40,16 +47,28 @@ import {
 import { Username } from '@/components/Username'
 import CardBox from '@/components/cards/CardBox'
 import CommentCard from '@/components/cards/CommentCard'
+import { projectContributorsQueryOptions } from '@/api/contributors'
 
 export default function IssueDetailScreen() {
   const { id: projectId, issueId } = useParams()
+  if (!projectId || !issueId) return <Navigate to="/dashboard" replace />
+  return <IssueDetail projectId={projectId} issueId={issueId} />
+}
+
+interface IssueDetailProps {
+  projectId: string
+  issueId: string
+}
+
+function IssueDetail({ projectId, issueId }: IssueDetailProps) {
   const navigate = useNavigate()
   const { user } = useAuthProtected()
   const queryClient = useQueryClient()
 
-  const projectQuery = useQuery(singleProjectQueryOptions(projectId ?? ''))
-  const issueQuery = useQuery(singleIssueQueryOptions(issueId ?? ''))
-  const commentsQuery = useQuery(issueCommentsQueryOptions(issueId ?? ''))
+  const projectQuery = useQuery(singleProjectQueryOptions(projectId))
+  const issueQuery = useQuery(singleIssueQueryOptions(issueId))
+  const commentsQuery = useQuery(issueCommentsQueryOptions(issueId))
+  const membersQuery = useQuery(projectContributorsQueryOptions(projectId))
 
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [isEditingDetails, setIsEditingDetails] = useState(false)
@@ -58,7 +77,7 @@ export default function IssueDetailScreen() {
   const [detailsDraft, setDetailsDraft] = useState('')
   const [commentDraft, setCommentDraft] = useState('')
 
-  const issueQueryKey = singleIssueQueryOptions(issueId ?? '').queryKey
+  const issueQueryKey = singleIssueQueryOptions(issueId).queryKey
 
   const editTitle = useMutation({
     mutationFn: patchIssue,
@@ -84,6 +103,22 @@ export default function IssueDetailScreen() {
       ),
   })
 
+  const editAssignee = useMutation({
+    mutationFn: updateIssueAssignee,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: issueQueryKey })
+      queryClient.invalidateQueries({
+        queryKey: projectIssuesQueryOptions(projectId).queryKey,
+      })
+    },
+    onError: (err) =>
+      toast.error(
+        err instanceof ApiError ? err.message : 'Something went wrong',
+      ),
+  })
+
+  const updateStatus = useUpdateIssueStatus(projectId)
+
   const removeIssue = useMutation({
     mutationFn: deleteIssue,
     onSuccess: () => {
@@ -96,14 +131,12 @@ export default function IssueDetailScreen() {
       ),
   })
 
-  const updateStatus = useUpdateIssueStatus(projectId ?? '')
-
   const addComment = useMutation({
     mutationFn: postComment,
     onSuccess: () => {
       setCommentDraft('')
       queryClient.invalidateQueries({
-        queryKey: issueCommentsQueryOptions(issueId ?? '').queryKey,
+        queryKey: issueCommentsQueryOptions(issueId).queryKey,
       })
     },
     onError: (err) =>
@@ -111,8 +144,6 @@ export default function IssueDetailScreen() {
         err instanceof ApiError ? err.message : 'Something went wrong',
       ),
   })
-
-  if (!projectId || !issueId) return <div>Issue not found</div>
 
   if (issueQuery.isLoading || projectQuery.isLoading) {
     return (
@@ -137,15 +168,29 @@ export default function IssueDetailScreen() {
   const issue = issueQuery.data
   const project = projectQuery.data
 
+  const assigneeOptions = [
+    { value: null, label: 'Unassigned' },
+    ...(membersQuery.data?.map((m) => ({
+      value: m.user_id,
+      label: m.username,
+    })) ?? []),
+  ].filter(
+    (o) =>
+      o.value === issue.assignee_id ||
+      canPatchIssueAssignee(user.id, issue, project, o.value),
+  )
+
   const canEdit = canPatchIssue(user.id, issue, project)
   const canDelete = canDeleteIssue(user.id, issue, project)
   const canChangeStatus = canPatchIssueStatus(user.id, issue, project)
+  const canChangeAssignee = assigneeOptions.length > 1
 
   return (
     <div className="flex flex-1 flex-col gap-4 px-10 py-4 sm:min-h-0 sm:overflow-hidden">
       <div className="flex flex-1 flex-col gap-6 sm:min-h-0 sm:flex-row">
         {/* left column: issue details */}
         <div className="flex w-full flex-col gap-4 sm:w-1/2 sm:overflow-y-auto">
+          {/* Title */}
           {isEditingTitle ? (
             <div className="flex flex-col gap-2">
               <Input
@@ -191,7 +236,9 @@ export default function IssueDetailScreen() {
 
           <div className="border-t" />
 
+          {/* Code, Status, Assignee */}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            {/* Code */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">
                 Code
@@ -201,6 +248,7 @@ export default function IssueDetailScreen() {
               </span>
             </div>
 
+            {/* Status */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">
                 Status
@@ -231,22 +279,52 @@ export default function IssueDetailScreen() {
               </Select>
             </div>
 
+            {/* Assignee */}
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">
                 Assignee
               </span>
-              {/* TODO: real options once project members are queryable */}
-              <Select disabled>
+              <Select
+                items={assigneeOptions}
+                value={issue.assignee_id}
+                disabled={
+                  !canChangeAssignee ||
+                  membersQuery.isLoading ||
+                  editAssignee.isPending
+                }
+                onValueChange={(v) =>
+                  editAssignee.mutate({
+                    issueId,
+                    assigneeId: v,
+                  })
+                }
+              >
                 <SelectTrigger size="sm">
-                  <SelectValue placeholder="Unassigned" />
+                  <SelectValue
+                    placeholder={
+                      membersQuery.isLoading ? 'Loading…' : 'Unassigned'
+                    }
+                  />
                 </SelectTrigger>
-                <SelectContent />
+                <SelectContent>
+                  <SelectGroup>
+                    {assigneeOptions.map((item) => (
+                      <SelectItem
+                        key={item.value ?? 'unassigned'}
+                        value={item.value}
+                      >
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="border-t" />
 
+          {/* Details */}
           {isEditingDetails ? (
             <div className="flex flex-col gap-2">
               <Textarea
@@ -296,6 +374,7 @@ export default function IssueDetailScreen() {
             </div>
           )}
 
+          {/* Timestamps */}
           <div className="mt-6 flex flex-col gap-1 text-xs text-muted-foreground">
             <div>
               Created by <Username userId={issue.creator_id} /> on{' '}
