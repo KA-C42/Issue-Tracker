@@ -29,4 +29,9 @@ async function deleteProjectContributor({
   await apiFetch('DELETE', `/api/projects/${projectId}/contributors/${userId}`)
 }
 
-export { getProjectContributors, deleteProjectContributor }
+// self-removal; db trigger unassigns the user's issues
+async function leaveProject(projectId: string) {
+  await apiFetch('DELETE', `/api/me/contributors/${projectId}`)
+}
+
+export { getProjectContributors, deleteProjectContributor, leaveProject }

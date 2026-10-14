@@ -6,7 +6,7 @@ import dbErrorMapper from '../errors/dbErrorMapper.js'
 import { buildProjectPatchQuery } from '../queries/projectPatchQuery.js'
 import { validateRequest } from '../middleware/validateRequest.js'
 import {
-  createProjectSchema,
+  projectSchema,
   deleteProjectContributorSchema,
   getByIdSchema,
   updateProjectSchema,
@@ -24,7 +24,7 @@ const projectRouter = Router()
 // Create new project
 projectRouter.post(
   '/',
-  validateRequest(createProjectSchema, (req) => ({
+  validateRequest(projectSchema, (req) => ({
     title: req.body.title,
     code: req.body.code,
     description: req.body.description,
