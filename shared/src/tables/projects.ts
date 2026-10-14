@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { idSchema } from '../commonSchemas.js'
 
-export const createProjectSchema = z.object({
+export const projectSchema = z.object({
   title: z
     .string()
     .min(3, 'Title must be at least 3 characters')
@@ -11,21 +11,20 @@ export const createProjectSchema = z.object({
     .max(300, 'Description must not exceed 300 characters'),
   code: z.string().length(4, 'Code must be exactly 4 characters'),
 })
-export type CreateProjectInput = z.infer<typeof createProjectSchema>
+export type ProjectInput = z.infer<typeof projectSchema>
 
 export const updateProjectSchema = z.object({
   id: z.uuid(),
-  body: createProjectSchema
-    .partial()
-    .refine((data) => Object.keys(data).length > 0, {
-      error: 'At least one field must be provided',
-      path: [],
-    }),
+  body: projectSchema.partial().refine((data) => Object.keys(data).length > 0, {
+    error: 'At least one field must be provided',
+    path: [],
+  }),
 })
 
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>
+export type UpdateProjectFields = UpdateProjectInput['body']
 
-export type Project = CreateProjectInput & {
+export type Project = ProjectInput & {
   id: z.infer<typeof idSchema>
   creator_id: string
   modified_at: string

@@ -3,19 +3,20 @@ import { ApiError, type ApiErrorBody } from './apiError'
 import {
   type CommentFields,
   type CreateIssueInput,
-  type CreateProjectInput,
+  type ProjectInput,
   type InviteFields,
   type RecipientResponseFields,
   type RevokeInviteFields,
   type UpdateIssueAssigneeFields,
   type UpdateIssueFields,
   type UpdateIssueStatusFields,
+  type UpdateProjectFields,
 } from '@issue-tracker/shared'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 type bodyTypes =
-  | CreateProjectInput
+  | ProjectInput
   | CreateIssueInput
   | UpdateIssueStatusFields
   | UpdateIssueAssigneeFields
@@ -24,6 +25,7 @@ type bodyTypes =
   | InviteFields
   | RevokeInviteFields
   | RecipientResponseFields
+  | UpdateProjectFields
 
 const UNKNOWN_ERROR: ApiErrorBody = {
   code: 'UNKNOWN_ERROR',

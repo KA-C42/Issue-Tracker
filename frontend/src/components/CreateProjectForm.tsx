@@ -1,7 +1,6 @@
 import { Controller, useForm } from 'react-hook-form'
 import { Field, FieldError, FieldGroup, FieldLabel } from './ui/field'
 import { Input } from './ui/input'
-import * as z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   InputGroup,
@@ -15,10 +14,7 @@ import { Spinner } from './ui/spinner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiError, apiErrorToFormDisplay } from '@/api/apiError'
-import {
-  createProjectSchema,
-  type CreateProjectInput,
-} from '@issue-tracker/shared'
+import { projectSchema, type ProjectInput } from '@issue-tracker/shared'
 
 interface CreateProjectFormProps {
   close: () => void
@@ -27,8 +23,8 @@ interface CreateProjectFormProps {
 export function CreateProjectForm({ close }: CreateProjectFormProps) {
   const queryClient = useQueryClient()
 
-  const form = useForm<CreateProjectInput>({
-    resolver: zodResolver(createProjectSchema),
+  const form = useForm<ProjectInput>({
+    resolver: zodResolver(projectSchema),
     defaultValues: {
       title: '',
       description: '',
@@ -54,16 +50,15 @@ export function CreateProjectForm({ close }: CreateProjectFormProps) {
     },
   })
 
-  const onSubmit = (data: z.infer<typeof createProjectSchema>) => {
+  const onSubmit = (data: ProjectInput) => {
     projectPost.mutate(data)
   }
 
   return (
-    <>
-      <form
-        id="create-project-form"
-        onSubmit={form.handleSubmit(onSubmit)}
-      ></form>
+    <form
+      onSubmit={form.handleSubmit(onSubmit)}
+      className="flex flex-col gap-4"
+    >
       <FieldGroup>
         <Controller
           name="title"
@@ -130,14 +125,9 @@ export function CreateProjectForm({ close }: CreateProjectFormProps) {
           )}
         />
       </FieldGroup>
-      <Button
-        type="submit"
-        variant="outline"
-        form="create-project-form"
-        disabled={projectPost.isPending}
-      >
+      <Button type="submit" variant="outline" disabled={projectPost.isPending}>
         {projectPost.isPending ? <Spinner /> : 'Submit'}
       </Button>
-    </>
+    </form>
   )
 }

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, Mock, vi } from 'vitest'
 import { validateRequest } from '../../src/api/middleware/validateRequest'
-import { createProjectSchema } from '@issue-tracker/shared'
+import { projectSchema } from '@issue-tracker/shared'
 import { Request, Response } from 'express'
 import { AppError } from '../../src/api/errors/AppError'
 
@@ -25,7 +25,7 @@ describe('validateRequest', () => {
   })
 
   it('successfully validates, loading the result into res.locals.validated and calling next()', async () => {
-    const middleware = validateRequest(createProjectSchema, (req) => ({
+    const middleware = validateRequest(projectSchema, (req) => ({
       title: req.body.title,
       code: req.body.code,
       description: req.body.description,
@@ -40,7 +40,7 @@ describe('validateRequest', () => {
   it('throws a VALIDATION_ERROR AppError with the validation details, without calling next() or touching res.locals, when the selector output does not match the schema', async () => {
     req.body.title = 42
 
-    const middleware = validateRequest(createProjectSchema, (req) => ({
+    const middleware = validateRequest(projectSchema, (req) => ({
       creator_id: req.body.creator_id,
       title: req.body.title,
       code: req.body.code,
@@ -68,7 +68,7 @@ describe('validateRequest', () => {
     req.body.title = 42
     req.body.code = 'Three' // code requires 4 alphanumeric characters
 
-    const middleware = validateRequest(createProjectSchema, (req) => ({
+    const middleware = validateRequest(projectSchema, (req) => ({
       creator_id: req.body.creator_id,
       title: req.body.title,
       code: req.body.code,
@@ -101,7 +101,7 @@ describe('validateRequest', () => {
   it('validates a selector that combines fields from more than one request source (e.g. params and body together)', async () => {
     req.params.title = 'paramTitle'
 
-    const middleware = validateRequest(createProjectSchema, (req) => ({
+    const middleware = validateRequest(projectSchema, (req) => ({
       title: req.params.title as string,
       code: req.body.code,
       description: req.body.description,

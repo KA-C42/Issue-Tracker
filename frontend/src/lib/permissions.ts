@@ -14,6 +14,9 @@ const isUnassigned = (issue: Issue) => issue.assignee_id === null
 export const canPatchProject = isProjectCreator
 export const canDeleteProject = isProjectCreator
 
+export const canLeaveProject = (userId: string, project: Project) =>
+  !isProjectCreator(userId, project)
+
 export const canPatchIssue = (userId: string, issue: Issue, project: Project) =>
   isProjectCreator(userId, project) || isIssueCreator(userId, issue)
 export const canDeleteIssue = canPatchIssue
