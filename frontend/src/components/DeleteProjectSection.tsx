@@ -1,16 +1,11 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { Project } from '@issue-tracker/shared'
-import {
-  deleteProject,
-  projectsQueryOptions,
-  singleProjectQueryOptions,
-} from '@/api/projects'
-import { projectIssuesQueryOptions } from '@/api/issues'
-import { projectContributorsQueryOptions } from '@/api/contributors'
+import { deleteProject } from '@/api/projects'
 import { ApiError } from '@/api/apiError'
+import { useExitProject } from '@/hooks/useExitProject'
+import { DangerZone } from './DangerZone'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Spinner } from './ui/spinner'
@@ -24,8 +19,7 @@ import {
 } from './ui/dialog'
 
 export function DeleteProjectSection({ project }: { project: Project }) {
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
+  const exitProject = useExitProject(project.id)
   const [showConfirm, setShowConfirm] = useState(false)
   const [confirmText, setConfirmText] = useState('')
 
@@ -39,21 +33,7 @@ export function DeleteProjectSection({ project }: { project: Project }) {
   const projectDelete = useMutation({
     mutationFn: deleteProject,
     onSuccess: () => {
-      navigate('/', { replace: true })
-
-      queryClient.invalidateQueries({ queryKey: projectsQueryOptions.queryKey })
-
-      // REMOVE, not invalidate. These things no longer exist
-      queryClient.removeQueries({
-        queryKey: singleProjectQueryOptions(project.id).queryKey,
-      })
-      queryClient.removeQueries({
-        queryKey: projectIssuesQueryOptions(project.id).queryKey,
-      })
-      queryClient.removeQueries({
-        queryKey: projectContributorsQueryOptions(project.id).queryKey,
-      })
-
+      exitProject()
       toast.success(`Project '${project.title}' deleted`)
     },
     onError: (err) =>
@@ -63,20 +43,19 @@ export function DeleteProjectSection({ project }: { project: Project }) {
   })
 
   return (
-    <section className="mt-6 flex items-center justify-between gap-4 rounded-lg border border-destructive/50 p-4">
-      <div>
-        <h2 className="text-sm font-medium">Delete this project</h2>
-        <p className="text-xs text-muted-foreground">
-          Permanently removes it along with all of its issues and comments.
-        </p>
-      </div>
-      <Button
-        variant="destructive"
-        size="sm"
-        onClick={() => setShowConfirm(true)}
+    <>
+      <DangerZone
+        title="Delete this project"
+        description="Permanently removes it along with all of its issues and comments."
       >
-        Delete
-      </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => setShowConfirm(true)}
+        >
+          Delete
+        </Button>
+      </DangerZone>
 
       {showConfirm && (
         <Dialog open={showConfirm} onOpenChange={handleOpenChange}>
@@ -116,6 +95,6 @@ export function DeleteProjectSection({ project }: { project: Project }) {
           </DialogContent>
         </Dialog>
       )}
-    </section>
+    </>
   )
 }
