@@ -1,5 +1,6 @@
 import { singleProjectQueryOptions } from '@/api/projects'
 import { useAuthProtected } from '@/auth/UseAuth'
+import { DeleteProjectSection } from '@/components/DeleteProjectSection'
 import { FormDialog } from '@/components/FormDialog'
 import { PatchProjectForm } from '@/components/PatchProjectForm'
 import { Button } from '@/components/ui/button'
@@ -12,7 +13,7 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Username } from '@/components/Username'
-import { canPatchProject } from '@/lib/permissions'
+import { canDeleteProject, canPatchProject } from '@/lib/permissions'
 import type { Project } from '@issue-tracker/shared'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -82,6 +83,10 @@ function ProjectInfo({ project }: { project: Project }) {
           </dl>{' '}
         </CardContent>
       </Card>
+
+      {canDeleteProject(user.id, project) && (
+        <DeleteProjectSection project={project} />
+      )}
 
       {showEditForm && (
         <FormDialog

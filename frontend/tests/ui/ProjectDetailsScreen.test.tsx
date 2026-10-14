@@ -37,6 +37,7 @@ function renderScreen(project: any = PROJECT) {
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={['/projects/p1/details']}>
         <Routes>
+          <Route path="/" element={<p>Dashboard</p>} />
           <Route
             path="/projects/:id/details"
             element={<ProjectDetailsScreen />}
@@ -46,7 +47,7 @@ function renderScreen(project: any = PROJECT) {
     </QueryClientProvider>,
   )
 
-  return { invalidate }
+  return { invalidate, queryClient }
 }
 
 afterEach(() => {
@@ -133,6 +134,67 @@ test('saving sends the edit and refreshes the project and project list', async (
       code: PROJECT.code,
     },
   })
+  expect(invalidate).toHaveBeenCalledWith({
+    queryKey: projectsQueryOptions.queryKey,
+  })
+})
+
+test('hides Delete from a contributor', async () => {
+  vi.spyOn(auth, 'useAuthProtected').mockReturnValue({
+    user: { id: 'contributor' },
+  } as any)
+
+  renderScreen()
+
+  expect(await screen.findByText(PROJECT.title)).toBeInTheDocument()
+  expect(
+    screen.queryByRole('button', { name: 'Delete' }),
+  ).not.toBeInTheDocument()
+})
+
+test('Delete stays disabled until the exact title is typed', async () => {
+  vi.spyOn(auth, 'useAuthProtected').mockReturnValue({
+    user: { id: 'owner' },
+  } as any)
+
+  renderScreen()
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete' }))
+  const confirmButton = await screen.findByRole('button', {
+    name: 'Delete project',
+  })
+  const confirmInput = screen.getByLabelText(/to confirm/i)
+
+  expect(confirmButton).toBeDisabled()
+
+  fireEvent.change(confirmInput, { target: { value: 'test project' } }) // wrong case
+  expect(confirmButton).toBeDisabled()
+
+  fireEvent.change(confirmInput, { target: { value: PROJECT.title } })
+  expect(confirmButton).toBeEnabled()
+})
+
+test('confirming deletes the project, leaves the page, and clears its cache', async () => {
+  vi.spyOn(auth, 'useAuthProtected').mockReturnValue({
+    user: { id: 'owner' },
+  } as any)
+  const deleteSpy = vi
+    .spyOn(projectsApi, 'deleteProject')
+    .mockResolvedValue(undefined)
+  const { invalidate, queryClient } = renderScreen()
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete' }))
+  fireEvent.change(await screen.findByLabelText(/to confirm/i), {
+    target: { value: PROJECT.title },
+  })
+  fireEvent.click(screen.getByRole('button', { name: 'Delete project' }))
+
+  expect(await screen.findByText('Dashboard')).toBeInTheDocument()
+  expect(deleteSpy.mock.calls[0][0]).toBe('p1')
+  // removed from the cache, not just invalidated
+  expect(
+    queryClient.getQueryData(singleProjectQueryOptions('p1').queryKey),
+  ).toBeUndefined()
   expect(invalidate).toHaveBeenCalledWith({
     queryKey: projectsQueryOptions.queryKey,
   })
