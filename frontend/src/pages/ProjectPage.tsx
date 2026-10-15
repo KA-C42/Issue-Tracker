@@ -1,5 +1,8 @@
 import { singleProjectQueryOptions } from '@/api/projects'
-import { ProjectSidebar } from '@/components/ProjectSidebar'
+import {
+  ProjectSidebar,
+  ProjectSidebarTrigger,
+} from '@/components/ProjectSidebar'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, type Dispatch, type SetStateAction } from 'react'
@@ -28,7 +31,8 @@ export default function ProjectPage() {
     <div className="h-full flex flex-col min-h-0">
       <SidebarProvider className="flex flex-1 min-h-0">
         <ProjectSidebar />
-        <div className="flex flex-1 flex-col p-6 sm:min-h-0 sm:overflow-hidden">
+        <div className="flex flex-1 flex-col p-2 sm:min-h-0 sm:overflow-hidden">
+          <ProjectSidebarTrigger />
           <Outlet />
         </div>
       </SidebarProvider>
