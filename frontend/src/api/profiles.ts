@@ -1,5 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { apiFetch } from './apiFetch'
+import type { UpdateProfileInput } from '@issue-tracker/shared'
 
 export const profileQueryOptions = queryOptions({
   queryKey: ['profile'],
@@ -22,3 +23,10 @@ async function getProfile(abortSignal: AbortSignal) {
   })
   return result
 }
+
+async function patchUsername(data: UpdateProfileInput) {
+  const result = await apiFetch('PATCH', '/api/me/profile', { body: data })
+  return result
+}
+
+export { patchUsername }

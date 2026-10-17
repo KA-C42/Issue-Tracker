@@ -11,6 +11,7 @@ import {
   type UpdateIssueFields,
   type UpdateIssueStatusFields,
   type UpdateProjectFields,
+  type UpdateProfileInput,
 } from '@issue-tracker/shared'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -26,6 +27,7 @@ type bodyTypes =
   | RevokeInviteFields
   | RecipientResponseFields
   | UpdateProjectFields
+  | UpdateProfileInput
 
 const UNKNOWN_ERROR: ApiErrorBody = {
   code: 'UNKNOWN_ERROR',
