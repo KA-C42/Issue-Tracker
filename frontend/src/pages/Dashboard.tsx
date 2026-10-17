@@ -1,5 +1,4 @@
 import { receivedInvitesQueryOptions } from '@/api/invites'
-import { profileQueryOptions } from '@/api/profiles'
 import { projectsQueryOptions } from '@/api/projects'
 import { useAuthProtected } from '@/auth/UseAuth'
 import CardBox from '@/components/cards/CardBox'
@@ -17,13 +16,10 @@ export default function Dashboard() {
 
   const [, setPageName] =
     useOutletContext<[string, Dispatch<SetStateAction<string>>]>()
-  const { isLoading, isSuccess, isError, data } = useQuery(profileQueryOptions)
 
   useEffect(() => {
-    if (isLoading) setPageName('Loading...')
-    if (isSuccess) setPageName(data?.username ?? 'Loading...')
-    if (isError) setPageName('profile unavailable')
-  }, [setPageName, isLoading, isSuccess, isError, data])
+    setPageName('Dashboard')
+  }, [setPageName])
 
   const [showCreateForm, setShowCreateForm] = useState(false)
 
