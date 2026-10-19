@@ -43,7 +43,7 @@ export default function Dashboard() {
             New Project
           </button>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 sm:flex-1 sm:min-h-0 sm:auto-rows-fr">
           <CardBox
             title="Owned Projects"
             isError={ownedQuery.isError}
