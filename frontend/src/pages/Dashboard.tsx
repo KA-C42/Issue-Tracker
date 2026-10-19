@@ -31,7 +31,7 @@ export default function Dashboard() {
   const invites = invitesQuery?.data
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center sm:h-full sm:overflow-y-auto">
       <div className="flex w-full max-w-6xl flex-col gap-4">
         <div className="flex items-center justify-center gap-4">
           <h1 className="text-xl font-semibold text-center">Projects</h1>
