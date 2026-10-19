@@ -31,7 +31,7 @@ export default function Dashboard() {
   const invites = invitesQuery?.data
 
   return (
-    <div className="flex justify-center sm:h-full sm:overflow-y-auto p-4">
+    <div className="flex justify-center md:h-full p-4">
       <div className="flex w-full max-w-6xl flex-col gap-4">
         <div className="flex items-center justify-center gap-4">
           <h1 className="text-xl font-semibold text-center">Projects</h1>
@@ -43,7 +43,7 @@ export default function Dashboard() {
             New Project
           </button>
         </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 sm:flex-1 sm:min-h-0 sm:auto-rows-fr">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:flex-1 md:min-h-0 md:auto-rows-fr">
           <CardBox
             title="Owned Projects"
             isError={ownedQuery.isError}

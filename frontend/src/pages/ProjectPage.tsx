@@ -31,9 +31,9 @@ export default function ProjectPage() {
     <div className="h-full flex flex-col min-h-0">
       <SidebarProvider className="flex flex-1 min-h-0">
         <ProjectSidebar />
-        <div className="flex flex-1 flex-col p-2 sm:min-h-0 sm:overflow-y-auto">
+        <div className="flex flex-1 flex-col p-2 md:min-h-0 md:overflow-y-auto">
           <ProjectSidebarTrigger />
-          <div className="flex flex-1 flex-col sm:min-h-80">
+          <div className="flex flex-1 flex-col md:min-h-80">
             <Outlet />
           </div>
         </div>

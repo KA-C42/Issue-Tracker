@@ -33,7 +33,7 @@ export function KanbanBoard({ projectId }: { projectId: string }) {
         issueStatusPatch.mutate(result)
       }}
     >
-      <div className="grid grid-cols-1 sm:grid-cols-3 sm:auto-rows-fr gap-4 flex-1 min-h-0">
+      <div className="grid grid-cols-1 md:grid-cols-3 md:auto-rows-fr gap-4 flex-1 min-h-0">
         {COLUMNS.map(({ status, title }) => (
           <DroppableCardbox
             status={status}

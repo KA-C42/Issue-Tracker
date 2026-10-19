@@ -18,7 +18,7 @@ export default function ContributingProjectCard(
             </Badge>
           </CardAction>
         </CardHeader>
-        <CardFooter className="gap-4 text-sm text-muted-foreground">
+        <CardFooter className="flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span>by {data.creator_username}</span>
           <span>
             {plural(data.assigned_open_issue_count, 'open issue')} assigned to
