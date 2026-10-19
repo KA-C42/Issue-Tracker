@@ -9,7 +9,7 @@ import {
   InputGroupTextarea,
 } from './ui/input-group'
 import { Button } from './ui/button'
-import { postProject, projectsQueryOptions } from '@/api/projects'
+import { ownedProjectsQueryOptions, postProject } from '@/api/projects'
 import { Spinner } from './ui/spinner'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -36,7 +36,9 @@ export function CreateProjectForm({ close }: CreateProjectFormProps) {
     mutationFn: postProject,
     onSuccess: (data) => {
       form.reset()
-      queryClient.invalidateQueries({ queryKey: projectsQueryOptions.queryKey })
+      queryClient.invalidateQueries({
+        queryKey: ownedProjectsQueryOptions.queryKey,
+      })
       close()
       toast.success(`Project '${data.title}' successfully created`)
     },

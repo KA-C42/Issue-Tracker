@@ -11,7 +11,7 @@ import {
 import { Button } from './ui/button'
 import {
   patchProject,
-  projectsQueryOptions,
+  ownedProjectsQueryOptions,
   singleProjectQueryOptions,
 } from '@/api/projects'
 import { Spinner } from './ui/spinner'
@@ -44,7 +44,9 @@ export function PatchProjectForm({ project, close }: PatchProjectFormProps) {
   const projectPatch = useMutation({
     mutationFn: patchProject,
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: projectsQueryOptions.queryKey })
+      queryClient.invalidateQueries({
+        queryKey: ownedProjectsQueryOptions.queryKey,
+      })
       queryClient.invalidateQueries({
         queryKey: singleProjectQueryOptions(project.id).queryKey,
       })

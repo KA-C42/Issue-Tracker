@@ -4,11 +4,20 @@ import type {
   ProjectInput,
   Project,
   UpdateProjectInput,
+  OwnedProjectSummary,
+  ContributingProjectSummary,
 } from '@issue-tracker/shared'
 
-export const projectsQueryOptions = queryOptions({
-  queryKey: ['projects'],
-  queryFn: ({ signal }) => getProjects(signal),
+export const myProjectsKey = ['me', 'projects'] as const
+
+export const ownedProjectsQueryOptions = queryOptions({
+  queryKey: [...myProjectsKey, 'owned'],
+  queryFn: ({ signal }) => getOwnedProjects(signal),
+})
+
+export const contributingProjectsQueryOptions = queryOptions({
+  queryKey: [...myProjectsKey, 'contributing'],
+  queryFn: ({ signal }) => getContributingProjects(signal),
 })
 
 export const singleProjectQueryOptions = (projectId: string) =>
@@ -22,8 +31,19 @@ async function postProject(data: ProjectInput) {
   return result
 }
 
-async function getProjects(abortSignal: AbortSignal): Promise<Project[]> {
-  const result = await apiFetch('GET', '/api/me/projects', {
+async function getOwnedProjects(
+  abortSignal: AbortSignal,
+): Promise<OwnedProjectSummary[]> {
+  const result = await apiFetch('GET', '/api/me/projects/owned', {
+    signal: abortSignal,
+  })
+  return result
+}
+
+async function getContributingProjects(
+  abortSignal: AbortSignal,
+): Promise<ContributingProjectSummary[]> {
+  const result = await apiFetch('GET', '/api/me/projects/contributing', {
     signal: abortSignal,
   })
   return result
@@ -53,7 +73,8 @@ async function deleteProject(projectId: string) {
 
 export {
   postProject,
-  getProjects,
+  getContributingProjects,
+  getOwnedProjects,
   getSingleProject,
   patchProject,
   deleteProject,

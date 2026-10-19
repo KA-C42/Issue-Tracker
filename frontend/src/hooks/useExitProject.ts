@@ -1,7 +1,12 @@
 // hooks/useExitProject.ts
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { projectsQueryOptions, singleProjectQueryOptions } from '@/api/projects'
+import {
+  contributingProjectsQueryOptions,
+  myProjectsKey,
+  ownedProjectsQueryOptions,
+  singleProjectQueryOptions,
+} from '@/api/projects'
 import { projectIssuesQueryOptions } from '@/api/issues'
 import { projectContributorsQueryOptions } from '@/api/contributors'
 import { projectInvitesQueryOptions } from '@/api/invites'
@@ -16,10 +21,15 @@ export function useExitProject(projectId: string) {
   return () => {
     navigate('/', { replace: true })
 
-    queryClient.setQueryData(projectsQueryOptions.queryKey, (projects) =>
+    // deleting removes it from owned, leaving removes it from contributing
+    queryClient.setQueryData(ownedProjectsQueryOptions.queryKey, (projects) =>
       projects?.filter((p) => p.id !== projectId),
     )
-    queryClient.invalidateQueries({ queryKey: projectsQueryOptions.queryKey })
+    queryClient.setQueryData(
+      contributingProjectsQueryOptions.queryKey,
+      (projects) => projects?.filter((p) => p.id !== projectId),
+    )
+    queryClient.invalidateQueries({ queryKey: myProjectsKey })
 
     queryClient.removeQueries({
       queryKey: singleProjectQueryOptions(projectId).queryKey,
