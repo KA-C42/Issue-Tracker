@@ -71,19 +71,56 @@ meRouter.delete('/profile', async (req, res) => {
   }
 })
 
-meRouter.get('/projects', async (req, res) => {
+meRouter.get('/projects/owned', async (req, res) => {
   const user = req.user as JwtUser
 
   const text = `
-        SELECT p.*
-        FROM projects p
-        JOIN project_contributors pc
-          ON pc.project_id = p.id
-          AND pc.user_id = $1
-        ORDER BY
-          CASE WHEN p.creator_id = $1 THEN 0 ELSE 1 END,
-          pc.joined_at ASC
-        `
+    SELECT p.id, p.title, p.code, p.description,
+      (SELECT COUNT(*)::int
+        FROM project_contributors pc
+        WHERE pc.project_id = p.id) AS member_count,
+      (SELECT COUNT(*)::int
+        FROM issues i
+        WHERE i.project_id = p.id
+        AND i.status IN ('BACKLOG', 'IN_PROGRESS')) AS open_issue_count,
+      (SELECT COUNT(*)::int
+        FROM invites inv
+        WHERE inv.project_id = p.id
+        AND inv.status = 'PENDING') AS pending_invite_count
+    FROM projects p
+    WHERE p.creator_id = $1
+    ORDER BY p.created_at DESC
+  `
+  const values = [user.sub]
+
+  try {
+    const result = await pool.query(text, values)
+    return res.status(200).json(result.rows)
+  } catch (err) {
+    dbErrorMapper(err as DbError)
+  }
+})
+
+meRouter.get('/projects/contributing', async (req, res) => {
+  const user = req.user as JwtUser
+
+  const text = `
+    SELECT p.id, p.title, p.code, p.description,
+      o.username AS creator_username,
+      (SELECT COUNT(*)::int
+        FROM issues i
+        WHERE i.project_id = p.id
+        AND i.status IN ('BACKLOG', 'IN_PROGRESS')
+        AND i.assignee_id = $1) AS assigned_open_issue_count
+    FROM projects p
+    JOIN project_contributors pc
+      ON pc.project_id = p.id
+      AND pc.user_id = $1
+    JOIN profiles o
+      ON o.id = p.creator_id
+    WHERE p.creator_id <> $1
+    ORDER BY pc.joined_at DESC, p.id DESC
+  `
   const values = [user.sub]
 
   try {
