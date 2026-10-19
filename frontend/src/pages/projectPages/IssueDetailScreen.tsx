@@ -186,10 +186,10 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
   const canChangeAssignee = assigneeOptions.length > 1
 
   return (
-    <div className="flex flex-1 flex-col gap-4 px-10 py-4 sm:min-h-0 sm:overflow-hidden">
-      <div className="flex flex-1 flex-col gap-6 sm:min-h-0 sm:flex-row">
+    <div className="flex flex-1 flex-col gap-4 px-10 py-4 md:min-h-0 md:overflow-hidden">
+      <div className="flex flex-1 flex-col gap-6 md:min-h-0 md:flex-row">
         {/* left column: issue details */}
-        <div className="flex w-full flex-col gap-4 sm:w-1/2 sm:overflow-y-auto">
+        <div className="flex w-full flex-col gap-4 md:w-1/2 md:overflow-y-auto">
           {/* Title */}
           {isEditingTitle ? (
             <div className="flex flex-col gap-2">
@@ -391,8 +391,8 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
         </div>
 
         {/* right column: comments */}
-        <div className="flex w-full flex-col gap-3 sm:w-1/2 sm:min-h-0">
-          <div className="flex-1 sm:min-h-0">
+        <div className="flex w-full flex-col gap-3 md:w-1/2 md:min-h-0">
+          <div className="flex-1 md:min-h-0">
             {commentsQuery.isLoading && <Skeleton className="h-full w-full" />}
             {commentsQuery.isError && (
               <p className="text-sm text-muted-foreground">

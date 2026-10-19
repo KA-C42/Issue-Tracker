@@ -16,7 +16,7 @@ export default function OwnedProjectCard(data: OwnedProjectSummary) {
             </Badge>
           </CardAction>
         </CardHeader>
-        <CardFooter className="gap-4 text-sm text-muted-foreground">
+        <CardFooter className="flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span>{plural(data.open_issue_count, 'open issue')}</span>
           <span>{plural(data.member_count, 'member')}</span>
           <span>{plural(data.pending_invite_count, 'pending invite')}</span>

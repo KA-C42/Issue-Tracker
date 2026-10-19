@@ -16,10 +16,10 @@ export function InvitesBox({ projectId }: InvitesPanelProps) {
   const { data: project } = useQuery(singleProjectQueryOptions(projectId))
 
   return (
-    <div className="flex flex-1 flex-col gap-3 sm:min-h-0">
+    <div className="flex flex-1 flex-col gap-3 md:min-h-0">
       <InviteForm projectId={projectId} />
 
-      <div className="flex-1 sm:min-h-0">
+      <div className="flex-1 md:min-h-0">
         {invitesQuery.isLoading && <Skeleton className="h-full w-full" />}
         {invitesQuery.isError && (
           <p className="text-sm text-muted-foreground">

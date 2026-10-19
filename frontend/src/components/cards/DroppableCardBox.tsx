@@ -15,7 +15,7 @@ export function DroppableCardbox({
   const { ref } = useDroppable({ id: status })
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className="min-h-0">
       <CardBox
         title={title}
         data={issueData}

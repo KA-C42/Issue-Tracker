@@ -17,10 +17,10 @@ export default function MemberScreen() {
   if (!projectId) return <div>Project not found</div>
 
   return (
-    <div className="flex flex-1 flex-col gap-4 px-10 py-4 sm:min-h-0 sm:overflow-hidden">
-      <div className="flex flex-1 flex-col gap-6 sm:min-h-0 sm:flex-row">
+    <div className="flex flex-1 flex-col gap-4 px-10 py-4 md:min-h-0 md:overflow-hidden">
+      <div className="flex flex-1 flex-col gap-6 md:min-h-0 md:flex-row">
         {/* left column: members */}
-        <div className="flex w-full flex-col sm:w-1/2 sm:min-h-0">
+        <div className="flex w-full flex-col md:w-1/2 md:min-h-0">
           {membersQuery.isLoading && <Skeleton className="h-full w-full" />}
           {membersQuery.isError && (
             <p className="text-sm text-muted-foreground">
@@ -42,7 +42,7 @@ export default function MemberScreen() {
           )}
         </div>
         {/* right column: invites */}
-        <div className="flex w-full flex-col sm:w-1/2 sm:min-h-0">
+        <div className="flex w-full flex-col md:w-1/2 md:min-h-0">
           <InvitesBox projectId={projectId} />
         </div>
       </div>

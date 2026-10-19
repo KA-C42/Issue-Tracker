@@ -34,7 +34,7 @@ export default function CardBox<T>({
       </div>
     )
   return (
-    <Card className="flex sm:h-full flex-col">
+    <Card className="flex max-h-[60svh] flex-col md:h-full md:max-h-none">
       <CardHeader>
         <CardTitle className="text-center font-semibold">{title}</CardTitle>
       </CardHeader>
