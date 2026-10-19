@@ -177,6 +177,47 @@ const createInvite = async (
   return JSON.parse(JSON.stringify(updateRows[0])) // dates as strings, like API responses
 }
 
+const createPopulatedProject = async (app: Application, token: string) => {
+  const project = await createTestProject(app, token, 'projy')
+
+  // create 3 issues, 2 'open'
+  const issues: Issue[] = await Promise.all([
+    createTestIssue(app, token, project.id, 'i1', undefined, 'BACKLOG'), // BACKLOG considered 'open'
+    createTestIssue(app, token, project.id, 'i2', undefined, 'IN_PROGRESS'), // IN_PROGRESS considered 'open'
+    createTestIssue(app, token, project.id, 'i3', undefined, 'DONE'), // DONE not considered 'open'
+  ])
+
+  // add 2 contributors
+  const contributorAccounts: User[] = await Promise.all([
+    createTestUser('c1@test.kac'),
+    createTestUser('c2@test.kac'),
+  ])
+  for (const user of contributorAccounts)
+    await makeContributor(user.id, project.id)
+
+  // add 2 pending invite recipients
+  const inviteeAccounts: User[] = await Promise.all([
+    createTestUser('inv1@test.kac'),
+    createTestUser('inv2@test.kac'),
+  ])
+  const pendingInvites: Invite[] = await Promise.all([
+    createInvite(app, token, inviteeAccounts[0].id, project.id),
+    createInvite(app, token, inviteeAccounts[1].id, project.id),
+  ])
+
+  // 1 rejected invite recipient
+  const reject = await createTestUser('reject@test.kac')
+  await createInvite(app, token, reject.id, project.id, 'REJECTED')
+
+  return {
+    project,
+    issues,
+    contributorAccounts,
+    inviteeAccounts,
+    pendingInvites,
+  }
+}
+
 export {
   createTestUser,
   createTestProfile,
@@ -187,4 +228,5 @@ export {
   createTestIssue,
   createTestComment,
   createInvite,
+  createPopulatedProject,
 }

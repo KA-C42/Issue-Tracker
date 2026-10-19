@@ -30,3 +30,16 @@ export type Project = ProjectInput & {
   modified_at: string
   created_at: string
 }
+
+type ProjectCardBase = Pick<Project, 'id' | 'title' | 'code'>
+
+export type OwnedProjectSummary = ProjectCardBase & {
+  open_issue_count: number
+  member_count: number
+  pending_invite_count: number
+}
+
+export type ContributingProjectSummary = ProjectCardBase & {
+  creator_username: string
+  assigned_open_issue_count: number
+}

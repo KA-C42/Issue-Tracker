@@ -11,7 +11,7 @@ import {
 import { Button } from '../ui/button'
 import { receivedInvitesQueryOptions, respondToInvite } from '@/api/invites'
 import { ApiError } from '@/api/apiError'
-import { projectsQueryOptions } from '@/api/projects'
+import { contributingProjectsQueryOptions } from '@/api/projects'
 
 const RESPONSE_LABELS = { ACCEPTED: 'accepted', REJECTED: 'declined' } as const
 
@@ -25,7 +25,7 @@ export default function ReceivedInviteCard(invite: PendingReceivedInvite) {
         `Invite to '${invite.project_title}' ${RESPONSE_LABELS[variables.response]}`,
       )
       return queryClient.invalidateQueries({
-        queryKey: projectsQueryOptions.queryKey,
+        queryKey: contributingProjectsQueryOptions.queryKey,
       })
     },
     onError: (err) =>

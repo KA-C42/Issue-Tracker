@@ -4,7 +4,7 @@ import { test, expect, vi, afterEach } from 'vitest'
 import ReceivedInviteCard from '@/components/cards/ReceivedInviteCard'
 import * as invitesApi from '@/api/invites'
 import { receivedInvitesQueryOptions } from '@/api/invites'
-import { projectsQueryOptions } from '@/api/projects'
+import { contributingProjectsQueryOptions } from '@/api/projects'
 
 const INVITE = {
   id: 'invite-1',
@@ -19,7 +19,7 @@ const INVITE = {
 }
 
 const receivedInvitesKey = { queryKey: receivedInvitesQueryOptions.queryKey }
-const projectsKey = { queryKey: projectsQueryOptions.queryKey }
+const projectsKey = { queryKey: contributingProjectsQueryOptions.queryKey }
 
 function renderCard() {
   const queryClient = new QueryClient()

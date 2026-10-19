@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { test, expect, vi, afterEach } from 'vitest'
 import ProjectDetailsScreen from '@/pages/projectPages/ProjectDetailsScreen'
 import * as projectsApi from '@/api/projects'
-import { projectsQueryOptions, singleProjectQueryOptions } from '@/api/projects'
+import { singleProjectQueryOptions } from '@/api/projects'
 import { profileByIdQueryOptions } from '@/api/profiles'
 import * as auth from '@/auth/UseAuth'
 
@@ -135,7 +135,7 @@ test('saving sends the edit and refreshes the project and project list', async (
     },
   })
   expect(invalidate).toHaveBeenCalledWith({
-    queryKey: projectsQueryOptions.queryKey,
+    queryKey: projectsApi.ownedProjectsQueryOptions.queryKey,
   })
 })
 
@@ -196,6 +196,6 @@ test('confirming deletes the project, leaves the page, and clears its cache', as
     queryClient.getQueryData(singleProjectQueryOptions('p1').queryKey),
   ).toBeUndefined()
   expect(invalidate).toHaveBeenCalledWith({
-    queryKey: projectsQueryOptions.queryKey,
+    queryKey: projectsApi.myProjectsKey,
   })
 })

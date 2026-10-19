@@ -66,20 +66,43 @@
 </details>
 
 <details>
- <summary><code>GET</code> <code><b>/me/projects</b></code> <code>Find all projects the authenticated user either owns or contributes to</code></summary>
+ <summary><code>GET</code> <code><b>/me/projects/owned</b></code> <code>Find projects the authenticated user created</code></summary>
 
 ##### Auth
 
-- Required 
+- Required
 - Accessible to any authenticated user
 
 ##### Responses
 
 > | http code     | content-type                      | response                                                            |
 > |---------------|-----------------------------------|---------------------------------------------------------------------|
-> | `200`         | `application/json`        | Array of project records             |
+> | `200`         | `application/json`        | Array of project card records             |
 
-- Owned projects appear first (sorted by `created_at`), followed by contributed projects (sorted by date joined).
+- Each record includes `id`, `title`, `code`, `description`, `member_count`, `open_issue_count`, and `pending_invite_count`
+- `member_count` includes the creator
+- Open issues are those with status `BACKLOG` or `IN_PROGRESS`
+- Sorted newest first by `created_at`
+
+</details>
+
+<details>
+ <summary><code>GET</code> <code><b>/me/projects/contributing</b></code> <code>Find projects the authenticated user contributes to but did not create</code></summary>
+
+##### Auth
+
+- Required
+- Accessible to any authenticated user
+
+##### Responses
+
+> | http code     | content-type                      | response                                                            |
+> |---------------|-----------------------------------|---------------------------------------------------------------------|
+> | `200`         | `application/json`        | Array of project card records             |
+
+- Each record includes `id`, `title`, `code`, `description`, `creator_username`, and `assigned_open_issue_count`
+- `assigned_open_issue_count` counts open issues (`BACKLOG` or `IN_PROGRESS`) assigned to the authenticated user
+- Sorted by most recently joined first
 
 </details>
 
