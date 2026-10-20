@@ -8,7 +8,7 @@ export const projectSchema = z.object({
     .max(40, 'Title must be 40 or fewer characters'),
   description: z
     .string()
-    .max(300, 'Description must not exceed 300 characters'),
+    .max(500, 'Description must not exceed 500 characters'),
   code: z.string().length(4, 'Code must be exactly 4 characters'),
 })
 export type ProjectInput = z.infer<typeof projectSchema>

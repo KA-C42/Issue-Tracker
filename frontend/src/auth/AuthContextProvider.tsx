@@ -57,6 +57,11 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
     return error
   }
 
+  async function signInAnonymously() {
+    const { error } = await supabase.auth.signInAnonymously()
+    return error
+  }
+
   async function signOutProcess() {
     // clear local data and pending queries before sign out
     queryClient.clear()
@@ -72,6 +77,7 @@ export function AuthContextProvider({ children }: { children: ReactNode }) {
         loading,
         signInWithEmail,
         signUpWithEmail,
+        signInAnonymously,
         signOutProcess,
       }}
     >
