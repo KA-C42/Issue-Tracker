@@ -8,7 +8,18 @@ import { toast } from 'sonner'
 export default function AuthPage() {
   const { register, handleSubmit } = useForm()
   const [newUser, setNewUser] = useState(false)
-  const { signInWithEmail, signUpWithEmail } = useAuth()
+  const { signInWithEmail, signUpWithEmail, signInAnonymously } = useAuth()
+  const [demoPending, setDemoPending] = useState(false)
+
+  const handleDemoSignIn = async () => {
+    setDemoPending(true)
+    const error = await signInAnonymously()
+
+    if (error) {
+      toast.error(error.message)
+      setDemoPending(false)
+    } else navigate('/')
+  }
 
   const navigate = useNavigate()
 
@@ -61,6 +72,16 @@ export default function AuthPage() {
           {newUser
             ? 'Already have an account? Sign in'
             : 'Need an account? Sign up'}
+        </button>
+        <button
+          type="button"
+          onClick={handleDemoSignIn}
+          disabled={demoPending}
+          className="border p-2 disabled:opacity-50"
+        >
+          {demoPending
+            ? 'Setting up your demo…'
+            : 'Just here to browse? Try a demo account!'}
         </button>
       </form>
     </div>

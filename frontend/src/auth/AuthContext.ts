@@ -16,6 +16,8 @@ export type AuthContextType = {
     password: string,
   ) => Promise<AuthError | null>
 
+  signInAnonymously: () => Promise<AuthError | null>
+
   signOutProcess: () => Promise<AuthError | null>
 }
 

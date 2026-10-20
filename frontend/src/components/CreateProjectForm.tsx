@@ -112,13 +112,13 @@ export function CreateProjectForm({ close }: CreateProjectFormProps) {
                   id="create-project-form-description"
                   placeholder="Describe the vision"
                   rows={6}
-                  aria-invalid={fieldState.invalid || field.value.length > 300}
+                  aria-invalid={fieldState.invalid || field.value.length > 500}
                 />
                 <InputGroupAddon align="block-end">
                   <InputGroupText
-                    className={`tabular-nums ${field.value.length > 300 ? 'text-destructive' : ''}`}
+                    className={`tabular-nums ${field.value.length > 500 ? 'text-destructive' : ''}`}
                   >
-                    {field.value.length}/300 characters
+                    {field.value.length}/500 characters
                   </InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
