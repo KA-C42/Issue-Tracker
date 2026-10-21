@@ -31,20 +31,6 @@ The data is yours alone, so edit or delete anything.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    Browser["Browser<br/>React SPA on Vercel"]
-    Auth["Supabase Auth"]
-    API["Express API<br/>on Railway"]
-    DB[("Supabase Postgres")]
-
-    Browser -->|"sign in / guest sign-in<br/>returns a JWT"| Auth
-    Browser -->|"/api/* + Bearer JWT<br/>via Vercel rewrite"| API
-    API -->|"signing keys<br/>(JWKS, cached)"| Auth
-    API -->|"SQL via node-postgres"| DB
-    Auth -.->|"new user fires profile<br/>and demo-seed triggers"| DB
-```
-
 Key decisions:
 
 - **Supabase is only auth and a hosted database.** Its Data API is disabled, so the Express API is the single path to the data and the single place authorization happens.
