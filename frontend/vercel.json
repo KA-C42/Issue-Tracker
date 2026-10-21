@@ -1,0 +1,17 @@
+{
+  "installCommand": "cd .. && npm ci",
+  "buildCommand": "cd .. && npm run build -w shared && npm run build -w frontend",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://backend-production-0007a.up.railway.app/:path*"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [{ "key": "x-vercel-enable-rewrite-caching", "value": "0" }]
+    }
+  ]
+}
