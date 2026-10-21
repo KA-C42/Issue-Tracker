@@ -3,10 +3,7 @@
 import 'dotenv/config'
 import createApp from './api/app.js'
 
-const port = 3000
-
 const app = createApp()
 
-app.listen(port, () => {
-  console.log(`Issue tracker listening on port ${port}`)
-})
+const port = Number(process.env.PORT) || 3000
+app.listen(port, '0.0.0.0', () => console.log(`API listening on ${port}`))
