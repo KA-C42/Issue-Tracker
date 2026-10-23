@@ -9,10 +9,9 @@ test('signs in as a demo guest and accepts the invite', async ({ page }) => {
   await page.goto('/')
 
   // Sign in as a demo guest
-  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
-  await page
-    .getByRole('button', { name: 'Just here to browse? Try a demo account!' })
-    .click()
+  await expect(page).toHaveURL(/\/auth$/)
+  // CTA copy will keep changing, "demo" won't
+  await page.getByRole('button', { name: /demo/i }).click()
   // new page, already seeded
   await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible({
     timeout: 15_000,

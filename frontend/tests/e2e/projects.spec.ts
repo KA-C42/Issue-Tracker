@@ -1,18 +1,18 @@
 import { test, expect } from '@playwright/test'
 
 // consider extracting to POM once more tests are added
-test('signs in and creates a project', async ({ page }) => {
+test('signs up and creates a project', async ({ page }) => {
   const projectTitle = 'E2E test project'
 
   await page.goto('/')
 
   // Sign up
-  await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible()
-  await page.getByRole('button', { name: 'Need an account? Sign up' }).click()
-  await expect(page.getByRole('heading', { name: 'Sign up' })).toBeVisible()
+  await expect(page).toHaveURL(/\/auth$/)
+  await page.getByRole('button', { name: 'Sign up', exact: true }).click()
   await page.getByLabel('Email').fill(`playwright+${Date.now()}@e2e.test`)
   await page.getByLabel('Password').fill('testeeee')
-  await page.getByRole('button', { name: 'Submit' }).click()
+  // only exists in sign-up mode, so this also confirms the toggle worked
+  await page.getByRole('button', { name: 'Create account' }).click()
   // new page
   await expect(page.getByRole('heading', { name: 'Projects' })).toBeVisible()
   // open/use form
