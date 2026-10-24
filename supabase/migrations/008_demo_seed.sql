@@ -69,8 +69,7 @@ CREATE OR REPLACE FUNCTION seed_demo_workspace()
             (contributing, maya, 'Mobile App Launch', 'LNCH', 'Final steps before launching the mobile platform of our service! This description is so very descriptive and leaves absolutely zero questions about what this project is (it is filler).', now() - interval '30 days'),
             (hire_kacy, sam, 'Hire Kacy', 'HIRE', 'Looking for a dedicated software engineer to grow with your company? Look no further! This KA-C42 (also known as Kacy) unit comes with years of software engineering training, proven self-learning capabilities, a hunger to solve problems that help people, and even her own Claude subscription! Look no further for all your [entry-level] software development needs!', now() - interval '7 days');
 
-        -- the project_created trigger added each owner as a member at now();
-        -- backdate that to the project's creation
+        -- change creators joined_at to match the falsified created_at
         UPDATE project_contributors pc
             SET joined_at = p.created_at
             FROM projects p
@@ -85,21 +84,20 @@ CREATE OR REPLACE FUNCTION seed_demo_workspace()
             (contributing, sam, now() - interval '28 days'),
             (hire_kacy, maya, now() - interval '6 days');
 
-        -- 5. Issues. Each one is created before its first comment, and
-        --    modified_at matches created_at so nothing looks edited.
-        INSERT INTO issues (id, project_id, creator_id, title, status, assignee_id, created_at, status_changed_at, modified_at) VALUES
-            (issue_ids[1], owned, guest, 'Set up CI for lint and tests', 'DONE', guest, now() - interval '20 days', now() - interval '4 days 1 hour', now() - interval '20 days'),
-            (issue_ids[2], owned, guest, 'Add a dark mode toggle', 'BACKLOG', guest, now() - interval '12 days', now() - interval '12 days', now() - interval '12 days'),
-            (issue_ids[3], owned, sam, 'Lazy-load hero images', 'IN_PROGRESS', NULL, now() - interval '6 days', now() - interval '5 days', now() - interval '6 days'),
-            (issue_ids[4], contributing, maya, 'Push notification opt-in screen', 'IN_PROGRESS', guest, now() - interval '18 days', now() - interval '4 days', now() - interval '18 days'),
-            (issue_ids[5], contributing, maya, 'Crash on Android 12 cold start', 'IN_PROGRESS', sam, now() - interval '7 days', now() - interval '2 days', now() - interval '7 days'),
-            (issue_ids[6], contributing, maya, 'Accessibility audit', 'BACKLOG', NULL, now() - interval '9 days', now() - interval '9 days', now() - interval '9 days'),
-            (issue_ids[7], hire_kacy, sam, 'Explore Kacy''s most recent practice project', 'DONE', NULL, now() - interval '7 days', now() - interval '6 days 1 hour', now() - interval '7 days'),
-            (issue_ids[8], hire_kacy, sam, 'Schedule an interview with Kacy', 'IN_PROGRESS', NULL, now() - interval '6 days', now() - interval '1 day', now() - interval '6 days'),
-            (issue_ids[9], hire_kacy, sam, 'Send Kacy an offer', 'BACKLOG', NULL, now() - interval '6 days', now() - interval '6 days', now() - interval '6 days');
+        -- 5. Issues
+        INSERT INTO issues (id, project_id, creator_id, title, details, status, assignee_id, created_at, status_changed_at, modified_at) VALUES
+            (issue_ids[1], owned, guest, 'Set up CI for lint and tests', 'Run ESLint and Vitest on every push.', 'DONE', guest, now() - interval '20 days', now() - interval '4 days 1 hour', now() - interval '20 days'),
+            (issue_ids[2], owned, guest, 'Add a dark mode toggle', 'Default to the system preference.', 'BACKLOG', guest, now() - interval '12 days', now() - interval '12 days', now() - interval '12 days'),
+            (issue_ids[3], owned, sam, 'Lazy-load hero images', 'Defer offscreen images on the landing page.', 'IN_PROGRESS', NULL, now() - interval '6 days', now() - interval '5 days', now() - interval '6 days'),
+            (issue_ids[4], contributing, maya, 'Push notification opt-in screen', 'Ask after first login, not on launch.', 'IN_PROGRESS', guest, now() - interval '18 days', now() - interval '4 days', now() - interval '18 days'),
+            (issue_ids[5], contributing, maya, 'Crash on Android 12 cold start', 'Happens on fresh installs only. Fine on 13+.', 'IN_PROGRESS', sam, now() - interval '7 days', now() - interval '2 days', now() - interval '7 days'),
+            (issue_ids[6], contributing, maya, 'Accessibility audit', 'Check contrast, labels, and keyboard nav.', 'BACKLOG', NULL, now() - interval '9 days', now() - interval '9 days', now() - interval '9 days'),
+            (issue_ids[7], hire_kacy, sam, 'Explore Kacy''s most recent practice project', 'You''re in it right now.', 'DONE', NULL, now() - interval '7 days', now() - interval '6 days 1 hour', now() - interval '7 days'),
+            (issue_ids[8], hire_kacy, sam, 'Schedule an interview with Kacy', 'Email: kacycote42@gmail.com | GitHub: github.com/KA-C42', 'IN_PROGRESS', NULL, now() - interval '6 days', now() - interval '1 day', now() - interval '6 days'),
+            (issue_ids[9], hire_kacy, sam, 'Send Kacy an offer', 'let''s make her an offer she can''t refuse >:) Email: kacycote42@gmail.com', 'BACKLOG', NULL, now() - interval '6 days', now() - interval '6 days', now() - interval '6 days');
 
         -- Comments display oldest first, so each one gets its own created_at.
-        -- modified_at matches it so none shows "(edited)".
+        -- modified_at matches it so none show "(edited)".
         INSERT INTO comments (issue_id, creator_id, comment, created_at, modified_at) VALUES
             (issue_ids[1], sam, 'Go team! We did something!', now() - interval '4 days', now() - interval '4 days'),
             (issue_ids[1], guest, 'Good job Sam! Keep up the good work!', now() - interval '3 days 23 hours', now() - interval '3 days 23 hours'),
