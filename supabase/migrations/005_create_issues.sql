@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS issues (
     
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    creator_id uuid REFERENCES profiles (id) NOT NULL,
+    creator_id uuid REFERENCES profiles (id) ON DELETE SET NULL,
 
     project_id uuid REFERENCES projects (id) ON DELETE CASCADE NOT NULL,
 
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS issues (
 
     CHECK (status IN ('BACKLOG', 'IN_PROGRESS', 'DONE')),
 
-    assignee_id uuid REFERENCES profiles (id),
+    assignee_id uuid REFERENCES profiles (id) ON DELETE SET NULL,
 
     status_changed_at timestamptz NOT NULL DEFAULT now(),
 

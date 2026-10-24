@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS profiles (
 
-  id uuid PRIMARY KEY REFERENCES auth.users (id),
+  id uuid PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
 
   username text UNIQUE NOT NULL CHECK (char_length(username) BETWEEN 1 and 30),
 
