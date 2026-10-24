@@ -2,9 +2,9 @@ CREATE TABLE IF NOT EXISTS invites (
 
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    sender_id uuid REFERENCES profiles (id) NOT NULL,
+    sender_id uuid REFERENCES profiles (id) ON DELETE CASCADE NOT NULL,
 
-    recipient_id uuid REFERENCES profiles (id) NOT NULL,
+    recipient_id uuid REFERENCES profiles (id) ON DELETE CASCADE NOT NULL,
 
     project_id uuid REFERENCES projects (id) ON DELETE CASCADE NOT NULL,
 

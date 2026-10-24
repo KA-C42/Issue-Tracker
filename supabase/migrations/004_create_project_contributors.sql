@@ -26,12 +26,18 @@ CREATE TRIGGER project_created
 CREATE OR REPLACE FUNCTION prevent_owner_removal()
 RETURNS TRIGGER AS $$
 BEGIN
+  -- owner's profile is being deleted (cascade): allow
+  IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = OLD.user_id) THEN
+    RETURN OLD;
+  END IF;
+
   IF EXISTS (
     SELECT 1 FROM projects
     WHERE id = OLD.project_id AND creator_id = OLD.user_id
   ) THEN
     RAISE EXCEPTION 'CANNOT_REMOVE_OWNER';
   END IF;
+
   RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;

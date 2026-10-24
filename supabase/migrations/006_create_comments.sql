@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS comments (
 
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
 
-    creator_id uuid REFERENCES profiles (id) NOT NULL,
+    creator_id uuid REFERENCES profiles (id) ON DELETE SET NULL,
 
     issue_id uuid REFERENCES issues (id) ON DELETE CASCADE NOT NULL,
 
