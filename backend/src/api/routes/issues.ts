@@ -21,6 +21,7 @@ import {
 import {
   allOf,
   anyOf,
+  assigneeIsNull,
   assigneeNullToSelf,
   isAssignee,
   isIssueCreator,
@@ -167,7 +168,10 @@ issueRouter.patch(
     user_id: req.user?.sub as string,
   })),
   requireRule(
-    allOf(isProjectMember, anyOf(isProjectCreator, isIssueCreator, isAssignee)),
+    allOf(
+      isProjectMember,
+      anyOf(isProjectCreator, isIssueCreator, isAssignee, assigneeIsNull),
+    ),
   ),
   async (req, res) => {
     const text = `

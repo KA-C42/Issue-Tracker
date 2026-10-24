@@ -355,7 +355,30 @@ describe('PATCH /issues/:id/status', () => {
       .expect('Content-Type', /json/)
   })
 
-  it('returns 403 when called by a project member that is none of: assignee, issue creator, project creator', async () => {
+  it('allows any project member to patch status when issue is unassigned', async () => {
+    const newUser = await createTestUser('lemme@at.it')
+    await makeContributor(newUser.id, project.id)
+    const newToken = await createAuthToken(newUser.id)
+    const newIssue = await createTestIssue(
+      app,
+      token,
+      project.id,
+      'titleytitle',
+    )
+
+    const payload = {
+      status: 'DONE',
+    }
+
+    await request(app)
+      .patch(`/issues/${newIssue.id}/status`)
+      .set('Authorization', `Bearer ${newToken}`)
+      .send(payload)
+      .expect(200)
+      .expect('Content-Type', /json/)
+  })
+
+  it('returns 403 when assigned and called by a project member that is none of: assignee, issue creator, project creator', async () => {
     const newUser = await createTestUser('m@m.m')
     const newToken = await createAuthToken(newUser.id)
     await makeContributor(newUser.id, project.id)
