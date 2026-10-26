@@ -24,7 +24,10 @@ export const canPatchIssueStatus = (
   userId: string,
   issue: Issue,
   project: Project,
-) => canPatchIssue(userId, issue, project) || isAssignee(userId, issue)
+) =>
+  canPatchIssue(userId, issue, project) ||
+  isAssignee(userId, issue) ||
+  isUnassigned(issue)
 
 export const canPatchIssueAssignee = (
   userId: string,

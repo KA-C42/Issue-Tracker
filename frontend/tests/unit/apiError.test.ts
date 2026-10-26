@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from 'vitest'
-import { apiErrorToFormDisplay } from '@/api/apiError'
+import {
+  ApiError,
+  apiErrorToFormDisplay,
+  getErrorMessage,
+} from '@/api/apiError'
 import type { ApiErrorBody } from '@/api/apiError'
 
 describe('apiErrorToFormDisplay', () => {
@@ -30,5 +34,32 @@ describe('apiErrorToFormDisplay', () => {
 
     expect(result).toBe(false)
     expect(setError).not.toHaveBeenCalled()
+  })
+})
+
+describe('getErrorMessage', () => {
+  it.each([
+    [
+      'a permission error',
+      new ApiError(403, { code: 'UNAUTHORIZED_REQUEST', message: 'raw' }),
+      "You don't have permission to do that.",
+    ],
+    [
+      'an expired session',
+      new ApiError(401, { code: 'INVALID_TOKEN', message: 'raw' }),
+      'Something went wrong.',
+    ],
+    [
+      'any other server error',
+      new ApiError(500, { code: 'UNKNOWN_ERROR', message: 'raw' }),
+      'Something went wrong.',
+    ],
+    [
+      'a network failure',
+      new TypeError('Failed to fetch'),
+      'Something went wrong.',
+    ],
+  ])('handles %s', (_, err, expected) => {
+    expect(getErrorMessage(err)).toBe(expected)
   })
 })

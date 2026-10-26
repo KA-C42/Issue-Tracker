@@ -39,9 +39,13 @@ export const isSender: Rule = (req, res) => {
 
 export const assigneeNullToSelf: Rule = (req, res) => {
   return (
-    res.locals.issue.assignee_id === null &&
+    assigneeIsNull(req, res) &&
     res.locals.validated.assignee_id === req.user?.sub
   )
+}
+
+export const assigneeIsNull: Rule = (req, res) => {
+  return res.locals.issue.assignee_id === null
 }
 
 export const removingAssignee: Rule = (req, res) => {
