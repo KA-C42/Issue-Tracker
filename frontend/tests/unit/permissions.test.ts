@@ -68,11 +68,12 @@ test('canDeleteIssue allows the issue creator or project creator, not anyone els
   expect(canDeleteIssue('stranger', issue, project)).toBe(false)
 })
 
-test('canPatchIssueStatus additionally allows the assignee', () => {
+test('canPatchIssueStatus additionally allows the assignee, or any member when assignee is null', () => {
   expect(canPatchIssueStatus('issue-creator', issue, project)).toBe(true)
   expect(canPatchIssueStatus('creator', issue, project)).toBe(true)
   expect(canPatchIssueStatus('assignee-user', issue, project)).toBe(true)
-  expect(canPatchIssueStatus('stranger', issue, project)).toBe(false)
+  expect(canPatchIssueStatus('member', issue, project)).toBe(false)
+  expect(canPatchIssueStatus('member', unassignedIssue, project)).toBe(true)
 })
 
 test('canPatchIssueAssignee allows the project creator or issue creator to reassign to anyone', () => {
