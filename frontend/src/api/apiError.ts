@@ -29,3 +29,9 @@ export function apiErrorToFormDisplay<T extends FieldValues>(
 
   return true
 }
+
+export function getErrorMessage(err: unknown) {
+  if (err instanceof ApiError && err.status === 403)
+    return "You don't have permission to do that."
+  return 'Something went wrong.'
+}

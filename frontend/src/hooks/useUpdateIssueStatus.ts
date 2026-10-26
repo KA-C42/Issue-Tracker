@@ -1,5 +1,5 @@
 // hooks/useUpdateIssueStatus.ts
-import { ApiError } from '@/api/apiError'
+import { getErrorMessage } from '@/api/apiError'
 import {
   projectIssuesQueryOptions,
   singleIssueQueryOptions,
@@ -59,9 +59,7 @@ export function useUpdateIssueStatus(projectId: string) {
           context.previousIssue,
         )
       }
-      toast.error(
-        err instanceof ApiError ? err.message : 'Something went wrong',
-      )
+      toast.error(getErrorMessage(err))
     },
   })
 }
