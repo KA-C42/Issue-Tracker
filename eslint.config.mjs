@@ -73,6 +73,14 @@ export default defineConfig([
     },
   },
 
+  // Playwright fixtures call `use()`, which isn't React's hook
+  {
+    files: ['frontend/tests/e2e/**'],
+    rules: {
+      'react-hooks/rules-of-hooks': 'off',
+    },
+  },
+
   // Allow `any` in test fixtures
   {
     files: ['**/*.test.{ts,tsx}'],
