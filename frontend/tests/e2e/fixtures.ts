@@ -38,20 +38,10 @@ const env = loadEnv(
   'VITE_',
 )
 
-async function acquireAccount(role: Role): Promise<Account> {
-  const id = test.info().parallelIndex // worker index
-
-  // outputDir is wiped each run, so each run signs up fresh
-  const fileName = path.resolve(
-    test.info().project.outputDir,
-    `.auth/${id}-${role}.json`,
-  )
-  if (fs.existsSync(fileName)) {
-    return JSON.parse(fs.readFileSync(fileName, 'utf-8'))
-  }
-
+// Exported for tests that need an account nobody else uses (e.g. sign-out)
+export async function signUp(label: string): Promise<Account> {
   const baseURL = test.info().project.use.baseURL!
-  const email = `playwright+${role}-${id}-${Date.now()}@e2e.test`
+  const email = `playwright+${label}-${Date.now()}@e2e.test`
 
   // supabase-js saves the session through `storage`. Catching it here and
   // storing in storageState allows us to skip the sign up screen
@@ -89,7 +79,7 @@ async function acquireAccount(role: Role): Promise<Account> {
   if (typeof username !== 'string')
     throw new Error('profile response missing username')
 
-  const account: Account = {
+  return {
     email,
     password: PASSWORD,
     username,
@@ -103,14 +93,26 @@ async function acquireAccount(role: Role): Promise<Account> {
       ],
     },
   }
+}
 
+async function acquireAccount(role: Role): Promise<Account> {
+  const id = test.info().parallelIndex // worker index
+
+  // outputDir is wiped each run, so each run signs up fresh
+  const fileName = path.resolve(
+    test.info().project.outputDir,
+    `.auth/${id}-${role}.json`,
+  )
+  if (fs.existsSync(fileName)) {
+    return JSON.parse(fs.readFileSync(fileName, 'utf-8'))
+  }
+
+  const account = await signUp(`${role}-${id}`)
   fs.mkdirSync(path.dirname(fileName), { recursive: true })
   fs.writeFileSync(fileName, JSON.stringify(account))
   return account
 }
 
-// Playwright reads a fixture's dependencies from its destructured first
-// argument, so it has to be there even when empty
 function accountFixture(role: Role) {
   // eslint-disable-next-line no-empty-pattern
   return async ({}, use: (account: Account) => Promise<void>) =>
