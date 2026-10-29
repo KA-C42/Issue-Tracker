@@ -22,6 +22,8 @@ export type Account = {
   email: string
   password: string
   username: string
+  // for API setup calls; expires after an hour
+  accessToken: string
   storageState: Awaited<ReturnType<BrowserContext['storageState']>>
 }
 
@@ -83,6 +85,7 @@ export async function signUp(label: string): Promise<Account> {
     email,
     password: PASSWORD,
     username,
+    accessToken: data.session.access_token,
     storageState: {
       cookies: [],
       origins: [
