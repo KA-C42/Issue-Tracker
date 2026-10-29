@@ -1,5 +1,5 @@
 // components/cards/CardBox.tsx
-import type { ReactNode } from 'react'
+import { useId, type ReactNode } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Skeleton } from '../ui/skeleton'
 
@@ -14,6 +14,7 @@ export default function CardBox<T>({
   data: T[] | undefined
   renderCard: (item: T, index: number) => ReactNode
 }) {
+  const titleId = useId()
   let content: ReactNode
 
   if (data)
@@ -34,9 +35,15 @@ export default function CardBox<T>({
       </div>
     )
   return (
-    <Card className="flex max-h-[60svh] flex-col md:h-full md:max-h-none">
+    <Card
+      role="region"
+      aria-labelledby={titleId}
+      className="flex max-h-[60svh] flex-col md:h-full md:max-h-none"
+    >
       <CardHeader>
-        <CardTitle className="text-center font-semibold">{title}</CardTitle>
+        <CardTitle id={titleId} className="text-center font-semibold">
+          {title}
+        </CardTitle>
       </CardHeader>
       {/* *:shrink-0: cards overflow and scroll instead of squishing */}
       <CardContent className="flex flex-1 flex-col gap-3 overflow-y-auto p-1 *:shrink-0">
