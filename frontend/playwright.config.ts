@@ -20,8 +20,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   /* Retry once, twice for CI */
   retries: process.env.CI ? 2 : 1,
-  /* Opt out of parallel tests on CI. Only 2 workers locally due to slow computer*/
-  workers: process.env.CI ? 1 : 2,
+  // trying 2 on CI (was the template's 1), drop back if runs get flaky.
+  // 2 locally due to slow computer
+  workers: process.env.CI ? 2 : 2,
+
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */

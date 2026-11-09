@@ -3,6 +3,9 @@ name: Test CI
 on:
   pull_request:
     branches: ['main']
+  # firefox + webkit e2e only, everything else already ran on the PR
+  push:
+    branches: ['main']
 
 jobs:
   tests:
@@ -39,12 +42,14 @@ jobs:
         run: supabase status -o env | tr -d '"' >> "$GITHUB_ENV"
 
       - name: Backend Vitest
+        if: github.event_name == 'pull_request'
         env:
           DATABASE_URL: ${{ env.DB_URL }}
           SUPABASE_AUTH_URL: ${{ env.API_URL }}/auth/v1/.well-known/jwks.json
         run: npm run test --prefix backend
  
       - name: Frontend Vitest
+        if: github.event_name == 'pull_request'
         env:
           VITE_SUPABASE_URL: ${{ env.API_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ env.PUBLISHABLE_KEY }}
@@ -52,8 +57,8 @@ jobs:
  
       - name: Install Playwright
         working-directory: frontend
-        run: npx playwright install --with-deps
- 
+        run: npx playwright install --with-deps ${{ github.event_name == 'pull_request' && 'chromium' || 'firefox webkit' }}
+
       - name: Playwright e2e
         env:
           DATABASE_URL: ${{ env.DB_URL }}
@@ -61,8 +66,9 @@ jobs:
           VITE_SUPABASE_URL: ${{ env.API_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ env.PUBLISHABLE_KEY }}
         working-directory: frontend
-        run: npm run test:e2e
- 
+        # chromium on PRs, the other browsers after merge to keep PR runs fast
+        run: npm run test:e2e -- ${{ github.event_name == 'pull_request' && '--project=chromium' || '--project=firefox --project=webkit' }}
+
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
