@@ -51,6 +51,7 @@ export default function SentInviteCard({
             <Button
               variant="ghost"
               size="xs"
+              aria-label={`Revoke invite for ${invite.recipient_username}`}
               disabled={inviteRevoke.isPending}
               onClick={() => inviteRevoke.mutate(invite.id)}
             >

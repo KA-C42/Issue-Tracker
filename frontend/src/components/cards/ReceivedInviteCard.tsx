@@ -52,6 +52,7 @@ export default function ReceivedInviteCard(invite: PendingReceivedInvite) {
           <Button
             variant="default"
             size="xs"
+            aria-label={`Accept invite to ${invite.project_title}`}
             disabled={respond.isPending}
             onClick={() =>
               respond.mutate({ inviteId: invite.id, response: 'ACCEPTED' })
@@ -63,6 +64,7 @@ export default function ReceivedInviteCard(invite: PendingReceivedInvite) {
           <Button
             variant="ghost"
             size="xs"
+            aria-label={`Decline invite to ${invite.project_title}`}
             disabled={respond.isPending}
             onClick={() =>
               respond.mutate({ inviteId: invite.id, response: 'REJECTED' })

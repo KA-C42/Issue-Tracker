@@ -1,5 +1,5 @@
 import { test } from '@playwright/test'
-import type { Project, ProjectInput } from '@issue-tracker/shared'
+import type { Invite, Project, ProjectInput } from '@issue-tracker/shared'
 import type { Account } from '../fixtures'
 
 // Test setup through the backend, so only the behavior under test goes
@@ -30,5 +30,15 @@ export function createProject(
   return apiPost<Project>(owner, '/api/projects', {
     description: '',
     ...project,
+  })
+}
+
+export function sendInvite(
+  sender: Account,
+  projectId: string,
+  recipientUsername: string,
+) {
+  return apiPost<Invite>(sender, `/api/projects/${projectId}/invites`, {
+    recipient_username: recipientUsername,
   })
 }

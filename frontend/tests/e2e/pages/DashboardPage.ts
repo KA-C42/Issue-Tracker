@@ -40,6 +40,10 @@ export class DashboardPage {
   async goto() {
     await this.page.goto('/')
     await expect(this.heading).toBeVisible()
+    // wait out the loading skeletons so toHaveCount(0) checks see real data
+    await expect(
+      this.page.getByRole('status', { name: 'Loading' }),
+    ).toHaveCount(0)
   }
 
   async submitProjectForm(title: string, code: string) {
@@ -59,6 +63,12 @@ export class DashboardPage {
 
   projectLink(section: Locator, title: string) {
     return section.getByRole('link', { name: title })
+  }
+
+  inviteButton(response: 'Accept' | 'Decline', projectTitle: string) {
+    return this.pendingInvites.getByRole('button', {
+      name: `${response} invite to ${projectTitle}`,
+    })
   }
 
   async submitUsernameForm(username: string) {

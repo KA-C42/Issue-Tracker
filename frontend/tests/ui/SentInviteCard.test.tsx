@@ -30,6 +30,9 @@ const INVITE = {
 
 const invitesKey = { queryKey: projectInvitesQueryOptions(PROJECT.id).queryKey }
 
+// full name, so a dropped or mismatched aria-label fails here
+const REVOKE = { name: 'Revoke invite for recipient_name' }
+
 function renderCard(viewerId: string) {
   vi.spyOn(auth, 'useAuthProtected').mockReturnValue({
     user: { id: viewerId },
@@ -53,16 +56,17 @@ afterEach(() => {
 
 test('shows revoke to the project creator', () => {
   renderCard('creator')
-  expect(screen.getByRole('button', { name: /revoke/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', REVOKE)).toBeInTheDocument()
 })
 
 test('shows revoke to the invite sender', () => {
   renderCard('sender')
-  expect(screen.getByRole('button', { name: /revoke/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', REVOKE)).toBeInTheDocument()
 })
 
 test('hides revoke from other members', () => {
   renderCard('someone-else')
+  // loose match, so a renamed button can't make this pass
   expect(
     screen.queryByRole('button', { name: /revoke/i }),
   ).not.toBeInTheDocument()
@@ -72,7 +76,7 @@ test('revoking sends the invite id and refreshes pending invites', async () => {
   const revoke = vi.spyOn(invitesApi, 'revokeInvite').mockResolvedValue(INVITE)
   const { invalidate } = renderCard('creator')
 
-  fireEvent.click(screen.getByRole('button', { name: /revoke/i }))
+  fireEvent.click(screen.getByRole('button', REVOKE))
 
   await waitFor(() => expect(invalidate).toHaveBeenCalledWith(invitesKey))
   expect(revoke.mock.calls[0][0]).toBe('invite-1')
@@ -82,7 +86,7 @@ test('a failed revoke (e.g. 409) still refreshes pending invites', async () => {
   vi.spyOn(invitesApi, 'revokeInvite').mockRejectedValue(new Error('409'))
   const { invalidate } = renderCard('creator')
 
-  fireEvent.click(screen.getByRole('button', { name: /revoke/i }))
+  fireEvent.click(screen.getByRole('button', REVOKE))
 
   await waitFor(() => expect(invalidate).toHaveBeenCalledWith(invitesKey))
 })
