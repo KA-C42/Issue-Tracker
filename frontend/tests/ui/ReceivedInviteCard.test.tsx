@@ -21,6 +21,10 @@ const INVITE = {
 const receivedInvitesKey = { queryKey: receivedInvitesQueryOptions.queryKey }
 const projectsKey = { queryKey: contributingProjectsQueryOptions.queryKey }
 
+// full names, so a dropped or mismatched aria-label fails here
+const ACCEPT = { name: 'Accept invite to Test project' }
+const DECLINE = { name: 'Decline invite to Test project' }
+
 function renderCard() {
   const queryClient = new QueryClient()
   const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
@@ -51,7 +55,7 @@ test('accept sends ACCEPTED and refreshes invites and projects', async () => {
     .mockResolvedValue(INVITE)
   const { invalidate } = renderCard()
 
-  fireEvent.click(screen.getByRole('button', { name: /accept/i }))
+  fireEvent.click(screen.getByRole('button', ACCEPT))
 
   await waitFor(() =>
     expect(invalidate).toHaveBeenCalledWith(receivedInvitesKey),
@@ -69,7 +73,7 @@ test('decline sends REJECTED', async () => {
     .mockResolvedValue(INVITE)
   renderCard()
 
-  fireEvent.click(screen.getByRole('button', { name: /decline/i }))
+  fireEvent.click(screen.getByRole('button', DECLINE))
 
   await waitFor(() => expect(respond).toHaveBeenCalled())
   expect(respond.mock.calls[0][0]).toEqual({
@@ -82,7 +86,7 @@ test('a failed response (e.g. 409) still refreshes received invites', async () =
   vi.spyOn(invitesApi, 'respondToInvite').mockRejectedValue(new Error('409'))
   const { invalidate } = renderCard()
 
-  fireEvent.click(screen.getByRole('button', { name: /accept/i }))
+  fireEvent.click(screen.getByRole('button', ACCEPT))
 
   await waitFor(() =>
     expect(invalidate).toHaveBeenCalledWith(receivedInvitesKey),
@@ -96,10 +100,8 @@ test('disables both buttons while the response is in flight', async () => {
   )
   renderCard()
 
-  fireEvent.click(screen.getByRole('button', { name: /accept/i }))
+  fireEvent.click(screen.getByRole('button', ACCEPT))
 
-  await waitFor(() =>
-    expect(screen.getByRole('button', { name: /accept/i })).toBeDisabled(),
-  )
-  expect(screen.getByRole('button', { name: /decline/i })).toBeDisabled()
+  await waitFor(() => expect(screen.getByRole('button', ACCEPT)).toBeDisabled())
+  expect(screen.getByRole('button', DECLINE)).toBeDisabled()
 })
