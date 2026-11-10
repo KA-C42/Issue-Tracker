@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { test, expect, vi } from 'vitest'
@@ -123,15 +123,31 @@ test('shows Edit and Delete on the issue to its creator', async () => {
 
   expect(await screen.findByText('Test issue')).toBeInTheDocument()
 
-  // scope to buttons outside any comment card, since 'owner' also owns
-  // the seeded comment and would otherwise show up in both counts
-  const editButtons = screen
-    .getAllByRole('button', { name: /edit/i })
-    .filter((button) => !button.closest('[data-slot="card"]'))
-  const deleteButtons = screen
-    .getAllByRole('button', { name: /delete/i })
-    .filter((button) => !button.closest('[data-slot="card"]'))
+  expect(screen.getByRole('button', { name: 'Edit title' })).toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: 'Edit details' }),
+  ).toBeInTheDocument()
+  expect(
+    screen.getByRole('button', { name: 'Delete issue' }),
+  ).toBeInTheDocument()
+})
 
-  expect(editButtons).toHaveLength(2) // title + details
-  expect(deleteButtons).toHaveLength(1)
+test('names the edit fields and selects', async () => {
+  vi.spyOn(auth, 'useAuthProtected').mockReturnValue({
+    user: { id: 'owner' },
+  } as any)
+
+  renderScreen()
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Edit title' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Edit details' }))
+
+  expect(screen.getByRole('textbox', { name: 'Title' })).toHaveValue(
+    'Test issue',
+  )
+  expect(screen.getByRole('textbox', { name: 'Details' })).toHaveValue(
+    'details',
+  )
+  expect(screen.getByRole('combobox', { name: 'Status' })).toBeInTheDocument()
+  expect(screen.getByRole('combobox', { name: 'Assignee' })).toBeInTheDocument()
 })
