@@ -1,5 +1,11 @@
 import { test } from '@playwright/test'
-import type { Invite, Project, ProjectInput } from '@issue-tracker/shared'
+import type {
+  CreateIssueInput,
+  Invite,
+  Issue,
+  Project,
+  ProjectInput,
+} from '@issue-tracker/shared'
 import type { Account } from '../fixtures'
 
 // Test setup through the backend, so only the behavior under test goes
@@ -31,6 +37,14 @@ export function createProject(
     description: '',
     ...project,
   })
+}
+
+export function createIssue(
+  author: Account,
+  projectId: string,
+  issue: Omit<CreateIssueInput, 'project_id'>,
+) {
+  return apiPost<Issue>(author, `/api/projects/${projectId}/issues`, issue)
 }
 
 export function sendInvite(
