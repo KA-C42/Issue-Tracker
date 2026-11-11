@@ -11,13 +11,14 @@ import type { Account } from '../fixtures'
 
 // Test setup through the backend, so only the behavior under test goes
 // through the UI. Same /api path (via the dev server proxy) the app uses.
-async function apiPost<T>(
+async function apiRequest<T>(
+  method: 'POST' | 'PATCH',
   account: Account,
   path: string,
   body: unknown,
 ): Promise<T> {
   const res = await fetch(new URL(path, test.info().project.use.baseURL), {
-    method: 'POST',
+    method,
     headers: {
       Authorization: `Bearer ${account.accessToken}`,
       'Content-Type': 'application/json',
@@ -25,10 +26,18 @@ async function apiPost<T>(
     body: JSON.stringify(body),
   })
   if (!res.ok) {
-    throw new Error(`POST ${path} failed: ${res.status} ${await res.text()}`)
+    throw new Error(
+      `${method} ${path} failed: ${res.status} ${await res.text()}`,
+    )
   }
   return res.json()
 }
+
+const apiPost = <T>(account: Account, path: string, body: unknown) =>
+  apiRequest<T>('POST', account, path, body)
+
+const apiPatch = <T>(account: Account, path: string, body: unknown) =>
+  apiRequest<T>('PATCH', account, path, body)
 
 export function createProject(
   owner: Account,
@@ -65,5 +74,17 @@ export function createComment(
 ) {
   return apiPost<Comment>(author, `/api/issues/${issueId}/comments`, {
     comment,
+  })
+}
+
+// invite + accept, so the contributor is a member before the test starts
+export async function addContributor(
+  owner: Account,
+  projectId: string,
+  contributor: Account,
+) {
+  const invite = await sendInvite(owner, projectId, contributor.username)
+  await apiPatch<Invite>(contributor, `/api/me/invites/${invite.id}`, {
+    status: 'ACCEPTED',
   })
 }
