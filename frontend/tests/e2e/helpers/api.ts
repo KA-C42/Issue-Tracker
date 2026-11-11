@@ -1,5 +1,6 @@
 import { test } from '@playwright/test'
 import type {
+  Comment,
   CreateIssueInput,
   Invite,
   Issue,
@@ -54,5 +55,15 @@ export function sendInvite(
 ) {
   return apiPost<Invite>(sender, `/api/projects/${projectId}/invites`, {
     recipient_username: recipientUsername,
+  })
+}
+
+export function createComment(
+  author: Account,
+  issueId: string,
+  comment: string,
+) {
+  return apiPost<Comment>(author, `/api/issues/${issueId}/comments`, {
+    comment,
   })
 }
