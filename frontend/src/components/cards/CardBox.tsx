@@ -1,5 +1,5 @@
 // components/cards/CardBox.tsx
-import { useId, type ReactNode } from 'react'
+import { isValidElement, useId, type ReactNode } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Skeleton } from '../ui/skeleton'
 
@@ -22,7 +22,16 @@ export default function CardBox<T>({
       data.length === 0 ? (
         <p className="flex justify-center">Nothing here yet.</p>
       ) : (
-        data.map((item, index) => renderCard(item, index))
+        // role="list" because Safari drops list semantics once Tailwind
+        // removes the bullets
+        <ul role="list" className="flex flex-col gap-3">
+          {data.map((item, index) => {
+            const card = renderCard(item, index)
+            // callers key their cards, so the key moves up to the <li>
+            const key = isValidElement(card) ? card.key : null
+            return <li key={key ?? index}>{card}</li>
+          })}
+        </ul>
       )
   else if (isError)
     content = <p className="flex justify-center">Couldn't load content</p>

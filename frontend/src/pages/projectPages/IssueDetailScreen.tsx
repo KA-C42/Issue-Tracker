@@ -194,6 +194,7 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
           {isEditingTitle ? (
             <div className="flex flex-col gap-2">
               <Input
+                aria-label="Title"
                 value={titleDraft}
                 onChange={(e) => setTitleDraft(e.target.value)}
               />
@@ -223,6 +224,7 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
                 <Button
                   variant="ghost"
                   size="xs"
+                  aria-label="Edit title"
                   onClick={() => {
                     setTitleDraft(issue.title)
                     setIsEditingTitle(true)
@@ -264,7 +266,7 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
                   })
                 }
               >
-                <SelectTrigger size="sm">
+                <SelectTrigger size="sm" aria-label="Status">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -299,7 +301,7 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
                   })
                 }
               >
-                <SelectTrigger size="sm">
+                <SelectTrigger size="sm" aria-label="Assignee">
                   <SelectValue
                     placeholder={
                       membersQuery.isLoading ? 'Loading…' : 'Unassigned'
@@ -328,6 +330,7 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
           {isEditingDetails ? (
             <div className="flex flex-col gap-2">
               <Textarea
+                aria-label="Details"
                 value={detailsDraft}
                 onChange={(e) => setDetailsDraft(e.target.value)}
                 rows={10}
@@ -363,6 +366,7 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
                 <Button
                   variant="ghost"
                   size="xs"
+                  aria-label="Edit details"
                   onClick={() => {
                     setDetailsDraft(issue.details ?? '')
                     setIsEditingDetails(true)
@@ -439,6 +443,7 @@ function IssueDetail({ projectId, issueId }: IssueDetailProps) {
           <Button
             variant="destructive"
             size="sm"
+            aria-label="Delete issue"
             onClick={() => setShowDeleteConfirm(true)}
           >
             Delete

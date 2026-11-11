@@ -21,6 +21,8 @@ const member = (userId: string) => ({
   joined_at: new Date().toISOString(),
 })
 
+const REMOVE = { name: 'Remove member_name from project' }
+
 function renderCard(viewerId: string, memberId: string) {
   vi.spyOn(auth, 'useAuthProtected').mockReturnValue({
     user: { id: viewerId },
@@ -35,7 +37,7 @@ function renderCard(viewerId: string, memberId: string) {
 
 test('shows remove to the project creator on other members', () => {
   renderCard('creator', 'member')
-  expect(screen.getByRole('button', { name: /remove/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', REMOVE)).toBeInTheDocument()
 })
 
 test("hides remove on the creator's own row", () => {

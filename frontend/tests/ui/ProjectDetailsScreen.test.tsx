@@ -54,6 +54,18 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 
+test('shows the project title as the page heading', async () => {
+  vi.spyOn(auth, 'useAuthProtected').mockReturnValue({
+    user: { id: 'contributor' },
+  } as any)
+
+  renderScreen()
+
+  expect(
+    await screen.findByRole('heading', { level: 1, name: PROJECT.title }),
+  ).toBeInTheDocument()
+})
+
 test('shows Edit to the project creator', async () => {
   vi.spyOn(auth, 'useAuthProtected').mockReturnValue({
     user: { id: 'owner' },

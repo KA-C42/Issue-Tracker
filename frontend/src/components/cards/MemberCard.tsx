@@ -77,6 +77,7 @@ export default function MemberCard({
             <Button
               variant="ghost"
               size="xs"
+              aria-label={`Remove ${member.username} from project`}
               onClick={() => setShowRemoveConfirm(true)}
             >
               Remove
