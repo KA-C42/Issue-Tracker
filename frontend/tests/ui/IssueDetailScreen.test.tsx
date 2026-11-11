@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { test, expect, vi } from 'vitest'
@@ -103,14 +103,11 @@ test('shows Edit and Delete on a comment to its own creator', async () => {
 
   renderScreen()
 
-  const commentText = await screen.findByText(COMMENT.comment)
-  const commentCard = commentText.closest('[data-slot="card"]') as HTMLElement
-
   expect(
-    within(commentCard).getByRole('button', { name: /edit/i }),
+    await screen.findByRole('button', { name: 'Edit comment' }),
   ).toBeInTheDocument()
   expect(
-    within(commentCard).getByRole('button', { name: /delete/i }),
+    screen.getByRole('button', { name: 'Delete comment' }),
   ).toBeInTheDocument()
 })
 
@@ -141,12 +138,16 @@ test('names the edit fields and selects', async () => {
 
   fireEvent.click(await screen.findByRole('button', { name: 'Edit title' }))
   fireEvent.click(screen.getByRole('button', { name: 'Edit details' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Edit comment' }))
 
   expect(screen.getByRole('textbox', { name: 'Title' })).toHaveValue(
     'Test issue',
   )
   expect(screen.getByRole('textbox', { name: 'Details' })).toHaveValue(
     'details',
+  )
+  expect(screen.getByRole('textbox', { name: 'Comment' })).toHaveValue(
+    COMMENT.comment,
   )
   expect(screen.getByRole('combobox', { name: 'Status' })).toBeInTheDocument()
   expect(screen.getByRole('combobox', { name: 'Assignee' })).toBeInTheDocument()

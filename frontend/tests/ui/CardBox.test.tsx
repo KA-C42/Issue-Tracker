@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import CardBox from '@/components/cards/CardBox'
 
 type Item = { id: string; name: string }
@@ -44,13 +44,16 @@ describe('CardBox', () => {
 
     expect(screen.getByText('Nothing here yet.')).toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
   })
 
-  it('renders a card for each item', () => {
+  it('renders each card as an item of one list', () => {
     renderBox(items)
 
-    expect(screen.getByText('First project')).toBeInTheDocument()
-    expect(screen.getByText('Second project')).toBeInTheDocument()
+    const listItems = within(screen.getByRole('list')).getAllByRole('listitem')
+    expect(listItems).toHaveLength(2)
+    expect(listItems[0]).toHaveTextContent('First project')
+    expect(listItems[1]).toHaveTextContent('Second project')
     expect(screen.queryByText('Nothing here yet.')).not.toBeInTheDocument()
   })
 

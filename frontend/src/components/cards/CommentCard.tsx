@@ -78,6 +78,7 @@ export default function CommentCard({
               <Button
                 variant="ghost"
                 size="xs"
+                aria-label="Edit comment"
                 onClick={() => setIsEditing(true)}
               >
                 Edit
@@ -87,6 +88,7 @@ export default function CommentCard({
               <Button
                 variant="ghost"
                 size="xs"
+                aria-label="Delete comment"
                 disabled={removeComment.isPending}
                 onClick={() => removeComment.mutate(comment.id)}
               >
@@ -100,6 +102,7 @@ export default function CommentCard({
         {isEditing ? (
           <div className="flex flex-col gap-2">
             <Textarea
+              aria-label="Comment"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               rows={3}
