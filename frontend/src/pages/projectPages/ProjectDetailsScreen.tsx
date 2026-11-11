@@ -57,7 +57,9 @@ function ProjectInfo({ project }: { project: Project }) {
     <>
       <Card>
         <CardHeader className="border-b">
-          <CardTitle className="text-lg">{project.title}</CardTitle>
+          <CardTitle className="text-lg">
+            <h1>{project.title}</h1>
+          </CardTitle>
           {canPatchProject(user.id, project) && (
             <CardAction>
               <Button
